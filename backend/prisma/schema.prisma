@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Dados da Escola
+model Escola {
+  id         String   @id @default(uuid())
+  nome       String
+  cnpj       String   @unique
+  telefone   String?
+  email      String?
+  endereco   String?
+  cidade     String?
+  estado     String?
+  cep        String?
+  diretor    String?
+  secretario String?
+  logo       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// Usuários do Sistema
+model Usuario {
+  id        String      @id @default(uuid())
+  nome      String
+  email     String      @unique
+  senha     String
+  perfil    String      // DIRETOR, SECRETARIO, COORDENADOR
+  ativo     Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+// Funcionários (base para professores e outros)
+model Funcionario {
+  id                String    @id @default(uuid())
+  nome              String
+  cpf               String    @unique
+  rg                String?
+  dataNascimento    DateTime?
+  telefone          String?
+  email             String?
+  endereco          String?
+  cidade            String?
+  estado            String?
+  cep               String?
+  cargo             String
+  salario           Float
+  dataContratacao   DateTime
+  dataDesligamento  DateTime?
+  ativo             Boolean   @default(true)
+  observacoes       String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Se for professor, terá vínculo com turmas
+  professor         Professor?
+  pagamentos        PagamentoFuncionario[]
+}
+
+// Professor (extensão de funcionário)
+model Professor {
+  id            String      @id @default(uuid())
+  funcionarioId String      @unique
+  formacao      String?
+  especialidade String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  turmas        TurmaProfessor[]
+}
+
+// Responsável (Pai/Mãe)
+model Responsavel {
+  id             String    @id @default(uuid())
+  nome           String
+  cpf            String    @unique
+  rg             String?
+  dataNascimento DateTime?
+  telefone       String?
+  celular        String?
+  email          String?
+  endereco       String?
+  cidade         String?
+  estado         String?
+  cep            String?
+  profissao      String?
+  localTrabalho  String?
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  alunos         Aluno[]
+}
+
+// Aluno
+model Aluno {
+  id               String      @id @default(uuid())
+  nome             String
+  cpf              String?     @unique
+  rg               String?
+  dataNascimento   DateTime
+  sexo             String?
+  telefone         String?
+  email            String?
+  endereco         String?
+  cidade           String?
+  estado           String?
+  cep              String?
+  responsavelId    String
+  turmaId          String?
+  matriculaAtiva   Boolean     @default(false)
+  dataMatricula    DateTime?
+  observacoes      String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  responsavel      Responsavel @relation(fields: [responsavelId], references: [id])
+  turma            Turma?      @relation(fields: [turmaId], references: [id])
+  notas            Nota[]
+  matriculas       Matricula[]
+  mensalidades     Mensalidade[]
+}
+
+// Turma
+model Turma {
+  id            String    @id @default(uuid())
+  nome          String
+  ano           Int
+  turno         String    // Matutino, Vespertino, Integral
+  serie         String?
+  salaNumero    String?
+  capacidade    Int       @default(30)
+  ativa         Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  alunos        Aluno[]
+  professores   TurmaProfessor[]
+  notas         Nota[]
+}
+
+// Relacionamento Turma-Professor (muitos para muitos)
+model TurmaProfessor {
+  id          String    @id @default(uuid())
+  turmaId     String
+  professorId String
+  disciplina  String?
+  createdAt   DateTime  @default(now())
+
+  turma       Turma     @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  professor   Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+
+  @@unique([turmaId, professorId, disciplina])
+}
+
+// Notas
+model Nota {
+  id         String    @id @default(uuid())
+  alunoId    String
+  turmaId    String
+  disciplina String
+  bimestre   Int       // 1, 2, 3, 4
+  nota       Float
+  tipo       String?   // Prova, Trabalho, Participação
+  observacao String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  aluno      Aluno     @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  turma      Turma     @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+
+  @@unique([alunoId, turmaId, disciplina, bimestre, tipo])
+}
+
+// Planos de Mensalidade
+model PlanoMensalidade {
+  id          String      @id @default(uuid())
+  nome        String      @unique  // Ex: "Integral", "Matutino", "Vespertino", "Promocional Irmãos"
+  descricao   String?
+  valor       Float
+  ativo       Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  matriculas  Matricula[]
+}
+
+// Matrícula
+model Matricula {
+  id               String           @id @default(uuid())
+  alunoId          String
+  planoId          String
+  anoLetivo        Int
+  valorMatricula   Float
+  valorMensalidade Float
+  diaVencimento    Int              @default(10)
+  dataMatricula    DateTime         @default(now())
+  status           String           @default("ATIVA") // ATIVA, CANCELADA, CONCLUIDA, TRANCADA
+  observacoes      String?
+  desconto         Float            @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  aluno            Aluno            @relation(fields: [alunoId], references: [id])
+  plano            PlanoMensalidade @relation(fields: [planoId], references: [id])
+  mensalidades     Mensalidade[]
+}
+
+// Mensalidade
+model Mensalidade {
+  id            String            @id @default(uuid())
+  alunoId       String
+  matriculaId   String
+  mesReferencia Int               // 1-12
+  anoReferencia Int
+  valor         Float
+  valorPago     Float?
+  desconto      Float             @default(0)
+  multa         Float             @default(0)
+  juros         Float             @default(0)
+  dataVencimento DateTime
+  dataPagamento DateTime?
+  status        String            @default("PENDENTE") // PENDENTE, PAGO, ATRASADO, CANCELADO
+  formaPagamento String?
+  observacoes   String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  aluno         Aluno             @relation(fields: [alunoId], references: [id])
+  matricula     Matricula         @relation(fields: [matriculaId], references: [id])
+}
+
+// Despesas
+model Despesa {
+  id          String         @id @default(uuid())
+  descricao   String
+  categoria   String
+  valor       Float
+  dataVencimento DateTime
+  dataPagamento DateTime?
+  status      String         @default("PENDENTE") // PENDENTE, PAGO, CANCELADO
+  fornecedor  String?
+  observacoes String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+// Pagamento de Funcionário
+model PagamentoFuncionario {
+  id             String    @id @default(uuid())
+  funcionarioId  String
+  mesReferencia  Int
+  anoReferencia  Int
+  salarioBase    Float
+  bonus          Float     @default(0)
+  descontos      Float     @default(0)
+  valorLiquido   Float
+  dataPagamento  DateTime?
+  status         String    @default("PENDENTE")
+  observacoes    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  funcionario    Funcionario @relation(fields: [funcionarioId], references: [id])
+
+  @@unique([funcionarioId, mesReferencia, anoReferencia])
+}
