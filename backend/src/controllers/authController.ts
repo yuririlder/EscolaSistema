@@ -67,9 +67,9 @@ class AuthController {
       // Criar usuário admin
       const senhaHash = await bcrypt.hash('admin123', 10);
       await query(
-        `INSERT INTO usuarios (nome, email, senha, perfil, ativo, escola_id, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *`,
-        ['Administrador', 'admin@escola.com', senhaHash, 'Diretor', true, escola.id]
+        `INSERT INTO usuarios (nome, email, senha, perfil, ativo, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *`,
+        ['Administrador', 'admin@escola.com', senhaHash, 'Diretor', true]
       );
 
       // Verificar se já existem planos, senão criar
