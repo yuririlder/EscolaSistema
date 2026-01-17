@@ -7,6 +7,8 @@ declare class TurmaController {
     buscarComProfessores(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
     atualizar(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
     deletar(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
+    vincularProfessor(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
+    desvincularProfessor(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
 }
 export declare const turmaController: TurmaController;
 export {};

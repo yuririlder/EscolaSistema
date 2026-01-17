@@ -10,6 +10,8 @@ router.get('/', controllers_1.turmaController.listar);
 router.get('/:id', controllers_1.turmaController.buscarPorId);
 router.get('/:id/alunos', controllers_1.turmaController.buscarComAlunos);
 router.get('/:id/professores', controllers_1.turmaController.buscarComProfessores);
+router.post('/:id/professores/:professorId', middlewares_1.requireDiretorOuSecretario, controllers_1.turmaController.vincularProfessor);
+router.delete('/:id/professores/:professorId', middlewares_1.requireDiretorOuSecretario, controllers_1.turmaController.desvincularProfessor);
 router.put('/:id', middlewares_1.requireDiretorOuSecretario, controllers_1.turmaController.atualizar);
 router.delete('/:id', middlewares_1.requireDiretorOuSecretario, controllers_1.turmaController.deletar);
 exports.default = router;

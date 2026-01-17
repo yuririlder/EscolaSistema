@@ -42,8 +42,9 @@ class FinanceiroService {
         return this.buscarPlanoPorId(id);
     }
     async deletarPlano(id) {
-        await (0, connection_1.query)('DELETE FROM planos_mensalidade WHERE id = $1', [id]);
-        logger_1.logger.info(`Plano deletado: ${id}`);
+        // Soft delete - apenas desativa para manter histórico de matrículas
+        await (0, connection_1.query)('UPDATE planos_mensalidade SET ativo = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+        logger_1.logger.info(`Plano desativado: ${id}`);
     }
     // ==================== MATRÍCULAS ====================
     async realizarMatricula(data) {
@@ -147,6 +148,41 @@ class FinanceiroService {
         return this.buscarMatriculaPorId(id);
     }
     // ==================== MENSALIDADES ====================
+    /**
+     * Calcula o status real da mensalidade baseado na data atual
+     * - PAGO: já foi paga
+     * - VENCIDA: data de vencimento passou e não foi paga
+     * - PENDENTE: mês atual, ainda não venceu
+     * - FUTURA: meses futuros
+     */
+    calcularStatusMensalidade(mensalidade) {
+        // Se já está paga ou cancelada, mantém
+        if (mensalidade.status === 'PAGO' || mensalidade.status === 'CANCELADO') {
+            return mensalidade.status;
+        }
+        const hoje = new Date();
+        const dataVencimento = new Date(mensalidade.data_vencimento);
+        const mesAtual = hoje.getMonth() + 1;
+        const anoAtual = hoje.getFullYear();
+        // Zerar horas para comparação de datas
+        hoje.setHours(0, 0, 0, 0);
+        dataVencimento.setHours(0, 0, 0, 0);
+        // Se a data de vencimento já passou, está vencida
+        if (dataVencimento < hoje) {
+            return 'VENCIDA';
+        }
+        // Se é do mês atual e ano atual, está pendente
+        if (mensalidade.mes_referencia === mesAtual && mensalidade.ano_referencia === anoAtual) {
+            return 'PENDENTE';
+        }
+        // Se é de mês/ano futuro, é futura
+        if (mensalidade.ano_referencia > anoAtual ||
+            (mensalidade.ano_referencia === anoAtual && mensalidade.mes_referencia > mesAtual)) {
+            return 'FUTURA';
+        }
+        // Se é de mês passado mas não venceu (improvável), marca como pendente
+        return 'PENDENTE';
+    }
     async listarMensalidades(filtros) {
         let sql = `
       SELECT m.*, a.nome as aluno_nome
@@ -164,26 +200,48 @@ class FinanceiroService {
             sql += ` AND m.ano_referencia = $${paramIndex++}`;
             params.push(filtros.ano);
         }
-        if (filtros.status) {
-            sql += ` AND m.status = $${paramIndex++}`;
-            params.push(filtros.status);
-        }
+        // Filtro de status será aplicado após calcular o status real
+        const statusFiltro = filtros.status;
         sql += ' ORDER BY m.data_vencimento DESC';
-        return await (0, connection_1.queryMany)(sql, params);
+        const mensalidades = await (0, connection_1.queryMany)(sql, params);
+        // Calcular status real de cada mensalidade
+        const mensalidadesComStatus = mensalidades.map((m) => ({
+            ...m,
+            status_original: m.status,
+            status: this.calcularStatusMensalidade(m)
+        }));
+        // Filtrar por status se especificado
+        if (statusFiltro) {
+            return mensalidadesComStatus.filter((m) => m.status === statusFiltro);
+        }
+        return mensalidadesComStatus;
     }
     async listarInadimplentes() {
-        return await (0, connection_1.queryMany)(`SELECT m.*, a.nome as aluno_nome, r.nome as responsavel_nome, r.telefone, r.celular, r.email
+        const mensalidades = await (0, connection_1.queryMany)(`SELECT m.*, a.nome as aluno_nome, r.nome as responsavel_nome, r.telefone, r.celular, r.email
        FROM mensalidades m
        INNER JOIN alunos a ON m.aluno_id = a.id
        INNER JOIN responsaveis r ON a.responsavel_id = r.id
-       WHERE m.status IN ('PENDENTE', 'ATRASADO') AND m.data_vencimento < CURRENT_DATE
+       WHERE m.status NOT IN ('PAGO', 'CANCELADO') AND m.data_vencimento < CURRENT_DATE
        ORDER BY m.data_vencimento ASC`);
+        // Calcular status real
+        return mensalidades.map((m) => ({
+            ...m,
+            status: this.calcularStatusMensalidade(m)
+        }));
     }
     async buscarMensalidadePorId(id) {
-        return await (0, connection_1.queryOne)(`SELECT m.*, a.nome as aluno_nome
+        const mensalidade = await (0, connection_1.queryOne)(`SELECT m.*, a.nome as aluno_nome
        FROM mensalidades m
        INNER JOIN alunos a ON m.aluno_id = a.id
        WHERE m.id = $1`, [id]);
+        if (mensalidade) {
+            return {
+                ...mensalidade,
+                status_original: mensalidade.status,
+                status: this.calcularStatusMensalidade(mensalidade)
+            };
+        }
+        return null;
     }
     async registrarPagamentoMensalidade(id, data) {
         const mensalidade = await this.buscarMensalidadePorId(id);
@@ -251,8 +309,9 @@ class FinanceiroService {
         return this.buscarDespesaPorId(id);
     }
     async deletarDespesa(id) {
-        await (0, connection_1.query)('DELETE FROM despesas WHERE id = $1', [id]);
-        logger_1.logger.info(`Despesa deletada: ${id}`);
+        // Soft delete - apenas marca como cancelado para manter histórico
+        await (0, connection_1.query)("UPDATE despesas SET status = 'CANCELADO', updated_at = CURRENT_TIMESTAMP WHERE id = $1", [id]);
+        logger_1.logger.info(`Despesa cancelada: ${id}`);
     }
     // ==================== PAGAMENTOS FUNCIONÁRIOS ====================
     async criarPagamentoFuncionario(data) {
@@ -324,7 +383,12 @@ class FinanceiroService {
        WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`, [mesAtual, anoAtual]);
         const despesasMes = await (0, connection_1.queryOne)(`SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
        WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`, [mesAtual, anoAtual]);
-        const mensalidadesPendentes = await (0, connection_1.queryOne)("SELECT COUNT(*) as count FROM mensalidades WHERE status = 'PENDENTE'", []);
+        const mensalidadesPendentes = await (0, connection_1.queryOne)(`SELECT COUNT(*) as count FROM mensalidades 
+       WHERE status NOT IN ('PAGO', 'CANCELADO') 
+       AND (
+         -- Mês atual (PENDENTE) ou já vencida
+         (mes_referencia = $1 AND ano_referencia = $2) OR data_vencimento < CURRENT_DATE
+       )`, [mesAtual, anoAtual]);
         // Alunos por turma
         const alunosPorTurma = await (0, connection_1.queryMany)(`SELECT t.nome as turma, COUNT(a.id) as quantidade 
        FROM turmas t 
@@ -332,21 +396,25 @@ class FinanceiroService {
        WHERE t.ativa = true 
        GROUP BY t.id, t.nome 
        ORDER BY t.nome`);
-        // Mensalidades por status
+        // Mensalidades por status (com lógica calculada)
         const mensalidadesPorStatus = await (0, connection_1.queryMany)(`SELECT 
          CASE 
            WHEN status = 'PAGO' THEN 'Pago'
-           WHEN status = 'PENDENTE' AND data_vencimento >= CURRENT_DATE THEN 'Pendente'
-           ELSE 'Atrasado'
+           WHEN status = 'CANCELADO' THEN 'Cancelado'
+           WHEN status NOT IN ('PAGO', 'CANCELADO') AND data_vencimento < CURRENT_DATE THEN 'Vencida'
+           WHEN status NOT IN ('PAGO', 'CANCELADO') AND mes_referencia = $1 AND ano_referencia = $2 THEN 'Pendente'
+           ELSE 'Futura'
          END as status,
          COUNT(*) as quantidade
        FROM mensalidades
        GROUP BY 
          CASE 
            WHEN status = 'PAGO' THEN 'Pago'
-           WHEN status = 'PENDENTE' AND data_vencimento >= CURRENT_DATE THEN 'Pendente'
-           ELSE 'Atrasado'
-         END`);
+           WHEN status = 'CANCELADO' THEN 'Cancelado'
+           WHEN status NOT IN ('PAGO', 'CANCELADO') AND data_vencimento < CURRENT_DATE THEN 'Vencida'
+           WHEN status NOT IN ('PAGO', 'CANCELADO') AND mes_referencia = $1 AND ano_referencia = $2 THEN 'Pendente'
+           ELSE 'Futura'
+         END`, [mesAtual, anoAtual]);
         // Histórico receita vs despesa (últimos 6 meses)
         const nomeMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         const receitaVsDespesa = [];

@@ -10,6 +10,14 @@ declare class FinanceiroService {
     buscarMatriculaPorId(id: string): Promise<any>;
     atualizarMatricula(id: string, data: any): Promise<any>;
     cancelarMatricula(id: string): Promise<any>;
+    /**
+     * Calcula o status real da mensalidade baseado na data atual
+     * - PAGO: já foi paga
+     * - VENCIDA: data de vencimento passou e não foi paga
+     * - PENDENTE: mês atual, ainda não venceu
+     * - FUTURA: meses futuros
+     */
+    private calcularStatusMensalidade;
     listarMensalidades(filtros: {
         mes?: number;
         ano?: number;

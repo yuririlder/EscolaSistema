@@ -7,3 +7,4 @@ export { turmaController } from './turmaController';
 export { professorController } from './professorController';
 export { notaController } from './notaController';
 export { financeiroController } from './financeiroController';
+export { historicoEscolarController } from './historicoEscolarController';

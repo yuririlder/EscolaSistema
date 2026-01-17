@@ -79,6 +79,32 @@ class TurmaController {
       return sendError(res, error.message);
     }
   }
+
+  async vincularProfessor(req: Request, res: Response) {
+    try {
+      const { id, professorId } = req.params;
+      const { disciplina } = req.body;
+      await turmaService.vincularProfessor(id, professorId, disciplina);
+      return sendSuccess(res, null, 'Professor vinculado com sucesso');
+    } catch (error: any) {
+      logger.error('Erro ao vincular professor à turma', error);
+      if (error.message.includes('não encontrad')) {
+        return sendNotFound(res, error.message);
+      }
+      return sendError(res, error.message);
+    }
+  }
+
+  async desvincularProfessor(req: Request, res: Response) {
+    try {
+      const { id, professorId } = req.params;
+      await turmaService.desvincularProfessor(id, professorId);
+      return sendNoContent(res);
+    } catch (error: any) {
+      logger.error('Erro ao desvincular professor da turma', error);
+      return sendError(res, error.message);
+    }
+  }
 }
 
 export const turmaController = new TurmaController();

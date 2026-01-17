@@ -21,8 +21,9 @@ class ResponsavelService {
     return this.buscarPorId(id);
   }
 
-  async buscarTodos() {
-    return await queryMany('SELECT * FROM responsaveis ORDER BY nome ASC');
+  async buscarTodos(incluirInativos = false) {
+    const whereClause = incluirInativos ? '' : 'WHERE (ativo = true OR ativo IS NULL)';
+    return await queryMany(`SELECT * FROM responsaveis ${whereClause} ORDER BY nome ASC`);
   }
 
   async buscarPorId(id: string) {
@@ -86,14 +87,20 @@ class ResponsavelService {
       throw new Error('Responsável não encontrado');
     }
 
-    // Verificar se há alunos vinculados
-    const alunos = await queryMany('SELECT id FROM alunos WHERE responsavel_id = $1', [id]);
-    if (alunos.length > 0) {
-      throw new Error('Não é possível excluir responsável com alunos vinculados');
+    // Soft delete - apenas desativa para manter histórico dos alunos
+    await query('UPDATE responsaveis SET ativo = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+    logger.info(`Responsável desativado: ${id}`);
+  }
+
+  async reativar(id: string): Promise<any> {
+    const responsavel = await queryOne('SELECT * FROM responsaveis WHERE id = $1', [id]);
+    if (!responsavel) {
+      throw new Error('Responsável não encontrado');
     }
 
-    await query('DELETE FROM responsaveis WHERE id = $1', [id]);
-    logger.info(`Responsável deletado: ${id}`);
+    await query('UPDATE responsaveis SET ativo = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+    logger.info(`Responsável reativado: ${id}`);
+    return this.buscarPorId(id);
   }
 }
 

@@ -236,6 +236,21 @@ CREATE TABLE IF NOT EXISTS pagamentos_funcionarios (
   UNIQUE(funcionario_id, mes_referencia, ano_referencia)
 );
 
+-- Tabela Histórico Escolar (vínculo aluno-turma por ano letivo)
+CREATE TABLE IF NOT EXISTS historico_escolar (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  aluno_id UUID NOT NULL REFERENCES alunos(id) ON DELETE CASCADE,
+  turma_id UUID NOT NULL REFERENCES turmas(id) ON DELETE CASCADE,
+  ano_letivo INTEGER NOT NULL,
+  status VARCHAR(20) DEFAULT 'CURSANDO',
+  data_entrada DATE DEFAULT CURRENT_DATE,
+  data_saida DATE,
+  observacoes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(aluno_id, ano_letivo)
+);
+
 -- Índices para performance
 CREATE INDEX IF NOT EXISTS idx_alunos_responsavel ON alunos(responsavel_id);
 CREATE INDEX IF NOT EXISTS idx_alunos_turma ON alunos(turma_id);
@@ -245,6 +260,9 @@ CREATE INDEX IF NOT EXISTS idx_mensalidades_aluno ON mensalidades(aluno_id);
 CREATE INDEX IF NOT EXISTS idx_mensalidades_status ON mensalidades(status);
 CREATE INDEX IF NOT EXISTS idx_matriculas_aluno ON matriculas(aluno_id);
 CREATE INDEX IF NOT EXISTS idx_pagamentos_funcionario ON pagamentos_funcionarios(funcionario_id);
+CREATE INDEX IF NOT EXISTS idx_historico_escolar_aluno ON historico_escolar(aluno_id);
+CREATE INDEX IF NOT EXISTS idx_historico_escolar_turma ON historico_escolar(turma_id);
+CREATE INDEX IF NOT EXISTS idx_historico_escolar_ano ON historico_escolar(ano_letivo);
 `;
 
 // SQL para adicionar colunas faltantes em tabelas existentes
@@ -262,6 +280,46 @@ DO $$
 BEGIN 
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='pagamentos_funcionarios' AND column_name='forma_pagamento') THEN
     ALTER TABLE pagamentos_funcionarios ADD COLUMN forma_pagamento VARCHAR(50);
+  END IF;
+END $$;
+
+-- Adicionar campo ativo em alunos se não existir (para soft delete)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='ativo') THEN
+    ALTER TABLE alunos ADD COLUMN ativo BOOLEAN DEFAULT true;
+  END IF;
+END $$;
+
+-- Adicionar campo ativo em notas se não existir (para soft delete)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='notas' AND column_name='ativo') THEN
+    ALTER TABLE notas ADD COLUMN ativo BOOLEAN DEFAULT true;
+  END IF;
+END $$;
+
+-- Adicionar campo ativo em matriculas se não existir (para soft delete)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='matriculas' AND column_name='ativo') THEN
+    ALTER TABLE matriculas ADD COLUMN ativo BOOLEAN DEFAULT true;
+  END IF;
+END $$;
+
+-- Adicionar campo ativo em mensalidades se não existir (para soft delete)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='mensalidades' AND column_name='ativo') THEN
+    ALTER TABLE mensalidades ADD COLUMN ativo BOOLEAN DEFAULT true;
+  END IF;
+END $$;
+
+-- Adicionar campo ativo em responsaveis se não existir (para soft delete)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='responsaveis' AND column_name='ativo') THEN
+    ALTER TABLE responsaveis ADD COLUMN ativo BOOLEAN DEFAULT true;
   END IF;
 END $$;
 `;

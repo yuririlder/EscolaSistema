@@ -31,12 +31,14 @@ class ProfessorService {
             client.release();
         }
     }
-    async buscarTodos() {
+    async buscarTodos(incluirInativos = false) {
+        const whereClause = incluirInativos ? '' : 'WHERE f.ativo = true';
         return await (0, connection_1.queryMany)(`SELECT p.*, 
               f.nome, f.cpf, f.rg, f.data_nascimento, f.telefone, f.email, f.endereco, 
               f.cidade, f.estado, f.cep, f.cargo, f.salario, f.data_contratacao, f.ativo, f.observacoes
        FROM professores p
        INNER JOIN funcionarios f ON p.funcionario_id = f.id
+       ${whereClause}
        ORDER BY f.nome ASC`);
     }
     async buscarAtivos() {
@@ -123,10 +125,22 @@ class ProfessorService {
         if (!professor) {
             throw new Error('Professor não encontrado');
         }
-        // Deletar professor e funcionário
-        await (0, connection_1.query)('DELETE FROM professores WHERE id = $1', [id]);
-        await (0, connection_1.query)('DELETE FROM funcionarios WHERE id = $1', [professor.funcionario_id]);
-        logger_1.logger.info(`Professor deletado: ${id}`);
+        // Soft delete - apenas desativa professor e funcionário para manter histórico
+        await (0, connection_1.query)('UPDATE professores SET updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+        await (0, connection_1.query)('UPDATE funcionarios SET ativo = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [professor.funcionario_id]);
+        logger_1.logger.info(`Professor desativado: ${id}`);
+    }
+    async reativar(id) {
+        const professor = await (0, connection_1.queryOne)(`SELECT p.*, f.nome, f.email, f.telefone, f.cpf, f.cargo, f.salario, f.data_contratacao, f.ativo as funcionario_ativo
+       FROM professores p
+       INNER JOIN funcionarios f ON p.funcionario_id = f.id
+       WHERE p.id = $1`, [id]);
+        if (!professor) {
+            throw new Error('Professor não encontrado');
+        }
+        await (0, connection_1.query)('UPDATE funcionarios SET ativo = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [professor.funcionario_id]);
+        logger_1.logger.info(`Professor reativado: ${id}`);
+        return this.buscarPorId(id);
     }
     async vincularTurma(professorId, turmaId, disciplina) {
         const id = (0, uuid_1.v4)();

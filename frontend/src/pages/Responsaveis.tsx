@@ -99,14 +99,14 @@ export function Responsaveis() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este responsável?')) return;
+    if (!confirm('Tem certeza que deseja desativar este responsável? O histórico será mantido.')) return;
 
     try {
       await responsavelService.excluir(id);
-      toast.success('Responsável excluído com sucesso!');
+      toast.success('Responsável desativado com sucesso!');
       loadResponsaveis();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir responsável');
+      toast.error(error.response?.data?.error || 'Erro ao desativar responsável');
     }
   };
 

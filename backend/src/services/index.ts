@@ -7,3 +7,4 @@ export { turmaService } from './turmaService';
 export { professorService } from './professorService';
 export { notaService } from './notaService';
 export { financeiroService } from './financeiroService';
+export { historicoEscolarService } from './historicoEscolarService';

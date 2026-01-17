@@ -10,6 +10,7 @@ declare class NotaService {
     }>;
     atualizar(id: string, data: any): Promise<any>;
     deletar(id: string): Promise<void>;
+    reativar(id: string): Promise<any>;
 }
 export declare const notaService: NotaService;
 export {};

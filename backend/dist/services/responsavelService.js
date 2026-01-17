@@ -17,8 +17,9 @@ class ResponsavelService {
         logger_1.logger.info(`Responsável criado: ${data.nome}`);
         return this.buscarPorId(id);
     }
-    async buscarTodos() {
-        return await (0, connection_1.queryMany)('SELECT * FROM responsaveis ORDER BY nome ASC');
+    async buscarTodos(incluirInativos = false) {
+        const whereClause = incluirInativos ? '' : 'WHERE (ativo = true OR ativo IS NULL)';
+        return await (0, connection_1.queryMany)(`SELECT * FROM responsaveis ${whereClause} ORDER BY nome ASC`);
     }
     async buscarPorId(id) {
         return await (0, connection_1.queryOne)('SELECT * FROM responsaveis WHERE id = $1', [id]);
@@ -63,13 +64,18 @@ class ResponsavelService {
         if (!responsavel) {
             throw new Error('Responsável não encontrado');
         }
-        // Verificar se há alunos vinculados
-        const alunos = await (0, connection_1.queryMany)('SELECT id FROM alunos WHERE responsavel_id = $1', [id]);
-        if (alunos.length > 0) {
-            throw new Error('Não é possível excluir responsável com alunos vinculados');
+        // Soft delete - apenas desativa para manter histórico dos alunos
+        await (0, connection_1.query)('UPDATE responsaveis SET ativo = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+        logger_1.logger.info(`Responsável desativado: ${id}`);
+    }
+    async reativar(id) {
+        const responsavel = await (0, connection_1.queryOne)('SELECT * FROM responsaveis WHERE id = $1', [id]);
+        if (!responsavel) {
+            throw new Error('Responsável não encontrado');
         }
-        await (0, connection_1.query)('DELETE FROM responsaveis WHERE id = $1', [id]);
-        logger_1.logger.info(`Responsável deletado: ${id}`);
+        await (0, connection_1.query)('UPDATE responsaveis SET ativo = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+        logger_1.logger.info(`Responsável reativado: ${id}`);
+        return this.buscarPorId(id);
     }
 }
 exports.responsavelService = new ResponsavelService();

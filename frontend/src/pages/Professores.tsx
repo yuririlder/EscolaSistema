@@ -107,14 +107,14 @@ export function Professores() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este professor?')) return;
+    if (!confirm('Tem certeza que deseja desativar este professor? O histórico será mantido.')) return;
 
     try {
       await professorService.excluir(id);
-      toast.success('Professor excluído com sucesso!');
+      toast.success('Professor desativado com sucesso!');
       loadProfessores();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir professor');
+      toast.error(error.response?.data?.error || 'Erro ao desativar professor');
     }
   };
 

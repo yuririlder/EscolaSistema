@@ -171,8 +171,20 @@ class NotaService {
       throw new Error('Nota não encontrada');
     }
 
-    await query('DELETE FROM notas WHERE id = $1', [id]);
-    logger.info(`Nota deletada: ${id}`);
+    // Soft delete - apenas desativa a nota para manter histórico
+    await query('UPDATE notas SET ativo = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+    logger.info(`Nota desativada: ${id}`);
+  }
+
+  async reativar(id: string): Promise<any> {
+    const nota = await queryOne('SELECT * FROM notas WHERE id = $1', [id]);
+    if (!nota) {
+      throw new Error('Nota não encontrada');
+    }
+
+    await query('UPDATE notas SET ativo = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+    logger.info(`Nota reativada: ${id}`);
+    return this.buscarPorId(id);
   }
 }
 

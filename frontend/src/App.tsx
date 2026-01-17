@@ -17,6 +17,7 @@ import { Mensalidades } from './pages/Mensalidades';
 import { Despesas } from './pages/Despesas';
 import { PagamentosFuncionarios } from './pages/PagamentosFuncionarios';
 import { Escola } from './pages/Escola';
+import { HistoricoEscolarPage } from './pages/HistoricoEscolar';
 
 // Configuração do React Query
 const queryClient = new QueryClient({
@@ -46,6 +47,7 @@ function App() {
             <Route path="turmas" element={<Turmas />} />
             <Route path="responsaveis" element={<Responsaveis />} />
             <Route path="alunos" element={<Alunos />} />
+            <Route path="alunos/:alunoId/historico" element={<HistoricoEscolarPage />} />
             <Route path="notas" element={<Notas />} />
             <Route path="planos-mensalidade" element={<PlanosMensalidade />} />
             <Route path="matriculas" element={<Matriculas />} />

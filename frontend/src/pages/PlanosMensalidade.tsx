@@ -93,14 +93,14 @@ export function PlanosMensalidade() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este plano?')) return;
+    if (!confirm('Tem certeza que deseja desativar este plano? O histórico será mantido.')) return;
 
     try {
       await financeiroService.excluirPlano(id);
-      toast.success('Plano excluído com sucesso!');
+      toast.success('Plano desativado com sucesso!');
       loadPlanos();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir plano');
+      toast.error(error.response?.data?.error || 'Erro ao desativar plano');
     }
   };
 

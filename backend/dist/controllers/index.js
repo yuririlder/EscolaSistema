@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.financeiroController = exports.notaController = exports.professorController = exports.turmaController = exports.responsavelController = exports.alunoController = exports.escolaController = exports.usuarioController = exports.authController = void 0;
+exports.historicoEscolarController = exports.financeiroController = exports.notaController = exports.professorController = exports.turmaController = exports.responsavelController = exports.alunoController = exports.escolaController = exports.usuarioController = exports.authController = void 0;
 var authController_1 = require("./authController");
 Object.defineProperty(exports, "authController", { enumerable: true, get: function () { return authController_1.authController; } });
 var usuarioController_1 = require("./usuarioController");
@@ -19,4 +19,6 @@ var notaController_1 = require("./notaController");
 Object.defineProperty(exports, "notaController", { enumerable: true, get: function () { return notaController_1.notaController; } });
 var financeiroController_1 = require("./financeiroController");
 Object.defineProperty(exports, "financeiroController", { enumerable: true, get: function () { return financeiroController_1.financeiroController; } });
+var historicoEscolarController_1 = require("./historicoEscolarController");
+Object.defineProperty(exports, "historicoEscolarController", { enumerable: true, get: function () { return historicoEscolarController_1.historicoEscolarController; } });
 //# sourceMappingURL=index.js.map

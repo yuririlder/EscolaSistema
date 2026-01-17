@@ -40,13 +40,15 @@ class ProfessorService {
     }
   }
 
-  async buscarTodos() {
+  async buscarTodos(incluirInativos = false) {
+    const whereClause = incluirInativos ? '' : 'WHERE f.ativo = true';
     return await queryMany(
       `SELECT p.*, 
               f.nome, f.cpf, f.rg, f.data_nascimento, f.telefone, f.email, f.endereco, 
               f.cidade, f.estado, f.cep, f.cargo, f.salario, f.data_contratacao, f.ativo, f.observacoes
        FROM professores p
        INNER JOIN funcionarios f ON p.funcionario_id = f.id
+       ${whereClause}
        ORDER BY f.nome ASC`
     );
   }
@@ -163,10 +165,27 @@ class ProfessorService {
       throw new Error('Professor não encontrado');
     }
 
-    // Deletar professor e funcionário
-    await query('DELETE FROM professores WHERE id = $1', [id]);
-    await query('DELETE FROM funcionarios WHERE id = $1', [professor.funcionario_id]);
-    logger.info(`Professor deletado: ${id}`);
+    // Soft delete - apenas desativa professor e funcionário para manter histórico
+    await query('UPDATE professores SET updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+    await query('UPDATE funcionarios SET ativo = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [professor.funcionario_id]);
+    logger.info(`Professor desativado: ${id}`);
+  }
+
+  async reativar(id: string): Promise<any> {
+    const professor = await queryOne(
+      `SELECT p.*, f.nome, f.email, f.telefone, f.cpf, f.cargo, f.salario, f.data_contratacao, f.ativo as funcionario_ativo
+       FROM professores p
+       INNER JOIN funcionarios f ON p.funcionario_id = f.id
+       WHERE p.id = $1`,
+      [id]
+    );
+    if (!professor) {
+      throw new Error('Professor não encontrado');
+    }
+
+    await query('UPDATE funcionarios SET ativo = true, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [professor.funcionario_id]);
+    logger.info(`Professor reativado: ${id}`);
+    return this.buscarPorId(id);
   }
 
   async vincularTurma(professorId: string, turmaId: string, disciplina?: string): Promise<void> {

@@ -11029,3 +11029,639 @@ error: insert or update on table "pagamentos_funcionarios" violates foreign key 
 2026-01-17 03:46:19 [HTTP]: GET /api/professores
 2026-01-17 03:46:20 [DEBUG]: Query executada em 228ms
 2026-01-17 03:46:21 [DEBUG]: Query executada em 1778ms
+2026-01-17 03:50:35 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 03:50:37 [DEBUG]: Query executada em 2229ms
+2026-01-17 03:50:38 [DEBUG]: Query executada em 221ms
+2026-01-17 03:50:38 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:38 [DEBUG]: Query executada em 221ms
+2026-01-17 03:50:38 [DEBUG]: Query executada em 218ms
+2026-01-17 03:50:38 [DEBUG]: Query executada em 221ms
+2026-01-17 03:50:39 [DEBUG]: Query executada em 219ms
+2026-01-17 03:50:39 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:39 [DEBUG]: Query executada em 223ms
+2026-01-17 03:50:39 [DEBUG]: Query executada em 223ms
+2026-01-17 03:50:40 [DEBUG]: Query executada em 221ms
+2026-01-17 03:50:40 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:40 [DEBUG]: Query executada em 219ms
+2026-01-17 03:50:40 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:40 [DEBUG]: Query executada em 221ms
+2026-01-17 03:50:41 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:41 [DEBUG]: Query executada em 226ms
+2026-01-17 03:50:41 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:41 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:41 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:41 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 03:50:42 [DEBUG]: Query executada em 219ms
+2026-01-17 03:50:42 [DEBUG]: Query executada em 225ms
+2026-01-17 03:50:42 [DEBUG]: Query executada em 219ms
+2026-01-17 03:50:42 [DEBUG]: Query executada em 221ms
+2026-01-17 03:50:43 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:43 [DEBUG]: Query executada em 221ms
+2026-01-17 03:50:43 [DEBUG]: Query executada em 219ms
+2026-01-17 03:50:43 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:43 [DEBUG]: Query executada em 225ms
+2026-01-17 03:50:44 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:44 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:44 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:44 [DEBUG]: Query executada em 222ms
+2026-01-17 03:50:45 [DEBUG]: Query executada em 221ms
+2026-01-17 03:50:45 [DEBUG]: Query executada em 220ms
+2026-01-17 03:50:45 [DEBUG]: Query executada em 225ms
+2026-01-17 03:50:45 [DEBUG]: Query executada em 222ms
+2026-01-17 03:50:45 [DEBUG]: Query executada em 223ms
+2026-01-17 03:50:46 [DEBUG]: Query executada em 223ms
+2026-01-17 03:50:46 [DEBUG]: Query executada em 222ms
+2026-01-17 03:50:51 [HTTP]: GET /api/turmas
+2026-01-17 03:50:51 [HTTP]: GET /api/professores
+2026-01-17 03:50:52 [DEBUG]: Query executada em 222ms
+2026-01-17 03:50:52 [HTTP]: GET /api/turmas
+2026-01-17 03:50:52 [DEBUG]: Query executada em 222ms
+2026-01-17 03:50:53 [DEBUG]: Query executada em 1881ms
+2026-01-17 03:50:53 [HTTP]: GET /api/professores
+2026-01-17 03:50:54 [DEBUG]: Query executada em 224ms
+2026-01-17 03:51:03 [HTTP]: POST /api/turmas/ca219cc6-1575-4997-8949-9bd77b69c8d7/professores/17c09cea-66b9-4fe5-8766-b37be0eb4b26
+2026-01-17 03:52:49 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 03:52:49 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 03:52:49 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 03:52:49 [INFO]: Migrations executadas com sucesso!
+2026-01-17 03:52:49 [INFO]: Migrations executadas com sucesso
+2026-01-17 03:52:49 [INFO]: Servidor rodando na porta 3001
+2026-01-17 03:52:49 [INFO]: Ambiente: development
+2026-01-17 03:53:25 [INFO]: Encerrando servidor...
+2026-01-17 03:54:14 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 03:54:14 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 03:54:14 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 03:54:14 [INFO]: Migrations executadas com sucesso!
+2026-01-17 03:54:14 [INFO]: Migrations executadas com sucesso
+2026-01-17 03:54:14 [INFO]: Servidor rodando na porta 3001
+2026-01-17 03:54:14 [INFO]: Ambiente: development
+2026-01-17 03:54:21 [HTTP]: GET /api/turmas
+2026-01-17 03:54:21 [HTTP]: GET /api/professores
+2026-01-17 03:54:21 [DEBUG]: Query executada em 229ms
+2026-01-17 03:54:21 [HTTP]: GET /api/turmas
+2026-01-17 03:54:21 [DEBUG]: Query executada em 228ms
+2026-01-17 03:54:22 [DEBUG]: Query executada em 1874ms
+2026-01-17 03:54:22 [HTTP]: GET /api/professores
+2026-01-17 03:54:23 [DEBUG]: Query executada em 226ms
+2026-01-17 03:54:31 [HTTP]: POST /api/turmas/ca219cc6-1575-4997-8949-9bd77b69c8d7/professores/17c09cea-66b9-4fe5-8766-b37be0eb4b26
+2026-01-17 03:54:31 [DEBUG]: Query executada em 226ms
+2026-01-17 03:54:32 [DEBUG]: Query executada em 225ms
+2026-01-17 03:54:32 [DEBUG]: Query executada em 253ms
+2026-01-17 03:54:32 [INFO]: Professor 17c09cea-66b9-4fe5-8766-b37be0eb4b26 vinculado à turma ca219cc6-1575-4997-8949-9bd77b69c8d7
+2026-01-17 03:54:32 [HTTP]: GET /api/turmas
+2026-01-17 03:54:32 [HTTP]: GET /api/professores
+2026-01-17 03:54:32 [DEBUG]: Query executada em 226ms
+2026-01-17 03:54:34 [DEBUG]: Query executada em 1836ms
+2026-01-17 03:54:49 [HTTP]: PUT /api/turmas/ca219cc6-1575-4997-8949-9bd77b69c8d7
+2026-01-17 03:54:51 [DEBUG]: Query executada em 1818ms
+2026-01-17 03:54:51 [DEBUG]: Query executada em 226ms
+2026-01-17 03:54:51 [INFO]: Turma atualizada: ca219cc6-1575-4997-8949-9bd77b69c8d7
+2026-01-17 03:54:51 [DEBUG]: Query executada em 227ms
+2026-01-17 03:54:51 [HTTP]: GET /api/turmas
+2026-01-17 03:54:51 [HTTP]: GET /api/professores
+2026-01-17 03:54:51 [DEBUG]: Query executada em 223ms
+2026-01-17 03:54:53 [DEBUG]: Query executada em 1850ms
+2026-01-17 03:55:35 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 03:55:35 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 03:55:35 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 03:55:35 [INFO]: Migrations executadas com sucesso!
+2026-01-17 03:55:35 [INFO]: Migrations executadas com sucesso
+2026-01-17 03:55:35 [INFO]: Servidor rodando na porta 3001
+2026-01-17 03:55:35 [INFO]: Ambiente: development
+2026-01-17 03:57:04 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 03:57:04 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 03:57:04 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 03:57:04 [INFO]: Migrations executadas com sucesso!
+2026-01-17 03:57:04 [INFO]: Migrations executadas com sucesso
+2026-01-17 03:57:04 [INFO]: Servidor rodando na porta 3001
+2026-01-17 03:57:04 [INFO]: Ambiente: development
+2026-01-17 03:57:16 [HTTP]: GET /api/turmas
+2026-01-17 03:57:16 [HTTP]: GET /api/professores
+2026-01-17 03:57:18 [DEBUG]: Query executada em 1815ms
+2026-01-17 03:57:18 [DEBUG]: Query executada em 1831ms
+2026-01-17 03:57:18 [DEBUG]: Query executada em 230ms
+2026-01-17 03:57:48 [HTTP]: GET /api/responsaveis
+2026-01-17 03:57:50 [DEBUG]: Query executada em 1831ms
+2026-01-17 03:57:50 [HTTP]: GET /api/responsaveis
+2026-01-17 03:57:51 [DEBUG]: Query executada em 224ms
+2026-01-17 03:57:52 [HTTP]: GET /api/turmas
+2026-01-17 03:57:52 [HTTP]: GET /api/professores
+2026-01-17 03:57:52 [DEBUG]: Query executada em 223ms
+2026-01-17 03:57:52 [DEBUG]: Query executada em 226ms
+2026-01-17 03:57:52 [HTTP]: GET /api/turmas
+2026-01-17 03:57:52 [DEBUG]: Query executada em 225ms
+2026-01-17 03:57:52 [DEBUG]: Query executada em 222ms
+2026-01-17 03:57:53 [DEBUG]: Query executada em 1785ms
+2026-01-17 03:57:53 [HTTP]: GET /api/professores
+2026-01-17 03:57:54 [DEBUG]: Query executada em 220ms
+2026-01-17 03:58:42 [HTTP]: GET /api/turmas
+2026-01-17 03:58:42 [HTTP]: GET /api/professores
+2026-01-17 03:58:44 [DEBUG]: Query executada em 1767ms
+2026-01-17 03:58:44 [DEBUG]: Query executada em 1824ms
+2026-01-17 03:58:44 [DEBUG]: Query executada em 222ms
+2026-01-17 03:59:00 [HTTP]: GET /api/alunos
+2026-01-17 03:59:00 [HTTP]: GET /api/turmas
+2026-01-17 03:59:00 [HTTP]: GET /api/responsaveis
+2026-01-17 03:59:02 [DEBUG]: Query executada em 1809ms
+2026-01-17 03:59:02 [DEBUG]: Query executada em 1841ms
+2026-01-17 03:59:02 [DEBUG]: Query executada em 1848ms
+2026-01-17 03:59:02 [HTTP]: GET /api/responsaveis
+2026-01-17 03:59:02 [HTTP]: GET /api/alunos
+2026-01-17 03:59:02 [DEBUG]: Query executada em 221ms
+2026-01-17 03:59:02 [HTTP]: GET /api/turmas
+2026-01-17 03:59:02 [DEBUG]: Query executada em 221ms
+2026-01-17 03:59:02 [DEBUG]: Query executada em 222ms
+2026-01-17 03:59:02 [DEBUG]: Query executada em 219ms
+2026-01-17 03:59:02 [DEBUG]: Query executada em 219ms
+2026-01-17 04:00:17 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:00:17 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:00:17 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:00:18 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:00:18 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:00:18 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:00:18 [INFO]: Ambiente: development
+2026-01-17 04:00:42 [INFO]: Encerrando servidor...
+2026-01-17 04:01:39 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:01:39 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:01:39 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:01:39 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:01:39 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:01:39 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:01:39 [INFO]: Ambiente: development
+2026-01-17 04:01:42 [HTTP]: GET /api/alunos
+2026-01-17 04:01:42 [HTTP]: GET /api/turmas
+2026-01-17 04:01:42 [HTTP]: GET /api/responsaveis
+2026-01-17 04:01:42 [DEBUG]: Query executada em 237ms
+2026-01-17 04:01:42 [HTTP]: GET /api/alunos
+2026-01-17 04:01:42 [DEBUG]: Query executada em 231ms
+2026-01-17 04:01:44 [DEBUG]: Query executada em 1785ms
+2026-01-17 04:01:44 [HTTP]: GET /api/responsaveis
+2026-01-17 04:01:44 [DEBUG]: Query executada em 1892ms
+2026-01-17 04:01:44 [DEBUG]: Query executada em 220ms
+2026-01-17 04:01:44 [DEBUG]: Query executada em 229ms
+2026-01-17 04:01:44 [HTTP]: GET /api/turmas
+2026-01-17 04:01:44 [DEBUG]: Query executada em 231ms
+2026-01-17 04:01:44 [DEBUG]: Query executada em 229ms
+2026-01-17 04:02:15 [HTTP]: GET /api/notas
+2026-01-17 04:02:15 [HTTP]: GET /api/professores
+2026-01-17 04:02:15 [HTTP]: GET /api/alunos
+2026-01-17 04:02:17 [DEBUG]: Query executada em 1983ms
+2026-01-17 04:02:17 [DEBUG]: Query executada em 2003ms
+2026-01-17 04:02:17 [HTTP]: GET /api/alunos
+2026-01-17 04:02:17 [HTTP]: GET /api/notas
+2026-01-17 04:02:17 [DEBUG]: Query executada em 2045ms
+2026-01-17 04:02:17 [HTTP]: GET /api/professores
+2026-01-17 04:02:17 [DEBUG]: Query executada em 225ms
+2026-01-17 04:02:18 [DEBUG]: Query executada em 261ms
+2026-01-17 04:02:18 [DEBUG]: Query executada em 247ms
+2026-01-17 04:02:20 [HTTP]: GET /api/alunos
+2026-01-17 04:02:20 [HTTP]: GET /api/responsaveis
+2026-01-17 04:02:20 [HTTP]: GET /api/turmas
+2026-01-17 04:02:20 [DEBUG]: Query executada em 221ms
+2026-01-17 04:02:20 [DEBUG]: Query executada em 225ms
+2026-01-17 04:02:20 [DEBUG]: Query executada em 227ms
+2026-01-17 04:02:20 [HTTP]: GET /api/responsaveis
+2026-01-17 04:02:20 [HTTP]: GET /api/alunos
+2026-01-17 04:02:21 [DEBUG]: Query executada em 221ms
+2026-01-17 04:02:21 [HTTP]: GET /api/turmas
+2026-01-17 04:02:21 [DEBUG]: Query executada em 227ms
+2026-01-17 04:02:21 [DEBUG]: Query executada em 233ms
+2026-01-17 04:02:21 [DEBUG]: Query executada em 224ms
+2026-01-17 04:02:21 [DEBUG]: Query executada em 222ms
+2026-01-17 04:06:25 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:06:25 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:06:25 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:06:26 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:06:26 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:06:26 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:06:26 [INFO]: Ambiente: development
+2026-01-17 04:07:54 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:07:54 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:07:54 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:07:55 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:07:55 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:07:55 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:07:55 [INFO]: Ambiente: development
+2026-01-17 04:09:28 [HTTP]: GET /api/alunos
+2026-01-17 04:09:28 [HTTP]: GET /api/responsaveis
+2026-01-17 04:09:28 [HTTP]: GET /api/turmas
+2026-01-17 04:09:29 [DEBUG]: Query executada em 1783ms
+2026-01-17 04:09:29 [DEBUG]: Query executada em 1839ms
+2026-01-17 04:09:29 [DEBUG]: Query executada em 1858ms
+2026-01-17 04:09:30 [DEBUG]: Query executada em 222ms
+2026-01-17 04:09:42 [HTTP]: GET /api/alunos
+2026-01-17 04:09:42 [HTTP]: GET /api/responsaveis
+2026-01-17 04:09:42 [HTTP]: GET /api/turmas
+2026-01-17 04:09:44 [DEBUG]: Query executada em 1833ms
+2026-01-17 04:09:44 [HTTP]: GET /api/alunos
+2026-01-17 04:09:44 [DEBUG]: Query executada em 1848ms
+2026-01-17 04:09:44 [DEBUG]: Query executada em 1839ms
+2026-01-17 04:09:44 [HTTP]: GET /api/responsaveis
+2026-01-17 04:09:44 [DEBUG]: Query executada em 226ms
+2026-01-17 04:09:44 [DEBUG]: Query executada em 228ms
+2026-01-17 04:09:44 [DEBUG]: Query executada em 228ms
+2026-01-17 04:09:44 [HTTP]: GET /api/turmas
+2026-01-17 04:09:45 [DEBUG]: Query executada em 225ms
+2026-01-17 04:09:45 [DEBUG]: Query executada em 228ms
+2026-01-17 04:09:59 [HTTP]: GET /api/turmas
+2026-01-17 04:09:59 [HTTP]: GET /api/responsaveis
+2026-01-17 04:09:59 [HTTP]: GET /api/alunos
+2026-01-17 04:10:01 [DEBUG]: Query executada em 1807ms
+2026-01-17 04:10:01 [DEBUG]: Query executada em 1815ms
+2026-01-17 04:10:01 [DEBUG]: Query executada em 1808ms
+2026-01-17 04:10:01 [DEBUG]: Query executada em 224ms
+2026-01-17 04:10:15 [HTTP]: GET /api/turmas
+2026-01-17 04:10:15 [HTTP]: GET /api/responsaveis
+2026-01-17 04:10:15 [HTTP]: GET /api/alunos
+2026-01-17 04:10:17 [DEBUG]: Query executada em 1840ms
+2026-01-17 04:10:17 [DEBUG]: Query executada em 1838ms
+2026-01-17 04:10:17 [DEBUG]: Query executada em 1864ms
+2026-01-17 04:10:17 [DEBUG]: Query executada em 234ms
+2026-01-17 04:10:34 [HTTP]: GET /api/alunos
+2026-01-17 04:10:34 [HTTP]: GET /api/turmas
+2026-01-17 04:10:34 [HTTP]: GET /api/responsaveis
+2026-01-17 04:10:36 [DEBUG]: Query executada em 1793ms
+2026-01-17 04:10:36 [DEBUG]: Query executada em 1796ms
+2026-01-17 04:10:36 [DEBUG]: Query executada em 1808ms
+2026-01-17 04:10:36 [DEBUG]: Query executada em 223ms
+2026-01-17 04:11:15 [INFO]: Encerrando servidor...
+2026-01-17 04:12:15 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:12:15 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:12:15 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:12:16 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:12:16 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:12:16 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:12:16 [INFO]: Ambiente: development
+2026-01-17 04:12:18 [HTTP]: GET /api/alunos
+2026-01-17 04:12:18 [HTTP]: GET /api/responsaveis
+2026-01-17 04:12:18 [HTTP]: GET /api/turmas
+2026-01-17 04:12:18 [DEBUG]: Query executada em 237ms
+2026-01-17 04:12:18 [HTTP]: GET /api/alunos
+2026-01-17 04:12:18 [DEBUG]: Query executada em 225ms
+2026-01-17 04:12:20 [DEBUG]: Query executada em 1859ms
+2026-01-17 04:12:20 [DEBUG]: Query executada em 1927ms
+2026-01-17 04:12:20 [HTTP]: GET /api/responsaveis
+2026-01-17 04:12:20 [DEBUG]: Query executada em 228ms
+2026-01-17 04:12:20 [HTTP]: GET /api/turmas
+2026-01-17 04:12:20 [DEBUG]: Query executada em 227ms
+2026-01-17 04:12:20 [DEBUG]: Query executada em 225ms
+2026-01-17 04:12:20 [DEBUG]: Query executada em 226ms
+2026-01-17 04:12:32 [HTTP]: POST /api/historico-escolar
+2026-01-17 04:12:34 [DEBUG]: Query executada em 1783ms
+2026-01-17 04:12:34 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:34 [DEBUG]: Query executada em 219ms
+2026-01-17 04:12:34 [DEBUG]: Query executada em 235ms
+2026-01-17 04:12:35 [DEBUG]: Query executada em 231ms
+2026-01-17 04:12:35 [INFO]: Aluno f71df7b1-5a29-405f-8ae0-2e6bfc085dbf vinculado à turma ca219cc6-1575-4997-8949-9bd77b69c8d7 no ano letivo 2026
+2026-01-17 04:12:35 [DEBUG]: Query executada em 220ms
+2026-01-17 04:12:35 [HTTP]: GET /api/alunos
+2026-01-17 04:12:35 [HTTP]: GET /api/responsaveis
+2026-01-17 04:12:35 [HTTP]: GET /api/turmas
+2026-01-17 04:12:35 [DEBUG]: Query executada em 220ms
+2026-01-17 04:12:37 [DEBUG]: Query executada em 1800ms
+2026-01-17 04:12:37 [DEBUG]: Query executada em 1863ms
+2026-01-17 04:12:37 [DEBUG]: Query executada em 226ms
+2026-01-17 04:12:38 [HTTP]: GET /api/turmas
+2026-01-17 04:12:38 [HTTP]: GET /api/professores
+2026-01-17 04:12:38 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:38 [DEBUG]: Query executada em 229ms
+2026-01-17 04:12:38 [HTTP]: GET /api/professores
+2026-01-17 04:12:38 [DEBUG]: Query executada em 226ms
+2026-01-17 04:12:38 [HTTP]: GET /api/turmas
+2026-01-17 04:12:38 [DEBUG]: Query executada em 235ms
+2026-01-17 04:12:38 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:38 [DEBUG]: Query executada em 228ms
+2026-01-17 04:12:40 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:12:40 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:40 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:41 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:41 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:41 [DEBUG]: Query executada em 221ms
+2026-01-17 04:12:41 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:42 [DEBUG]: Query executada em 221ms
+2026-01-17 04:12:42 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:42 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:43 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:43 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:43 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:43 [DEBUG]: Query executada em 228ms
+2026-01-17 04:12:44 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:44 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:44 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:44 [DEBUG]: Query executada em 239ms
+2026-01-17 04:12:44 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:45 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:45 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:45 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:12:45 [DEBUG]: Query executada em 232ms
+2026-01-17 04:12:45 [DEBUG]: Query executada em 226ms
+2026-01-17 04:12:46 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:46 [DEBUG]: Query executada em 228ms
+2026-01-17 04:12:46 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:46 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:47 [DEBUG]: Query executada em 227ms
+2026-01-17 04:12:47 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:47 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:47 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:47 [DEBUG]: Query executada em 225ms
+2026-01-17 04:12:48 [DEBUG]: Query executada em 227ms
+2026-01-17 04:12:48 [DEBUG]: Query executada em 225ms
+2026-01-17 04:12:48 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:48 [HTTP]: GET /api/responsaveis
+2026-01-17 04:12:48 [HTTP]: GET /api/alunos
+2026-01-17 04:12:48 [HTTP]: GET /api/turmas
+2026-01-17 04:12:48 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:49 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:49 [DEBUG]: Query executada em 230ms
+2026-01-17 04:12:49 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:49 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:49 [DEBUG]: Query executada em 222ms
+2026-01-17 04:12:50 [DEBUG]: Query executada em 1779ms
+2026-01-17 04:12:50 [HTTP]: GET /api/alunos
+2026-01-17 04:12:50 [DEBUG]: Query executada em 1809ms
+2026-01-17 04:12:50 [DEBUG]: Query executada em 1816ms
+2026-01-17 04:12:50 [HTTP]: GET /api/responsaveis
+2026-01-17 04:12:50 [DEBUG]: Query executada em 221ms
+2026-01-17 04:12:50 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:50 [HTTP]: GET /api/turmas
+2026-01-17 04:12:50 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:50 [DEBUG]: Query executada em 221ms
+2026-01-17 04:12:51 [DEBUG]: Query executada em 223ms
+2026-01-17 04:12:58 [HTTP]: GET /api/alunos/f71df7b1-5a29-405f-8ae0-2e6bfc085dbf
+2026-01-17 04:12:58 [DEBUG]: Query executada em 227ms
+2026-01-17 04:12:58 [HTTP]: GET /api/historico-escolar/aluno/f71df7b1-5a29-405f-8ae0-2e6bfc085dbf
+2026-01-17 04:12:58 [HTTP]: GET /api/alunos/f71df7b1-5a29-405f-8ae0-2e6bfc085dbf
+2026-01-17 04:12:58 [DEBUG]: Query executada em 226ms
+2026-01-17 04:12:58 [DEBUG]: Query executada em 232ms
+2026-01-17 04:12:58 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:59 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:59 [HTTP]: GET /api/historico-escolar/aluno/f71df7b1-5a29-405f-8ae0-2e6bfc085dbf
+2026-01-17 04:12:59 [DEBUG]: Query executada em 224ms
+2026-01-17 04:12:59 [DEBUG]: Query executada em 224ms
+2026-01-17 04:13:00 [DEBUG]: Query executada em 224ms
+2026-01-17 04:13:40 [HTTP]: GET /api/notas
+2026-01-17 04:13:40 [HTTP]: GET /api/alunos
+2026-01-17 04:13:40 [HTTP]: GET /api/professores
+2026-01-17 04:13:42 [HTTP]: GET /api/responsaveis
+2026-01-17 04:13:42 [HTTP]: GET /api/turmas
+2026-01-17 04:13:42 [DEBUG]: Query executada em 1946ms
+2026-01-17 04:13:42 [DEBUG]: Query executada em 1989ms
+2026-01-17 04:13:42 [DEBUG]: Query executada em 2042ms
+2026-01-17 04:13:42 [HTTP]: GET /api/professores
+2026-01-17 04:13:42 [HTTP]: GET /api/notas
+2026-01-17 04:13:42 [HTTP]: GET /api/alunos
+2026-01-17 04:13:42 [DEBUG]: Query executada em 229ms
+2026-01-17 04:13:42 [DEBUG]: Query executada em 328ms
+2026-01-17 04:13:42 [DEBUG]: Query executada em 270ms
+2026-01-17 04:13:42 [HTTP]: GET /api/alunos
+2026-01-17 04:13:43 [DEBUG]: Query executada em 218ms
+2026-01-17 04:13:43 [HTTP]: GET /api/alunos
+2026-01-17 04:13:43 [DEBUG]: Query executada em 220ms
+2026-01-17 04:13:44 [DEBUG]: Query executada em 1875ms
+2026-01-17 04:13:44 [HTTP]: GET /api/responsaveis
+2026-01-17 04:13:44 [DEBUG]: Query executada em 1896ms
+2026-01-17 04:13:44 [DEBUG]: Query executada em 234ms
+2026-01-17 04:13:44 [DEBUG]: Query executada em 229ms
+2026-01-17 04:13:44 [HTTP]: GET /api/turmas
+2026-01-17 04:13:44 [DEBUG]: Query executada em 226ms
+2026-01-17 04:13:44 [DEBUG]: Query executada em 227ms
+2026-01-17 04:15:40 [HTTP]: GET /api/alunos/f71df7b1-5a29-405f-8ae0-2e6bfc085dbf
+2026-01-17 04:15:40 [HTTP]: GET /api/historico-escolar/aluno/f71df7b1-5a29-405f-8ae0-2e6bfc085dbf
+2026-01-17 04:15:42 [DEBUG]: Query executada em 1836ms
+2026-01-17 04:15:42 [DEBUG]: Query executada em 1880ms
+2026-01-17 04:15:42 [HTTP]: GET /api/alunos/f71df7b1-5a29-405f-8ae0-2e6bfc085dbf
+2026-01-17 04:15:42 [DEBUG]: Query executada em 232ms
+2026-01-17 04:15:42 [DEBUG]: Query executada em 230ms
+2026-01-17 04:15:42 [DEBUG]: Query executada em 230ms
+2026-01-17 04:15:42 [HTTP]: GET /api/historico-escolar/aluno/f71df7b1-5a29-405f-8ae0-2e6bfc085dbf
+2026-01-17 04:15:43 [DEBUG]: Query executada em 224ms
+2026-01-17 04:15:43 [DEBUG]: Query executada em 224ms
+2026-01-17 04:15:43 [DEBUG]: Query executada em 223ms
+2026-01-17 04:16:37 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:16:37 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:16:37 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:16:37 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:16:37 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:16:37 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:16:37 [INFO]: Ambiente: development
+2026-01-17 04:17:10 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:17:10 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:17:10 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:17:10 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:17:10 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:17:10 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:17:10 [INFO]: Ambiente: development
+2026-01-17 04:17:36 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:17:36 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:17:36 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:17:36 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:17:36 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:17:36 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:17:36 [INFO]: Ambiente: development
+2026-01-17 04:17:43 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:17:43 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:17:43 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:17:43 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:17:43 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:17:43 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:17:43 [INFO]: Ambiente: development
+2026-01-17 04:17:59 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:17:59 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:17:59 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:18:00 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:18:00 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:18:00 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:18:00 [INFO]: Ambiente: development
+2026-01-17 04:18:08 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:18:08 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:18:08 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:18:09 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:18:09 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:18:09 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:18:09 [INFO]: Ambiente: development
+2026-01-17 04:19:47 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:19:47 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:19:47 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:19:48 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:19:48 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:19:48 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:19:48 [INFO]: Ambiente: development
+2026-01-17 04:19:58 [INFO]: Encerrando servidor...
+2026-01-17 04:21:27 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:21:27 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:21:27 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:21:28 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:21:28 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:21:28 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:21:28 [INFO]: Ambiente: development
+2026-01-17 04:21:28 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:21:28 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:28 [DEBUG]: Query executada em 230ms
+2026-01-17 04:21:28 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:29 [DEBUG]: Query executada em 240ms
+2026-01-17 04:21:29 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:29 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:29 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:29 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:30 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:30 [DEBUG]: Query executada em 228ms
+2026-01-17 04:21:30 [DEBUG]: Query executada em 228ms
+2026-01-17 04:21:30 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:31 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:31 [DEBUG]: Query executada em 229ms
+2026-01-17 04:21:31 [DEBUG]: Query executada em 228ms
+2026-01-17 04:21:31 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:32 [DEBUG]: Query executada em 224ms
+2026-01-17 04:21:32 [DEBUG]: Query executada em 225ms
+2026-01-17 04:21:32 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:32 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:32 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:21:32 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:33 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:33 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:33 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:33 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:34 [DEBUG]: Query executada em 229ms
+2026-01-17 04:21:34 [DEBUG]: Query executada em 224ms
+2026-01-17 04:21:34 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:34 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:34 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:35 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:35 [DEBUG]: Query executada em 229ms
+2026-01-17 04:21:35 [DEBUG]: Query executada em 226ms
+2026-01-17 04:21:35 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:36 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:36 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:36 [DEBUG]: Query executada em 225ms
+2026-01-17 04:21:36 [DEBUG]: Query executada em 227ms
+2026-01-17 04:21:37 [DEBUG]: Query executada em 230ms
+2026-01-17 04:21:37 [DEBUG]: Query executada em 226ms
+2026-01-17 04:23:14 [HTTP]: GET /api/financeiro/mensalidades
+2026-01-17 04:23:16 [DEBUG]: Query executada em 1888ms
+2026-01-17 04:23:16 [HTTP]: GET /api/financeiro/mensalidades
+2026-01-17 04:23:16 [DEBUG]: Query executada em 229ms
+2026-01-17 04:25:19 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:25:19 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:25:19 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:25:20 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:25:20 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:25:20 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:25:20 [INFO]: Ambiente: development
+2026-01-17 04:26:00 [HTTP]: GET /api/financeiro/mensalidades
+2026-01-17 04:26:02 [DEBUG]: Query executada em 1832ms
+2026-01-17 04:26:17 [HTTP]: GET /api/financeiro/mensalidades
+2026-01-17 04:26:19 [DEBUG]: Query executada em 1851ms
+2026-01-17 04:27:21 [HTTP]: GET /api/financeiro/mensalidades
+2026-01-17 04:27:23 [DEBUG]: Query executada em 1843ms
+2026-01-17 04:27:29 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:27:29 [DEBUG]: Query executada em 225ms
+2026-01-17 04:27:29 [DEBUG]: Query executada em 224ms
+2026-01-17 04:27:29 [DEBUG]: Query executada em 226ms
+2026-01-17 04:27:30 [DEBUG]: Query executada em 225ms
+2026-01-17 04:27:30 [DEBUG]: Query executada em 228ms
+2026-01-17 04:27:30 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:30 [DEBUG]: Query executada em 224ms
+2026-01-17 04:27:30 [DEBUG]: Query executada em 221ms
+2026-01-17 04:27:31 [DEBUG]: Query executada em 227ms
+2026-01-17 04:27:31 [DEBUG]: Query executada em 223ms
+2026-01-17 04:27:31 [DEBUG]: Query executada em 225ms
+2026-01-17 04:27:31 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:32 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:32 [DEBUG]: Query executada em 227ms
+2026-01-17 04:27:32 [DEBUG]: Query executada em 224ms
+2026-01-17 04:27:32 [DEBUG]: Query executada em 224ms
+2026-01-17 04:27:33 [DEBUG]: Query executada em 223ms
+2026-01-17 04:27:33 [DEBUG]: Query executada em 223ms
+2026-01-17 04:27:33 [DEBUG]: Query executada em 223ms
+2026-01-17 04:27:33 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:33 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:27:33 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:34 [DEBUG]: Query executada em 224ms
+2026-01-17 04:27:34 [DEBUG]: Query executada em 224ms
+2026-01-17 04:27:34 [DEBUG]: Query executada em 227ms
+2026-01-17 04:27:34 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:35 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:35 [DEBUG]: Query executada em 227ms
+2026-01-17 04:27:35 [DEBUG]: Query executada em 224ms
+2026-01-17 04:27:35 [DEBUG]: Query executada em 223ms
+2026-01-17 04:27:35 [DEBUG]: Query executada em 227ms
+2026-01-17 04:27:36 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:36 [DEBUG]: Query executada em 223ms
+2026-01-17 04:27:36 [DEBUG]: Query executada em 225ms
+2026-01-17 04:27:36 [DEBUG]: Query executada em 220ms
+2026-01-17 04:27:37 [DEBUG]: Query executada em 223ms
+2026-01-17 04:27:37 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:37 [DEBUG]: Query executada em 223ms
+2026-01-17 04:27:37 [DEBUG]: Query executada em 222ms
+2026-01-17 04:27:37 [DEBUG]: Query executada em 225ms
+2026-01-17 04:27:38 [DEBUG]: Query executada em 228ms
+2026-01-17 04:28:23 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:28:23 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:28:23 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:28:24 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:28:24 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:28:24 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:28:24 [INFO]: Ambiente: development
+2026-01-17 04:28:28 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:28:28 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:28:28 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:28:29 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:28:29 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:28:29 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:28:29 [INFO]: Ambiente: development
+2026-01-17 04:28:47 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:28:47 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:28:47 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:28:47 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:28:47 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:28:47 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:28:47 [INFO]: Ambiente: development
+2026-01-17 04:28:54 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:28:54 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:28:54 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:28:55 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:28:55 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:28:55 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:28:55 [INFO]: Ambiente: development
+2026-01-17 04:29:48 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:29:50 [DEBUG]: Query executada em 1828ms
+2026-01-17 04:29:50 [DEBUG]: Query executada em 226ms
+2026-01-17 04:29:50 [DEBUG]: Query executada em 229ms
+2026-01-17 04:29:50 [DEBUG]: Query executada em 225ms
+2026-01-17 04:29:51 [DEBUG]: Query executada em 224ms
+2026-01-17 04:29:51 [DEBUG]: Query executada em 224ms
+2026-01-17 04:29:51 [DEBUG]: Query executada em 226ms
+2026-01-17 04:29:51 [DEBUG]: Query executada em 228ms
+2026-01-17 04:29:51 [DEBUG]: Query executada em 221ms
+2026-01-17 04:29:52 [DEBUG]: Query executada em 225ms
+2026-01-17 04:29:52 [DEBUG]: Query executada em 224ms
+2026-01-17 04:29:52 [DEBUG]: Query executada em 222ms
+2026-01-17 04:29:52 [DEBUG]: Query executada em 224ms
+2026-01-17 04:29:53 [DEBUG]: Query executada em 225ms
+2026-01-17 04:29:53 [DEBUG]: Query executada em 222ms
+2026-01-17 04:29:53 [DEBUG]: Query executada em 224ms
+2026-01-17 04:29:53 [DEBUG]: Query executada em 225ms
+2026-01-17 04:29:54 [DEBUG]: Query executada em 221ms
+2026-01-17 04:29:54 [DEBUG]: Query executada em 226ms
+2026-01-17 04:29:54 [DEBUG]: Query executada em 228ms
+2026-01-17 04:29:54 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:29:54 [DEBUG]: Query executada em 221ms
+2026-01-17 04:29:54 [DEBUG]: Query executada em 225ms
+2026-01-17 04:29:55 [DEBUG]: Query executada em 223ms
+2026-01-17 04:29:55 [DEBUG]: Query executada em 223ms
+2026-01-17 04:29:55 [DEBUG]: Query executada em 223ms
+2026-01-17 04:29:55 [DEBUG]: Query executada em 224ms
+2026-01-17 04:29:56 [DEBUG]: Query executada em 225ms
+2026-01-17 04:29:56 [DEBUG]: Query executada em 226ms
+2026-01-17 04:29:56 [DEBUG]: Query executada em 224ms
+2026-01-17 04:29:56 [DEBUG]: Query executada em 223ms
+2026-01-17 04:29:56 [DEBUG]: Query executada em 225ms
+2026-01-17 04:29:57 [DEBUG]: Query executada em 225ms
+2026-01-17 04:29:57 [DEBUG]: Query executada em 224ms
+2026-01-17 04:29:57 [DEBUG]: Query executada em 222ms
+2026-01-17 04:29:57 [DEBUG]: Query executada em 223ms
+2026-01-17 04:29:58 [DEBUG]: Query executada em 223ms
+2026-01-17 04:29:58 [DEBUG]: Query executada em 224ms
+2026-01-17 04:29:58 [DEBUG]: Query executada em 221ms
+2026-01-17 04:29:58 [DEBUG]: Query executada em 223ms
+2026-01-17 04:29:58 [DEBUG]: Query executada em 221ms

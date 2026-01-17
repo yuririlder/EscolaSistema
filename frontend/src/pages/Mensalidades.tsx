@@ -67,9 +67,13 @@ export function Mensalidades() {
 
       if (m.status === StatusMensalidade.PAGO) {
         grupos[alunoId].totalPago += valor;
-      } else if (m.status === StatusMensalidade.PENDENTE || m.status === StatusMensalidade.ATRASADO) {
+      } else if (m.status === StatusMensalidade.PENDENTE || 
+                 m.status === StatusMensalidade.ATRASADO || 
+                 m.status === StatusMensalidade.VENCIDA ||
+                 (m.status as string) === 'VENCIDA') {
         grupos[alunoId].totalPendente += valor;
       }
+      // Mensalidades FUTURA não entram no total pendente
     });
 
     // Ordenar mensalidades de cada aluno por mês/ano
@@ -188,15 +192,24 @@ export function Mensalidades() {
     return new Date(date).toLocaleDateString('pt-BR');
   };
 
-  const getStatusVariant = (status: StatusMensalidade) => {
+  const getStatusVariant = (status: StatusMensalidade | string) => {
     switch (status) {
       case StatusMensalidade.PAGO:
+      case 'PAGO':
         return 'success';
       case StatusMensalidade.PENDENTE:
+      case 'PENDENTE':
         return 'warning';
       case StatusMensalidade.ATRASADO:
+      case 'ATRASADO':
+      case StatusMensalidade.VENCIDA:
+      case 'VENCIDA':
         return 'danger';
+      case StatusMensalidade.FUTURA:
+      case 'FUTURA':
+        return 'info';
       case StatusMensalidade.CANCELADO:
+      case 'CANCELADO':
         return 'default';
       default:
         return 'default';

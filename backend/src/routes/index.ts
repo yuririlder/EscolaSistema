@@ -8,6 +8,7 @@ import turmaRoutes from './turmaRoutes';
 import professorRoutes from './professorRoutes';
 import notaRoutes from './notaRoutes';
 import financeiroRoutes from './financeiroRoutes';
+import historicoEscolarRoutes from './historicoEscolarRoutes';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/turmas', turmaRoutes);
 router.use('/professores', professorRoutes);
 router.use('/notas', notaRoutes);
 router.use('/financeiro', financeiroRoutes);
+router.use('/historico-escolar', historicoEscolarRoutes);
 
 export default router;

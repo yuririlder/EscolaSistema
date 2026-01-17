@@ -158,14 +158,14 @@ export function Despesas() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta despesa?')) return;
+    if (!confirm('Tem certeza que deseja cancelar esta despesa? O histórico será mantido.')) return;
 
     try {
       await financeiroService.excluirDespesa(id);
-      toast.success('Despesa excluída com sucesso!');
+      toast.success('Despesa cancelada com sucesso!');
       loadDespesas();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir despesa');
+      toast.error(error.response?.data?.error || 'Erro ao cancelar despesa');
     }
   };
 

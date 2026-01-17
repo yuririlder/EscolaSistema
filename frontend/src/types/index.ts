@@ -16,6 +16,8 @@ export enum StatusMensalidade {
   PENDENTE = 'PENDENTE',
   PAGO = 'PAGO',
   ATRASADO = 'ATRASADO',
+  VENCIDA = 'VENCIDA',
+  FUTURA = 'FUTURA',
   CANCELADO = 'CANCELADO',
 }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -11,18 +12,22 @@ import { Aluno, Responsavel, Turma } from '../types';
 import { alunoService } from '../services/alunoService';
 import { responsavelService } from '../services/responsavelService';
 import { turmaService } from '../services/turmaService';
+import { historicoEscolarService } from '../services/historicoEscolarService';
 import { removeMask } from '../utils/masks';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, GraduationCap, BookOpen } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function Alunos() {
+  const navigate = useNavigate();
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTurmaModalOpen, setIsTurmaModalOpen] = useState(false);
   const [editingAluno, setEditingAluno] = useState<Aluno | null>(null);
+  const [selectedAlunoForTurma, setSelectedAlunoForTurma] = useState<Aluno | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
@@ -31,6 +36,10 @@ export function Alunos() {
     sexo: 'M',
     responsavel_id: '',
     turma_id: '',
+  });
+  const [turmaFormData, setTurmaFormData] = useState({
+    turma_id: '',
+    ano_letivo: new Date().getFullYear(),
   });
 
   useEffect(() => {
@@ -117,15 +126,51 @@ export function Alunos() {
     }
   };
 
+  const handleOpenTurmaModal = (aluno: Aluno) => {
+    setSelectedAlunoForTurma(aluno);
+    const a = aluno as any;
+    setTurmaFormData({
+      turma_id: a.turma_id || a.turmaId || '',
+      ano_letivo: new Date().getFullYear(),
+    });
+    setIsTurmaModalOpen(true);
+  };
+
+  const handleCloseTurmaModal = () => {
+    setIsTurmaModalOpen(false);
+    setSelectedAlunoForTurma(null);
+  };
+
+  const handleVincularTurma = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAlunoForTurma || !turmaFormData.turma_id) return;
+    setIsSaving(true);
+
+    try {
+      await historicoEscolarService.vincularAlunoTurma({
+        aluno_id: selectedAlunoForTurma.id,
+        turma_id: turmaFormData.turma_id,
+        ano_letivo: turmaFormData.ano_letivo,
+      });
+      toast.success('Aluno vinculado à turma com sucesso!');
+      handleCloseTurmaModal();
+      loadData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao vincular aluno à turma');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este aluno?')) return;
+    if (!confirm('Tem certeza que deseja desativar este aluno? O histórico será mantido.')) return;
 
     try {
       await alunoService.excluir(id);
-      toast.success('Aluno excluído com sucesso!');
+      toast.success('Aluno desativado com sucesso!');
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir aluno');
+      toast.error(error.response?.data?.error || 'Erro ao desativar aluno');
     }
   };
 
@@ -133,6 +178,9 @@ export function Alunos() {
     if (!date) return '-';
     return new Date(date).toLocaleDateString('pt-BR');
   };
+
+  // Filtrar turmas pelo ano letivo selecionado
+  const turmasFiltradas = turmas.filter((t) => t.ano === turmaFormData.ano_letivo && t.ativa);
 
   const filteredAlunos = alunos.filter((a) => {
     const searchLower = searchTerm.toLowerCase();
@@ -171,11 +219,27 @@ export function Alunos() {
       key: 'actions',
       header: 'Ações',
       render: (aluno: Aluno) => (
-        <div className="flex gap-2">
-          <Button size="sm" variant="ghost" onClick={() => handleOpenModal(aluno)}>
+        <div className="flex gap-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => handleOpenTurmaModal(aluno)}
+            title="Vincular à Turma"
+          >
+            <GraduationCap size={16} className="text-blue-500" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => navigate(`/alunos/${aluno.id}/historico`)}
+            title="Ver Histórico Escolar"
+          >
+            <BookOpen size={16} className="text-green-500" />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleOpenModal(aluno)} title="Editar">
             <Pencil size={16} />
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => handleDelete(aluno.id)}>
+          <Button size="sm" variant="ghost" onClick={() => handleDelete(aluno.id)} title="Excluir">
             <Trash2 size={16} className="text-red-500" />
           </Button>
         </div>
@@ -288,6 +352,60 @@ export function Alunos() {
             </Button>
             <Button type="submit" isLoading={isSaving}>
               {editingAluno ? 'Atualizar' : 'Criar'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal Vincular à Turma */}
+      <Modal
+        isOpen={isTurmaModalOpen}
+        onClose={handleCloseTurmaModal}
+        title="Vincular Aluno à Turma"
+      >
+        <form onSubmit={handleVincularTurma} className="space-y-4">
+          {selectedAlunoForTurma && (
+            <div className="p-3 bg-gray-50 rounded-lg mb-4">
+              <p className="text-sm text-gray-500">Aluno selecionado:</p>
+              <p className="font-semibold">{selectedAlunoForTurma.nome}</p>
+            </div>
+          )}
+          
+          <Select
+            label="Ano Letivo"
+            value={turmaFormData.ano_letivo.toString()}
+            onChange={(e) => setTurmaFormData({ ...turmaFormData, ano_letivo: parseInt(e.target.value) })}
+            options={[
+              { value: (new Date().getFullYear() - 1).toString(), label: (new Date().getFullYear() - 1).toString() },
+              { value: new Date().getFullYear().toString(), label: new Date().getFullYear().toString() },
+              { value: (new Date().getFullYear() + 1).toString(), label: (new Date().getFullYear() + 1).toString() },
+            ]}
+          />
+          
+          <Select
+            label="Turma"
+            value={turmaFormData.turma_id}
+            onChange={(e) => setTurmaFormData({ ...turmaFormData, turma_id: e.target.value })}
+            options={turmasFiltradas.map((t) => ({
+              value: t.id,
+              label: `${t.nome} - ${t.serie || ''} (${t.turno})`,
+            }))}
+            placeholder="Selecione uma turma"
+            required
+          />
+          
+          {turmasFiltradas.length === 0 && (
+            <p className="text-sm text-amber-600">
+              Nenhuma turma ativa encontrada para o ano letivo {turmaFormData.ano_letivo}
+            </p>
+          )}
+          
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="secondary" onClick={handleCloseTurmaModal}>
+              Cancelar
+            </Button>
+            <Button type="submit" isLoading={isSaving} disabled={!turmaFormData.turma_id}>
+              Vincular
             </Button>
           </div>
         </form>
