@@ -11018,3 +11018,14 @@ error: insert or update on table "pagamentos_funcionarios" violates foreign key 
 2026-01-17 03:46:10 [HTTP]: GET /api/professores
 2026-01-17 03:46:10 [DEBUG]: Query executada em 222ms
 2026-01-17 03:46:11 [DEBUG]: Query executada em 228ms
+2026-01-17 03:46:19 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 03:46:19 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 03:46:19 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 03:46:19 [INFO]: Migrations executadas com sucesso!
+2026-01-17 03:46:19 [INFO]: Migrations executadas com sucesso
+2026-01-17 03:46:19 [INFO]: Servidor rodando na porta 3001
+2026-01-17 03:46:19 [INFO]: Ambiente: development
+2026-01-17 03:46:19 [HTTP]: GET /api/financeiro/pagamentos-funcionarios
+2026-01-17 03:46:19 [HTTP]: GET /api/professores
+2026-01-17 03:46:20 [DEBUG]: Query executada em 228ms
+2026-01-17 03:46:21 [DEBUG]: Query executada em 1778ms
