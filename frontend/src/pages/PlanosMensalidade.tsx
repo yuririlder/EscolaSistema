@@ -9,6 +9,7 @@ import { PlanoMensalidade } from '../types';
 import { financeiroService } from '../services/financeiroService';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatCurrencyInput, currencyToNumber } from '../utils/masks';
 
 export function PlanosMensalidade() {
   const [planos, setPlanos] = useState<PlanoMensalidade[]>([]);
@@ -19,7 +20,7 @@ export function PlanosMensalidade() {
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
-    valor: 0,
+    valor: '',
     descricao: '',
     ativo: true,
   });
@@ -44,7 +45,7 @@ export function PlanosMensalidade() {
       setEditingPlano(plano);
       setFormData({
         nome: plano.nome,
-        valor: plano.valor,
+        valor: formatCurrencyInput((plano.valor * 100).toString()),
         descricao: plano.descricao || '',
         ativo: plano.ativo,
       });
@@ -52,7 +53,7 @@ export function PlanosMensalidade() {
       setEditingPlano(null);
       setFormData({
         nome: '',
-        valor: 0,
+        valor: '',
         descricao: '',
         ativo: true,
       });
@@ -69,12 +70,17 @@ export function PlanosMensalidade() {
     e.preventDefault();
     setIsSaving(true);
 
+    const payload = {
+      ...formData,
+      valor: currencyToNumber(formData.valor),
+    };
+
     try {
       if (editingPlano) {
-        await financeiroService.atualizarPlano(editingPlano.id, formData);
+        await financeiroService.atualizarPlano(editingPlano.id, payload);
         toast.success('Plano atualizado com sucesso!');
       } else {
-        await financeiroService.criarPlano(formData);
+        await financeiroService.criarPlano(payload);
         toast.success('Plano criado com sucesso!');
       }
       handleCloseModal();
@@ -87,14 +93,14 @@ export function PlanosMensalidade() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este plano?')) return;
+    if (!confirm('Tem certeza que deseja desativar este plano? O histórico será mantido.')) return;
 
     try {
       await financeiroService.excluirPlano(id);
-      toast.success('Plano excluído com sucesso!');
+      toast.success('Plano desativado com sucesso!');
       loadPlanos();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir plano');
+      toast.error(error.response?.data?.error || 'Erro ao desativar plano');
     }
   };
 
@@ -198,10 +204,10 @@ export function PlanosMensalidade() {
           />
           <Input
             label="Valor"
-            type="number"
-            step="0.01"
-            value={formData.valor}
-            onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) })}
+            type="text"
+            value={formData.valor ? `R$ ${formData.valor}` : ''}
+            onChange={(e) => setFormData({ ...formData, valor: formatCurrencyInput(e.target.value) })}
+            placeholder="R$ 0,00"
             required
           />
           <Input

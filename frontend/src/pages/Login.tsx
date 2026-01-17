@@ -1,31 +1,37 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useLogin } from '../hooks';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { GraduationCap } from 'lucide-react';
-import toast from 'react-hot-toast';
+
+const loginSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+  senha: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export function Login() {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const loginMutation = useLogin();
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      await login({ email, senha });
-      toast.success('Login realizado com sucesso!');
-      navigate('/dashboard');
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao fazer login');
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = async (data: LoginFormData) => {
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        navigate('/dashboard');
+      },
+    });
   };
 
   return (
@@ -39,28 +45,34 @@ export function Login() {
           <p className="text-gray-500 mt-2">Entre com suas credenciais</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="E-mail"
-            type="email"
-            placeholder="seu@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            label="Senha"
-            type="password"
-            placeholder="••••••••"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-          />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Input
+              label="E-mail"
+              type="email"
+              placeholder="seu@email.com"
+              {...register('email')}
+            />
+            {errors.email && (
+              <span className="text-red-500 text-sm">{errors.email.message}</span>
+            )}
+          </div>
+          <div>
+            <Input
+              label="Senha"
+              type="password"
+              placeholder="••••••••"
+              {...register('senha')}
+            />
+            {errors.senha && (
+              <span className="text-red-500 text-sm">{errors.senha.message}</span>
+            )}
+          </div>
           <Button
             type="submit"
             className="w-full"
             size="lg"
-            isLoading={isLoading}
+            isLoading={loginMutation.isLoading}
           >
             Entrar
           </Button>

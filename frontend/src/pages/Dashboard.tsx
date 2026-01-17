@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { financeiroService } from '../services/financeiroService';
 import { DashboardMetrics } from '../types';
@@ -9,6 +10,7 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
+  UserPlus,
 } from 'lucide-react';
 import {
   BarChart,
@@ -29,9 +31,31 @@ import toast from 'react-hot-toast';
 
 const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444'];
 
+// Dados mock para fallback
+const mockMetrics: DashboardMetrics = {
+  totalAlunos: 0,
+  totalProfessores: 0,
+  totalTurmas: 0,
+  mensalidadesPendentes: 0,
+  receitaMensal: 0,
+  despesaMensal: 0,
+  alunosPorTurma: [],
+  mensalidadesPorStatus: [],
+  receitaVsDespesa: [
+    { mes: 'Ago', receita: 0, despesa: 0 },
+    { mes: 'Set', receita: 0, despesa: 0 },
+    { mes: 'Out', receita: 0, despesa: 0 },
+    { mes: 'Nov', receita: 0, despesa: 0 },
+    { mes: 'Dez', receita: 0, despesa: 0 },
+    { mes: 'Jan', receita: 0, despesa: 0 },
+  ],
+};
+
 export function Dashboard() {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const navigate = useNavigate();
+  const [metrics, setMetrics] = useState<DashboardMetrics>(mockMetrics);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadMetrics();
@@ -39,39 +63,21 @@ export function Dashboard() {
 
   const loadMetrics = async () => {
     try {
+      setError(null);
       const data = await financeiroService.obterMetricasDashboard();
-      setMetrics(data);
-    } catch (error) {
-      toast.error('Erro ao carregar métricas');
-      // Dados mock para demonstração
-      setMetrics({
-        totalAlunos: 150,
-        totalProfessores: 12,
-        totalTurmas: 8,
-        mensalidadesPendentes: 23,
-        receitaMensal: 45000,
-        despesaMensal: 32000,
-        alunosPorTurma: [
-          { turma: '1º Ano A', quantidade: 25 },
-          { turma: '1º Ano B', quantidade: 22 },
-          { turma: '2º Ano A', quantidade: 28 },
-          { turma: '2º Ano B', quantidade: 24 },
-          { turma: '3º Ano A', quantidade: 26 },
-        ],
-        mensalidadesPorStatus: [
-          { status: 'Pago', quantidade: 120 },
-          { status: 'Pendente', quantidade: 23 },
-          { status: 'Atrasado', quantidade: 7 },
-        ],
-        receitaVsDespesa: [
-          { mes: 'Jan', receita: 42000, despesa: 30000 },
-          { mes: 'Fev', receita: 44000, despesa: 31000 },
-          { mes: 'Mar', receita: 45000, despesa: 32000 },
-          { mes: 'Abr', receita: 43000, despesa: 29000 },
-          { mes: 'Mai', receita: 46000, despesa: 33000 },
-          { mes: 'Jun', receita: 45000, despesa: 32000 },
-        ],
-      });
+      if (data) {
+        setMetrics({
+          ...mockMetrics,
+          ...data,
+          alunosPorTurma: data.alunosPorTurma || [],
+          mensalidadesPorStatus: data.mensalidadesPorStatus || [],
+          receitaVsDespesa: data.receitaVsDespesa || mockMetrics.receitaVsDespesa,
+        });
+      }
+    } catch (err: any) {
+      console.error('Erro ao carregar métricas:', err);
+      setError(err.message || 'Erro ao carregar métricas');
+      toast.error('Erro ao carregar métricas do dashboard');
     } finally {
       setIsLoading(false);
     }
@@ -92,13 +98,57 @@ export function Dashboard() {
     );
   }
 
-  if (!metrics) return null;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <AlertCircle size={48} className="text-red-500 mb-4" />
+        <p className="text-red-600">{error}</p>
+        <button 
+          onClick={loadMetrics}
+          className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
 
   const lucro = metrics.receitaMensal - metrics.despesaMensal;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        {/* Botão de acesso rápido para Nova Matrícula */}
+        <button
+          onClick={() => navigate('/onboarding-matricula')}
+          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-lg"
+        >
+          <UserPlus size={20} />
+          <span className="font-medium">Nova Matrícula</span>
+        </button>
+      </div>
+
+      {/* Card de Acesso Rápido - Nova Matrícula */}
+      <div 
+        className="bg-gradient-to-r from-primary-500 to-primary-700 text-white cursor-pointer hover:from-primary-600 hover:to-primary-800 transition-all rounded-xl shadow-lg"
+        onClick={() => navigate('/onboarding-matricula')}
+      >
+        <div className="flex items-center justify-between p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-white/20 rounded-xl">
+              <UserPlus size={32} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Onboarding de Matrícula</h2>
+              <p className="text-primary-100">
+                Cadastre novos alunos em um processo guiado passo a passo
+              </p>
+            </div>
+          </div>
+          <div className="text-5xl font-bold opacity-50">→</div>
+        </div>
+      </div>
 
       {/* Cards de métricas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

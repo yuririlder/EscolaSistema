@@ -6,11 +6,14 @@ import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
 import { Table } from '../components/ui/Table';
 import { Badge } from '../components/ui/Badge';
+import { Autocomplete } from '../components/ui/Autocomplete';
 import { Matricula, Aluno, PlanoMensalidade, StatusMatricula } from '../types';
 import { financeiroService } from '../services/financeiroService';
 import { alunoService } from '../services/alunoService';
-import { Plus, Pencil, Search, FileText, Printer } from 'lucide-react';
+import { Plus, Pencil, Search, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatCurrencyInput, currencyToNumber, formatNumberInput, formatPercentInput } from '../utils/masks';
+import { gerarTermoMatriculaPDF } from '../utils/pdfGenerator';
 
 export function Matriculas() {
   const [matriculas, setMatriculas] = useState<Matricula[]>([]);
@@ -24,9 +27,9 @@ export function Matriculas() {
   const [formData, setFormData] = useState({
     alunoId: '',
     planoMensalidadeId: '',
-    anoLetivo: new Date().getFullYear(),
-    valorMatricula: 0,
-    desconto: 0,
+    anoLetivo: new Date().getFullYear().toString(),
+    valorMatricula: '',
+    desconto: '0',
     status: StatusMatricula.ATIVA,
     observacao: '',
   });
@@ -54,24 +57,25 @@ export function Matriculas() {
 
   const handleOpenModal = (matricula?: Matricula) => {
     if (matricula) {
+      const mat = matricula as any;
       setEditingMatricula(matricula);
       setFormData({
-        alunoId: matricula.alunoId,
-        planoMensalidadeId: matricula.planoMensalidadeId,
-        anoLetivo: matricula.anoLetivo,
-        valorMatricula: matricula.valorMatricula,
-        desconto: matricula.desconto,
-        status: matricula.status,
-        observacao: matricula.observacao || '',
+        alunoId: mat.alunoId || mat.aluno_id || '',
+        planoMensalidadeId: mat.planoMensalidadeId || mat.plano_id || '',
+        anoLetivo: (mat.anoLetivo || mat.ano_letivo || new Date().getFullYear()).toString(),
+        valorMatricula: formatCurrencyInput(((mat.valorMatricula || mat.valor_matricula || 0) * 100).toString()),
+        desconto: (mat.desconto || 0).toString(),
+        status: mat.status || StatusMatricula.ATIVA,
+        observacao: mat.observacao || mat.observacoes || '',
       });
     } else {
       setEditingMatricula(null);
       setFormData({
         alunoId: '',
         planoMensalidadeId: '',
-        anoLetivo: new Date().getFullYear(),
-        valorMatricula: 0,
-        desconto: 0,
+        anoLetivo: new Date().getFullYear().toString(),
+        valorMatricula: '',
+        desconto: '0',
         status: StatusMatricula.ATIVA,
         observacao: '',
       });
@@ -88,12 +92,23 @@ export function Matriculas() {
     e.preventDefault();
     setIsSaving(true);
 
+    // Converter para o formato esperado pelo backend (snake_case)
+    const payload = {
+      aluno_id: formData.alunoId,
+      plano_id: formData.planoMensalidadeId,
+      ano_letivo: parseInt(formData.anoLetivo, 10),
+      valor_matricula: currencyToNumber(formData.valorMatricula),
+      desconto: parseInt(formData.desconto, 10) || 0,
+      status: formData.status,
+      observacoes: formData.observacao,
+    };
+
     try {
       if (editingMatricula) {
-        await financeiroService.atualizarMatricula(editingMatricula.id, formData);
+        await financeiroService.atualizarMatricula(editingMatricula.id, payload);
         toast.success('Matrícula atualizada com sucesso!');
       } else {
-        await financeiroService.criarMatricula(formData);
+        await financeiroService.criarMatricula(payload);
         toast.success('Matrícula criada com sucesso!');
       }
       handleCloseModal();
@@ -105,51 +120,38 @@ export function Matriculas() {
     }
   };
 
-  const handleGerarMensalidades = async (matriculaId: string) => {
-    try {
-      await financeiroService.gerarMensalidades(matriculaId, new Date().getFullYear());
-      toast.success('Mensalidades geradas com sucesso!');
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao gerar mensalidades');
-    }
-  };
-
   const handlePrint = (matricula: Matricula) => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Termo de Matrícula</title>
-            <style>
-              body { font-family: Arial, sans-serif; padding: 40px; }
-              h1 { text-align: center; color: #1e40af; }
-              .info { margin: 20px 0; }
-              .info p { margin: 8px 0; }
-              .signature { margin-top: 60px; text-align: center; }
-              .signature-line { border-top: 1px solid #000; width: 300px; margin: 0 auto; }
-            </style>
-          </head>
-          <body>
-            <h1>Termo de Matrícula</h1>
-            <div class="info">
-              <p><strong>Aluno:</strong> ${matricula.aluno?.nome || '-'}</p>
-              <p><strong>Ano Letivo:</strong> ${matricula.anoLetivo}</p>
-              <p><strong>Plano:</strong> ${matricula.planoMensalidade?.nome || '-'}</p>
-              <p><strong>Valor da Matrícula:</strong> R$ ${matricula.valorMatricula.toFixed(2)}</p>
-              <p><strong>Desconto:</strong> ${matricula.desconto}%</p>
-              <p><strong>Data:</strong> ${new Date(matricula.dataMatricula).toLocaleDateString('pt-BR')}</p>
-            </div>
-            <div class="signature">
-              <div class="signature-line"></div>
-              <p>Assinatura do Responsável</p>
-            </div>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
+    const mat = matricula as any;
+    const alunoNome = mat.aluno?.nome || mat.aluno_nome || '-';
+    const anoLetivo = mat.anoLetivo || mat.ano_letivo || '-';
+    const planoNome = mat.planoMensalidade?.nome || mat.plano_nome || '-';
+    const valorMatricula = mat.valorMatricula || mat.valor_matricula || 0;
+    const valorMensalidade = mat.valorMensalidade || mat.valor_mensalidade || 0;
+    const desconto = mat.desconto || 0;
+    const dataMatricula = mat.dataMatricula || mat.data_matricula;
+    
+    // Buscar dados do aluno para informações adicionais
+    const alunoData = alunos.find((a) => a.id === (mat.aluno_id || mat.alunoId)) as any;
+    const responsavelNome = alunoData?.responsavel?.nome || '';
+    const responsavelCpf = alunoData?.responsavel?.cpf || '';
+    const responsavelTelefone = alunoData?.responsavel?.celular || alunoData?.responsavel?.telefone || '';
+    const alunoDataNascimento = alunoData?.data_nascimento || alunoData?.dataNascimento;
+    const turmaNome = alunoData?.turma?.nome || '';
+    
+    gerarTermoMatriculaPDF({
+      alunoNome,
+      alunoDataNascimento,
+      responsavelNome,
+      responsavelCpf,
+      responsavelTelefone,
+      anoLetivo,
+      planoNome,
+      valorMensalidade,
+      valorMatricula,
+      desconto,
+      dataMatricula,
+      turmaNome,
+    });
   };
 
   const formatCurrency = (value: number) => {
@@ -175,27 +177,54 @@ export function Matriculas() {
   };
 
   const filteredMatriculas = matriculas.filter(
-    (m) =>
-      m.aluno?.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.anoLetivo.toString().includes(searchTerm)
+    (m) => {
+      const mat = m as any;
+      const alunoNome = mat.aluno?.nome || mat.aluno_nome || '';
+      const anoLetivo = mat.anoLetivo || mat.ano_letivo || '';
+      return alunoNome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        anoLetivo.toString().includes(searchTerm);
+    }
   );
+
+  // Opções de alunos para o Autocomplete
+  const alunoOptions = alunos.map((a) => ({
+    value: a.id,
+    label: `${a.nome}${(a as any).matricula_numero ? ` - Mat: ${(a as any).matricula_numero}` : ''}`,
+  }));
 
   const columns = [
     {
       key: 'aluno.nome',
       header: 'Aluno',
-      render: (matricula: Matricula) => matricula.aluno?.nome || '-',
+      render: (matricula: Matricula) => {
+        const mat = matricula as any;
+        return mat.aluno?.nome || mat.aluno_nome || '-';
+      },
     },
-    { key: 'anoLetivo', header: 'Ano Letivo' },
+    { 
+      key: 'anoLetivo', 
+      header: 'Ano Letivo',
+      render: (matricula: Matricula) => {
+        const mat = matricula as any;
+        return mat.anoLetivo || mat.ano_letivo || '-';
+      },
+    },
     {
       key: 'planoMensalidade.nome',
       header: 'Plano',
-      render: (matricula: Matricula) => matricula.planoMensalidade?.nome || '-',
+      render: (matricula: Matricula) => {
+        const mat = matricula as any;
+        return mat.planoMensalidade?.nome || mat.plano_nome || '-';
+      },
     },
     {
       key: 'valorMatricula',
       header: 'Valor',
-      render: (matricula: Matricula) => formatCurrency(matricula.valorMatricula),
+      render: (matricula: Matricula) => {
+        const mat = matricula as any;
+        const valor = mat.valorMatricula || mat.valor_matricula || 0;
+        return formatCurrency(valor);
+      },
     },
     {
       key: 'status',
@@ -209,14 +238,6 @@ export function Matriculas() {
       header: 'Ações',
       render: (matricula: Matricula) => (
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleGerarMensalidades(matricula.id)}
-            title="Gerar Mensalidades"
-          >
-            <FileText size={16} className="text-green-500" />
-          </Button>
           <Button
             size="sm"
             variant="ghost"
@@ -283,15 +304,12 @@ export function Matriculas() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
+            <Autocomplete
               label="Aluno"
               value={formData.alunoId}
-              onChange={(e) => setFormData({ ...formData, alunoId: e.target.value })}
-              options={alunos.map((a) => ({
-                value: a.id,
-                label: a.nome,
-              }))}
-              placeholder="Selecione um aluno"
+              options={alunoOptions}
+              onChange={(value) => setFormData({ ...formData, alunoId: value })}
+              placeholder="Digite o nome do aluno..."
               required
             />
             <Select
@@ -307,26 +325,26 @@ export function Matriculas() {
             />
             <Input
               label="Ano Letivo"
-              type="number"
+              type="text"
               value={formData.anoLetivo}
-              onChange={(e) => setFormData({ ...formData, anoLetivo: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, anoLetivo: formatNumberInput(e.target.value).slice(0, 4) })}
+              maxLength={4}
               required
             />
             <Input
               label="Valor da Matrícula"
-              type="number"
-              step="0.01"
-              value={formData.valorMatricula}
-              onChange={(e) => setFormData({ ...formData, valorMatricula: parseFloat(e.target.value) })}
+              type="text"
+              value={formData.valorMatricula ? `R$ ${formData.valorMatricula}` : ''}
+              onChange={(e) => setFormData({ ...formData, valorMatricula: formatCurrencyInput(e.target.value) })}
+              placeholder="R$ 0,00"
               required
             />
             <Input
               label="Desconto (%)"
-              type="number"
-              min="0"
-              max="100"
+              type="text"
               value={formData.desconto}
-              onChange={(e) => setFormData({ ...formData, desconto: parseFloat(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, desconto: formatPercentInput(e.target.value) })}
+              maxLength={3}
             />
             <Select
               label="Status"

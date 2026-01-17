@@ -8,7 +8,7 @@ import { Building, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function Escola() {
-  const [escola, setEscola] = useState<EscolaType | null>(null);
+  const [_escola, setEscola] = useState<EscolaType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({

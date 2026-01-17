@@ -8,8 +8,10 @@ import { Table } from '../components/ui/Table';
 import { Badge } from '../components/ui/Badge';
 import { Despesa, StatusDespesa } from '../types';
 import { financeiroService } from '../services/financeiroService';
-import { Plus, Pencil, Trash2, Search, DollarSign } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, DollarSign, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatCurrencyInput, currencyToNumber } from '../utils/masks';
+import { gerarReciboDespesaPDF } from '../utils/pdfGenerator';
 
 export function Despesas() {
   const [despesas, setDespesas] = useState<Despesa[]>([]);
@@ -18,9 +20,13 @@ export function Despesas() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDespesa, setEditingDespesa] = useState<Despesa | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [selectedDespesa, setSelectedDespesa] = useState<Despesa | null>(null);
+  const [formaPagamento, setFormaPagamento] = useState('PIX');
+  const [isPaying, setIsPaying] = useState(false);
   const [formData, setFormData] = useState({
     descricao: '',
-    valor: 0,
+    valor: '',
     categoria: '',
     dataVencimento: '',
     fornecedor: '',
@@ -44,20 +50,21 @@ export function Despesas() {
 
   const handleOpenModal = (despesa?: Despesa) => {
     if (despesa) {
+      const desp = despesa as any;
       setEditingDespesa(despesa);
       setFormData({
-        descricao: despesa.descricao,
-        valor: despesa.valor,
-        categoria: despesa.categoria,
-        dataVencimento: new Date(despesa.dataVencimento).toISOString().split('T')[0],
-        fornecedor: despesa.fornecedor || '',
-        observacao: despesa.observacao || '',
+        descricao: desp.descricao,
+        valor: formatCurrencyInput((desp.valor * 100).toString()),
+        categoria: desp.categoria,
+        dataVencimento: new Date(desp.dataVencimento || desp.data_vencimento).toISOString().split('T')[0],
+        fornecedor: desp.fornecedor || '',
+        observacao: desp.observacao || desp.observacoes || '',
       });
     } else {
       setEditingDespesa(null);
       setFormData({
         descricao: '',
-        valor: 0,
+        valor: '',
         categoria: '',
         dataVencimento: '',
         fornecedor: '',
@@ -78,8 +85,12 @@ export function Despesas() {
 
     try {
       const payload = {
-        ...formData,
-        dataVencimento: new Date(formData.dataVencimento),
+        descricao: formData.descricao,
+        categoria: formData.categoria,
+        valor: currencyToNumber(formData.valor),
+        data_vencimento: formData.dataVencimento,
+        fornecedor: formData.fornecedor,
+        observacoes: formData.observacao,
       };
 
       if (editingDespesa) {
@@ -100,23 +111,61 @@ export function Despesas() {
 
   const handlePagar = async (id: string) => {
     try {
-      await financeiroService.pagarDespesa(id);
+      await financeiroService.pagarDespesa(id, { forma_pagamento: formaPagamento });
       toast.success('Despesa paga com sucesso!');
+      
+      // Gerar PDF do recibo
+      if (selectedDespesa) {
+        const desp = selectedDespesa as any;
+        gerarReciboDespesaPDF({
+          descricao: desp.descricao,
+          categoria: desp.categoria,
+          valor: desp.valor,
+          dataVencimento: formatDate(desp.dataVencimento || desp.data_vencimento),
+          dataPagamento: formatDate(new Date().toISOString()),
+          fornecedor: desp.fornecedor,
+          formaPagamento,
+        });
+      }
+      
+      setIsPayModalOpen(false);
+      setSelectedDespesa(null);
       loadDespesas();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao pagar despesa');
+    } finally {
+      setIsPaying(false);
     }
   };
 
+  const handleOpenPayModal = (despesa: Despesa) => {
+    setSelectedDespesa(despesa);
+    setFormaPagamento('PIX');
+    setIsPayModalOpen(true);
+  };
+
+  const handlePrintRecibo = (despesa: Despesa) => {
+    const desp = despesa as any;
+    gerarReciboDespesaPDF({
+      descricao: desp.descricao,
+      categoria: desp.categoria,
+      valor: desp.valor,
+      dataVencimento: formatDate(desp.dataVencimento || desp.data_vencimento),
+      dataPagamento: desp.data_pagamento ? formatDate(desp.data_pagamento) : '-',
+      fornecedor: desp.fornecedor,
+      formaPagamento: desp.forma_pagamento || '-',
+    });
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta despesa?')) return;
+    if (!confirm('Tem certeza que deseja cancelar esta despesa? O histórico será mantido.')) return;
 
     try {
       await financeiroService.excluirDespesa(id);
-      toast.success('Despesa excluída com sucesso!');
+      toast.success('Despesa cancelada com sucesso!');
       loadDespesas();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir despesa');
+      toast.error(error.response?.data?.error || 'Erro ao cancelar despesa');
     }
   };
 
@@ -127,7 +176,7 @@ export function Despesas() {
     }).format(value);
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('pt-BR');
   };
 
@@ -161,7 +210,20 @@ export function Despesas() {
     {
       key: 'dataVencimento',
       header: 'Vencimento',
-      render: (despesa: Despesa) => formatDate(despesa.dataVencimento),
+      render: (despesa: Despesa) => {
+        const desp = despesa as any;
+        const data = desp.dataVencimento || desp.data_vencimento;
+        return data ? formatDate(data) : '-';
+      },
+    },
+    {
+      key: 'dataPagamento',
+      header: 'Pagamento',
+      render: (despesa: Despesa) => {
+        const desp = despesa as any;
+        const data = desp.dataPagamento || desp.data_pagamento;
+        return data ? formatDate(data) : '-';
+      },
     },
     {
       key: 'status',
@@ -179,10 +241,20 @@ export function Despesas() {
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => handlePagar(despesa.id)}
+              onClick={() => handleOpenPayModal(despesa)}
               title="Marcar como Pago"
             >
               <DollarSign size={16} className="text-green-500" />
+            </Button>
+          )}
+          {despesa.status === StatusDespesa.PAGO && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handlePrintRecibo(despesa)}
+              title="Imprimir Recibo"
+            >
+              <Printer size={16} className="text-blue-500" />
             </Button>
           )}
           <Button size="sm" variant="ghost" onClick={() => handleOpenModal(despesa)}>
@@ -256,10 +328,10 @@ export function Despesas() {
             </div>
             <Input
               label="Valor"
-              type="number"
-              step="0.01"
-              value={formData.valor}
-              onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) })}
+              type="text"
+              value={formData.valor ? `R$ ${formData.valor}` : ''}
+              onChange={(e) => setFormData({ ...formData, valor: formatCurrencyInput(e.target.value) })}
+              placeholder="R$ 0,00"
               required
             />
             <Select
@@ -309,6 +381,58 @@ export function Despesas() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal de Pagamento */}
+      <Modal
+        isOpen={isPayModalOpen}
+        onClose={() => {
+          setIsPayModalOpen(false);
+          setSelectedDespesa(null);
+        }}
+        title="Registrar Pagamento de Despesa"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Registrar pagamento da despesa:{' '}
+            <strong>{selectedDespesa?.descricao}</strong>
+          </p>
+          <p className="text-2xl font-bold text-red-600">
+            {selectedDespesa ? formatCurrency(selectedDespesa.valor) : ''}
+          </p>
+          <Select
+            label="Forma de Pagamento"
+            value={formaPagamento}
+            onChange={(e) => setFormaPagamento(e.target.value)}
+            options={[
+              { value: 'PIX', label: 'PIX' },
+              { value: 'DINHEIRO', label: 'Dinheiro' },
+              { value: 'CARTAO_CREDITO', label: 'Cartão de Crédito' },
+              { value: 'CARTAO_DEBITO', label: 'Cartão de Débito' },
+              { value: 'BOLETO', label: 'Boleto' },
+              { value: 'TRANSFERENCIA', label: 'Transferência' },
+            ]}
+          />
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setIsPayModalOpen(false);
+                setSelectedDespesa(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => selectedDespesa && handlePagar(selectedDespesa.id)}
+              isLoading={isPaying}
+              variant="success"
+            >
+              Confirmar Pagamento
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

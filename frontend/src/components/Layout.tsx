@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores';
+import { useLogout } from '../hooks';
 import {
   LayoutDashboard,
   Users,
@@ -10,14 +11,12 @@ import {
   Users2,
   ClipboardList,
   DollarSign,
-  Receipt,
-  CreditCard,
-  Wallet,
   Building,
   LogOut,
   Menu,
   X,
   ChevronDown,
+  UserPlus,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -29,6 +28,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/onboarding-matricula', label: 'Nova Matrícula', icon: UserPlus },
   { path: '/escola', label: 'Escola', icon: Building },
   { path: '/usuarios', label: 'Usuários', icon: Users },
   { path: '/professores', label: 'Professores', icon: GraduationCap },
@@ -51,7 +51,8 @@ const menuItems: MenuItem[] = [
 ];
 
 export function Layout() {
-  const { usuario, logout } = useAuth();
+  const { usuario } = useAuthStore();
+  const logout = useLogout();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);

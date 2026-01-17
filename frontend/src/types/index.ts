@@ -16,6 +16,8 @@ export enum StatusMensalidade {
   PENDENTE = 'PENDENTE',
   PAGO = 'PAGO',
   ATRASADO = 'ATRASADO',
+  VENCIDA = 'VENCIDA',
+  FUTURA = 'FUTURA',
   CANCELADO = 'CANCELADO',
 }
 
@@ -103,19 +105,27 @@ export interface Turma {
 export interface Aluno {
   id: string;
   nome: string;
-  dataNascimento: Date;
+  dataNascimento?: Date;
+  data_nascimento?: string;
   cpf?: string;
-  matriculaNumero: string;
-  genero: string;
-  responsavelId: string;
-  turmaId: string;
-  escolaId: string;
+  matriculaNumero?: string;
+  matricula_numero?: string;
+  genero?: string;
+  sexo?: string;
+  responsavelId?: string;
+  responsavel_id?: string;
+  turmaId?: string;
+  turma_id?: string;
+  escolaId?: string;
+  escola_id?: string;
   responsavel?: Responsavel;
+  responsavel_nome?: string;
   turma?: Turma;
+  turma_nome?: string;
   notas?: Nota[];
   matriculas?: Matricula[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Nota {

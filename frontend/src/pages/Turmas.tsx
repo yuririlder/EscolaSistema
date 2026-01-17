@@ -27,7 +27,7 @@ export function Turmas() {
     nome: '',
     ano: new Date().getFullYear(),
     serie: '',
-    turno: 'MANHA',
+    turno: 'MATUTINO',
     capacidade: 30,
     salaNumero: '',
     ativa: true,
@@ -70,7 +70,7 @@ export function Turmas() {
         nome: '',
         ano: new Date().getFullYear(),
         serie: '',
-        turno: 'MANHA',
+        turno: 'MATUTINO',
         capacidade: 30,
         salaNumero: '',
         ativa: true,
@@ -134,14 +134,14 @@ export function Turmas() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta turma?')) return;
+    if (!confirm('Tem certeza que deseja desativar esta turma? O histórico será mantido.')) return;
 
     try {
       await turmaService.excluir(id);
-      toast.success('Turma excluída com sucesso!');
+      toast.success('Turma desativada com sucesso!');
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir turma');
+      toast.error(error.response?.data?.error || 'Erro ao desativar turma');
     }
   };
 
@@ -155,8 +155,29 @@ export function Turmas() {
     { key: 'nome', header: 'Nome' },
     { key: 'serie', header: 'Série' },
     { key: 'turno', header: 'Turno' },
-    { key: 'salaNumero', header: 'Sala' },
+    { 
+      key: 'sala_numero', 
+      header: 'Sala',
+      render: (turma: Turma) => turma.salaNumero || (turma as any).sala_numero || '-'
+    },
     { key: 'capacidade', header: 'Capacidade' },
+    {
+      key: 'professores',
+      header: 'Professor(es)',
+      render: (turma: Turma) => (
+        <div className="flex flex-wrap gap-1">
+          {turma.professores && turma.professores.length > 0 ? (
+            turma.professores.map((prof: any) => (
+              <Badge key={prof.id} variant="info">
+                {prof.nome}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-gray-400 text-sm">Sem professor</span>
+          )}
+        </div>
+      ),
+    },
     {
       key: 'ativa',
       header: 'Status',
@@ -260,9 +281,8 @@ export function Turmas() {
               value={formData.turno}
               onChange={(e) => setFormData({ ...formData, turno: e.target.value })}
               options={[
-                { value: 'MANHA', label: 'Manhã' },
-                { value: 'TARDE', label: 'Tarde' },
-                { value: 'NOITE', label: 'Noite' },
+                { value: 'MATUTINO', label: 'Matutino' },
+                { value: 'VESPERTINO', label: 'Vespertino' },
                 { value: 'INTEGRAL', label: 'Integral' },
               ]}
             />

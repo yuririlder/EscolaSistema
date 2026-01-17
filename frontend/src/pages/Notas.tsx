@@ -103,14 +103,14 @@ export function Notas() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta nota?')) return;
+    if (!confirm('Tem certeza que deseja desativar esta nota? O histórico será mantido.')) return;
 
     try {
       await notaService.excluir(id);
-      toast.success('Nota excluída com sucesso!');
+      toast.success('Nota desativada com sucesso!');
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir nota');
+      toast.error(error.response?.data?.error || 'Erro ao desativar nota');
     }
   };
 

@@ -1,0 +1,24 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.historicoEscolarService = exports.financeiroService = exports.notaService = exports.professorService = exports.turmaService = exports.alunoService = exports.responsavelService = exports.escolaService = exports.usuarioService = exports.authService = void 0;
+var authService_1 = require("./authService");
+Object.defineProperty(exports, "authService", { enumerable: true, get: function () { return authService_1.authService; } });
+var usuarioService_1 = require("./usuarioService");
+Object.defineProperty(exports, "usuarioService", { enumerable: true, get: function () { return usuarioService_1.usuarioService; } });
+var escolaService_1 = require("./escolaService");
+Object.defineProperty(exports, "escolaService", { enumerable: true, get: function () { return escolaService_1.escolaService; } });
+var responsavelService_1 = require("./responsavelService");
+Object.defineProperty(exports, "responsavelService", { enumerable: true, get: function () { return responsavelService_1.responsavelService; } });
+var alunoService_1 = require("./alunoService");
+Object.defineProperty(exports, "alunoService", { enumerable: true, get: function () { return alunoService_1.alunoService; } });
+var turmaService_1 = require("./turmaService");
+Object.defineProperty(exports, "turmaService", { enumerable: true, get: function () { return turmaService_1.turmaService; } });
+var professorService_1 = require("./professorService");
+Object.defineProperty(exports, "professorService", { enumerable: true, get: function () { return professorService_1.professorService; } });
+var notaService_1 = require("./notaService");
+Object.defineProperty(exports, "notaService", { enumerable: true, get: function () { return notaService_1.notaService; } });
+var financeiroService_1 = require("./financeiroService");
+Object.defineProperty(exports, "financeiroService", { enumerable: true, get: function () { return financeiroService_1.financeiroService; } });
+var historicoEscolarService_1 = require("./historicoEscolarService");
+Object.defineProperty(exports, "historicoEscolarService", { enumerable: true, get: function () { return historicoEscolarService_1.historicoEscolarService; } });
+//# sourceMappingURL=index.js.map

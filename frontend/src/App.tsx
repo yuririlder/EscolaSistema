@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from './contexts/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PrivateRoute } from './components/PrivateRoute';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
@@ -17,10 +17,24 @@ import { Mensalidades } from './pages/Mensalidades';
 import { Despesas } from './pages/Despesas';
 import { PagamentosFuncionarios } from './pages/PagamentosFuncionarios';
 import { Escola } from './pages/Escola';
+import { HistoricoEscolarPage } from './pages/HistoricoEscolar';
+import { OnboardingMatricula } from './pages/OnboardingMatricula';
+
+// Configuração do React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      cacheTime: 1000 * 60 * 30, // 30 minutos
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
       <Router>
         <Toaster position="top-right" />
         <Routes>
@@ -34,6 +48,8 @@ function App() {
             <Route path="turmas" element={<Turmas />} />
             <Route path="responsaveis" element={<Responsaveis />} />
             <Route path="alunos" element={<Alunos />} />
+            <Route path="alunos/:alunoId/historico" element={<HistoricoEscolarPage />} />
+            <Route path="onboarding-matricula" element={<OnboardingMatricula />} />
             <Route path="notas" element={<Notas />} />
             <Route path="planos-mensalidade" element={<PlanosMensalidade />} />
             <Route path="matriculas" element={<Matriculas />} />
@@ -43,7 +59,7 @@ function App() {
           </Route>
         </Routes>
       </Router>
-    </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

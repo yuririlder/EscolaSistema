@@ -1,0 +1,11 @@
+export { authController } from './authController';
+export { usuarioController } from './usuarioController';
+export { escolaController } from './escolaController';
+export { alunoController } from './alunoController';
+export { responsavelController } from './responsavelController';
+export { turmaController } from './turmaController';
+export { professorController } from './professorController';
+export { notaController } from './notaController';
+export { financeiroController } from './financeiroController';
+export { historicoEscolarController } from './historicoEscolarController';
+//# sourceMappingURL=index.d.ts.map

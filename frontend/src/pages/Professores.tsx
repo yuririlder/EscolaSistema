@@ -9,6 +9,7 @@ import { Professor } from '../types';
 import { professorService } from '../services/professorService';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatCurrencyInput, currencyToNumber, formatCPF, formatPhone } from '../utils/masks';
 
 export function Professores() {
   const [professores, setProfessores] = useState<Professor[]>([]);
@@ -23,7 +24,7 @@ export function Professores() {
     email: '',
     telefone: '',
     endereco: '',
-    salario: 0,
+    salario: '',
     formacao: '',
     especialidade: '',
   });
@@ -48,11 +49,11 @@ export function Professores() {
       setEditingProfessor(professor);
       setFormData({
         nome: professor.nome,
-        cpf: professor.cpf,
+        cpf: formatCPF(professor.cpf),
         email: professor.email,
-        telefone: professor.telefone,
+        telefone: formatPhone(professor.telefone),
         endereco: professor.endereco,
-        salario: professor.salario,
+        salario: formatCurrencyInput((professor.salario * 100).toString()),
         formacao: professor.formacao,
         especialidade: professor.especialidade,
       });
@@ -64,7 +65,7 @@ export function Professores() {
         email: '',
         telefone: '',
         endereco: '',
-        salario: 0,
+        salario: '',
         formacao: '',
         especialidade: '',
       });
@@ -81,12 +82,19 @@ export function Professores() {
     e.preventDefault();
     setIsSaving(true);
 
+    const payload = {
+      ...formData,
+      cpf: formData.cpf.replace(/\D/g, ''),
+      telefone: formData.telefone.replace(/\D/g, ''),
+      salario: currencyToNumber(formData.salario),
+    };
+
     try {
       if (editingProfessor) {
-        await professorService.atualizar(editingProfessor.id, formData);
+        await professorService.atualizar(editingProfessor.id, payload);
         toast.success('Professor atualizado com sucesso!');
       } else {
-        await professorService.criar(formData);
+        await professorService.criar(payload);
         toast.success('Professor criado com sucesso!');
       }
       handleCloseModal();
@@ -99,14 +107,14 @@ export function Professores() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este professor?')) return;
+    if (!confirm('Tem certeza que deseja desativar este professor? O histórico será mantido.')) return;
 
     try {
       await professorService.excluir(id);
-      toast.success('Professor excluído com sucesso!');
+      toast.success('Professor desativado com sucesso!');
       loadProfessores();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao excluir professor');
+      toast.error(error.response?.data?.error || 'Erro ao desativar professor');
     }
   };
 
@@ -217,7 +225,8 @@ export function Professores() {
             <Input
               label="CPF"
               value={formData.cpf}
-              onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, cpf: formatCPF(e.target.value) })}
+              placeholder="000.000.000-00"
               required
             />
             <Input
@@ -230,7 +239,8 @@ export function Professores() {
             <Input
               label="Telefone"
               value={formData.telefone}
-              onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, telefone: formatPhone(e.target.value) })}
+              placeholder="(00) 00000-0000"
               required
             />
             <Input
@@ -247,10 +257,10 @@ export function Professores() {
             />
             <Input
               label="Salário"
-              type="number"
-              step="0.01"
-              value={formData.salario}
-              onChange={(e) => setFormData({ ...formData, salario: parseFloat(e.target.value) })}
+              type="text"
+              value={formData.salario ? `R$ ${formData.salario}` : ''}
+              onChange={(e) => setFormData({ ...formData, salario: formatCurrencyInput(e.target.value) })}
+              placeholder="R$ 0,00"
               required
             />
             <div className="md:col-span-2">

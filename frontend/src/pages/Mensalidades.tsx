@@ -1,19 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
-import { Table } from '../components/ui/Table';
 import { Badge } from '../components/ui/Badge';
 import { Mensalidade, StatusMensalidade } from '../types';
 import { financeiroService } from '../services/financeiroService';
-import { Search, DollarSign, Printer } from 'lucide-react';
+import { Search, DollarSign, Printer, ChevronDown, ChevronRight, User } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { gerarReciboMensalidadePDF } from '../utils/pdfGenerator';
+
+interface AlunoMensalidades {
+  alunoId: string;
+  alunoNome: string;
+  mensalidades: Mensalidade[];
+  totalPendente: number;
+  totalPago: number;
+}
 
 export function Mensalidades() {
   const [mensalidades, setMensalidades] = useState<Mensalidade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedAlunos, setExpandedAlunos] = useState<Set<string>>(new Set());
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedMensalidade, setSelectedMensalidade] = useState<Mensalidade | null>(null);
   const [formaPagamento, setFormaPagamento] = useState('PIX');
@@ -34,6 +43,75 @@ export function Mensalidades() {
     }
   };
 
+  // Agrupar mensalidades por aluno
+  const alunosAgrupados = useMemo(() => {
+    const grupos: { [key: string]: AlunoMensalidades } = {};
+
+    mensalidades.forEach((m) => {
+      const mens = m as any;
+      const alunoId = mens.aluno_id || mens.alunoId || '';
+      const alunoNome = mens.aluno_nome || mens.matricula?.aluno?.nome || 'Sem nome';
+
+      if (!grupos[alunoId]) {
+        grupos[alunoId] = {
+          alunoId,
+          alunoNome,
+          mensalidades: [],
+          totalPendente: 0,
+          totalPago: 0,
+        };
+      }
+
+      grupos[alunoId].mensalidades.push(m);
+      const valor = mens.valor || mens.valorFinal || 0;
+
+      if (m.status === StatusMensalidade.PAGO) {
+        grupos[alunoId].totalPago += valor;
+      } else if (m.status === StatusMensalidade.PENDENTE || 
+                 m.status === StatusMensalidade.ATRASADO || 
+                 m.status === StatusMensalidade.VENCIDA ||
+                 (m.status as string) === 'VENCIDA') {
+        grupos[alunoId].totalPendente += valor;
+      }
+      // Mensalidades FUTURA não entram no total pendente
+    });
+
+    // Ordenar mensalidades de cada aluno por mês/ano
+    Object.values(grupos).forEach((grupo) => {
+      grupo.mensalidades.sort((a, b) => {
+        const ma = a as any;
+        const mb = b as any;
+        const anoA = ma.ano_referencia || ma.anoReferencia || 0;
+        const anoB = mb.ano_referencia || mb.anoReferencia || 0;
+        const mesA = ma.mes_referencia || ma.mesReferencia || 0;
+        const mesB = mb.mes_referencia || mb.mesReferencia || 0;
+        return anoA - anoB || mesA - mesB;
+      });
+    });
+
+    return Object.values(grupos).sort((a, b) => a.alunoNome.localeCompare(b.alunoNome));
+  }, [mensalidades]);
+
+  // Filtrar alunos pelo termo de busca
+  const filteredAlunos = useMemo(() => {
+    if (!searchTerm) return alunosAgrupados;
+    return alunosAgrupados.filter((a) =>
+      a.alunoNome.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [alunosAgrupados, searchTerm]);
+
+  const toggleAluno = (alunoId: string) => {
+    setExpandedAlunos((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(alunoId)) {
+        newSet.delete(alunoId);
+      } else {
+        newSet.add(alunoId);
+      }
+      return newSet;
+    });
+  };
+
   const handleOpenPayModal = (mensalidade: Mensalidade) => {
     setSelectedMensalidade(mensalidade);
     setFormaPagamento('PIX');
@@ -45,6 +123,8 @@ export function Mensalidades() {
     setSelectedMensalidade(null);
   };
 
+  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
   const handlePagar = async () => {
     if (!selectedMensalidade) return;
     setIsPaying(true);
@@ -52,6 +132,25 @@ export function Mensalidades() {
     try {
       await financeiroService.pagarMensalidade(selectedMensalidade.id, { formaPagamento });
       toast.success('Pagamento registrado com sucesso!');
+      
+      // Gerar PDF do recibo
+      const mens = selectedMensalidade as any;
+      const mesRef = mens.mes_referencia || mens.mesReferencia || 1;
+      const anoRef = mens.ano_referencia || mens.anoReferencia || '';
+      const dataVencimento = mens.data_vencimento || mens.dataVencimento;
+      const valor = mens.valor || mens.valorFinal || 0;
+      const alunoNome = mens.aluno_nome || '';
+      
+      gerarReciboMensalidadePDF({
+        alunoNome,
+        mesReferencia: meses[mesRef - 1],
+        anoReferencia: anoRef,
+        dataVencimento: dataVencimento ? formatDate(dataVencimento) : '-',
+        dataPagamento: formatDate(new Date().toISOString()),
+        valor,
+        formaPagamento,
+      });
+      
       handleClosePayModal();
       loadMensalidades();
     } catch (error: any) {
@@ -61,39 +160,25 @@ export function Mensalidades() {
     }
   };
 
-  const handlePrint = (mensalidade: Mensalidade) => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Recibo de Pagamento</title>
-            <style>
-              body { font-family: Arial, sans-serif; padding: 40px; }
-              h1 { text-align: center; color: #1e40af; }
-              .info { margin: 20px 0; }
-              .info p { margin: 8px 0; }
-              .total { font-size: 1.5em; color: #16a34a; text-align: center; margin: 30px 0; }
-            </style>
-          </head>
-          <body>
-            <h1>Recibo de Pagamento</h1>
-            <div class="info">
-              <p><strong>Aluno:</strong> ${mensalidade.matricula?.aluno?.nome || '-'}</p>
-              <p><strong>Referência:</strong> ${mensalidade.mesReferencia}/${mensalidade.anoReferencia}</p>
-              <p><strong>Data de Vencimento:</strong> ${new Date(mensalidade.dataVencimento).toLocaleDateString('pt-BR')}</p>
-              <p><strong>Data de Pagamento:</strong> ${mensalidade.dataPagamento ? new Date(mensalidade.dataPagamento).toLocaleDateString('pt-BR') : '-'}</p>
-              <p><strong>Forma de Pagamento:</strong> ${mensalidade.formaPagamento || '-'}</p>
-            </div>
-            <div class="total">
-              <p>Valor Pago: R$ ${mensalidade.valorFinal.toFixed(2)}</p>
-            </div>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
+  const handlePrintRecibo = (mensalidade: Mensalidade) => {
+    const mens = mensalidade as any;
+    const alunoNome = mens.aluno_nome || '-';
+    const mesRef = mens.mes_referencia || mens.mesReferencia || 1;
+    const anoRef = mens.ano_referencia || mens.anoReferencia || '';
+    const dataVencimento = mens.data_vencimento || mens.dataVencimento;
+    const dataPagamento = mens.data_pagamento || mens.dataPagamento;
+    const formaPag = mens.forma_pagamento || mens.formaPagamento || '-';
+    const valorFinal = mens.valor || mens.valorFinal || 0;
+
+    gerarReciboMensalidadePDF({
+      alunoNome,
+      mesReferencia: meses[mesRef - 1],
+      anoReferencia: anoRef,
+      dataVencimento: dataVencimento ? formatDate(dataVencimento) : '-',
+      dataPagamento: dataPagamento ? formatDate(dataPagamento) : '-',
+      valor: valorFinal,
+      formaPagamento: formaPag,
+    });
   };
 
   const formatCurrency = (value: number) => {
@@ -103,91 +188,33 @@ export function Mensalidades() {
     }).format(value);
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('pt-BR');
   };
 
-  const getStatusVariant = (status: StatusMensalidade) => {
+  const getStatusVariant = (status: StatusMensalidade | string) => {
     switch (status) {
       case StatusMensalidade.PAGO:
+      case 'PAGO':
         return 'success';
       case StatusMensalidade.PENDENTE:
+      case 'PENDENTE':
         return 'warning';
       case StatusMensalidade.ATRASADO:
+      case 'ATRASADO':
+      case StatusMensalidade.VENCIDA:
+      case 'VENCIDA':
         return 'danger';
+      case StatusMensalidade.FUTURA:
+      case 'FUTURA':
+        return 'info';
       case StatusMensalidade.CANCELADO:
+      case 'CANCELADO':
         return 'default';
       default:
         return 'default';
     }
   };
-
-  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-
-  const filteredMensalidades = mensalidades.filter(
-    (m) =>
-      m.matricula?.aluno?.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      meses[m.mesReferencia - 1].toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const columns = [
-    {
-      key: 'aluno',
-      header: 'Aluno',
-      render: (mensalidade: Mensalidade) => mensalidade.matricula?.aluno?.nome || '-',
-    },
-    {
-      key: 'referencia',
-      header: 'Referência',
-      render: (mensalidade: Mensalidade) =>
-        `${meses[mensalidade.mesReferencia - 1]}/${mensalidade.anoReferencia}`,
-    },
-    {
-      key: 'dataVencimento',
-      header: 'Vencimento',
-      render: (mensalidade: Mensalidade) => formatDate(mensalidade.dataVencimento),
-    },
-    {
-      key: 'valorFinal',
-      header: 'Valor',
-      render: (mensalidade: Mensalidade) => formatCurrency(mensalidade.valorFinal),
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (mensalidade: Mensalidade) => (
-        <Badge variant={getStatusVariant(mensalidade.status)}>{mensalidade.status}</Badge>
-      ),
-    },
-    {
-      key: 'actions',
-      header: 'Ações',
-      render: (mensalidade: Mensalidade) => (
-        <div className="flex gap-2">
-          {mensalidade.status !== StatusMensalidade.PAGO && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => handleOpenPayModal(mensalidade)}
-              title="Registrar Pagamento"
-            >
-              <DollarSign size={16} className="text-green-500" />
-            </Button>
-          )}
-          {mensalidade.status === StatusMensalidade.PAGO && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => handlePrint(mensalidade)}
-              title="Imprimir Recibo"
-            >
-              <Printer size={16} className="text-blue-500" />
-            </Button>
-          )}
-        </div>
-      ),
-    },
-  ];
 
   if (isLoading) {
     return (
@@ -210,7 +237,7 @@ export function Mensalidades() {
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar mensalidade..."
+                placeholder="Buscar por aluno..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -219,11 +246,135 @@ export function Mensalidades() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table
-            data={filteredMensalidades}
-            columns={columns}
-            keyExtractor={(m) => m.id}
-          />
+          {filteredAlunos.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">
+              Nenhuma mensalidade encontrada
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {filteredAlunos.map((aluno) => (
+                <div key={aluno.alunoId}>
+                  {/* Cabeçalho do aluno (clicável) */}
+                  <div
+                    className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => toggleAluno(aluno.alunoId)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="text-gray-400">
+                        {expandedAlunos.has(aluno.alunoId) ? (
+                          <ChevronDown size={20} />
+                        ) : (
+                          <ChevronRight size={20} />
+                        )}
+                      </div>
+                      <div className="p-2 bg-primary-100 rounded-full">
+                        <User size={20} className="text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{aluno.alunoNome}</p>
+                        <p className="text-sm text-gray-500">
+                          {aluno.mensalidades.length} mensalidade(s)
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                      {aluno.totalPendente > 0 && (
+                        <div className="text-right">
+                          <p className="text-gray-500">Pendente</p>
+                          <p className="font-medium text-yellow-600">
+                            {formatCurrency(aluno.totalPendente)}
+                          </p>
+                        </div>
+                      )}
+                      {aluno.totalPago > 0 && (
+                        <div className="text-right">
+                          <p className="text-gray-500">Pago</p>
+                          <p className="font-medium text-green-600">
+                            {formatCurrency(aluno.totalPago)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Lista de mensalidades expandida */}
+                  {expandedAlunos.has(aluno.alunoId) && (
+                    <div className="bg-gray-50 border-t border-gray-200">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 pl-16">Referência</th>
+                            <th className="px-6 py-3">Vencimento</th>
+                            <th className="px-6 py-3">Valor</th>
+                            <th className="px-6 py-3">Status</th>
+                            <th className="px-6 py-3">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {aluno.mensalidades.map((mensalidade) => {
+                            const mens = mensalidade as any;
+                            const mesRef = mens.mes_referencia || mens.mesReferencia || 1;
+                            const anoRef = mens.ano_referencia || mens.anoReferencia || '';
+                            const dataVencimento = mens.data_vencimento || mens.dataVencimento;
+                            const valor = mens.valor || mens.valorFinal || 0;
+
+                            return (
+                              <tr key={mensalidade.id} className="bg-white hover:bg-gray-50">
+                                <td className="px-6 py-3 pl-16 text-sm text-gray-900">
+                                  {meses[mesRef - 1]}/{anoRef}
+                                </td>
+                                <td className="px-6 py-3 text-sm text-gray-900">
+                                  {dataVencimento ? formatDate(dataVencimento) : '-'}
+                                </td>
+                                <td className="px-6 py-3 text-sm font-medium text-gray-900">
+                                  {formatCurrency(valor)}
+                                </td>
+                                <td className="px-6 py-3">
+                                  <Badge variant={getStatusVariant(mensalidade.status)}>
+                                    {mensalidade.status}
+                                  </Badge>
+                                </td>
+                                <td className="px-6 py-3">
+                                  <div className="flex gap-2">
+                                    {mensalidade.status !== StatusMensalidade.PAGO && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleOpenPayModal(mensalidade);
+                                        }}
+                                        title="Registrar Pagamento"
+                                      >
+                                        <DollarSign size={16} className="text-green-500" />
+                                      </Button>
+                                    )}
+                                    {mensalidade.status === StatusMensalidade.PAGO && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handlePrintRecibo(mensalidade);
+                                        }}
+                                        title="Imprimir Recibo"
+                                      >
+                                        <Printer size={16} className="text-blue-500" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -237,12 +388,18 @@ export function Mensalidades() {
             Registrar pagamento da mensalidade de{' '}
             <strong>
               {selectedMensalidade
-                ? `${meses[selectedMensalidade.mesReferencia - 1]}/${selectedMensalidade.anoReferencia}`
+                ? `${meses[((selectedMensalidade as any).mes_referencia || (selectedMensalidade as any).mesReferencia || 1) - 1]}/${(selectedMensalidade as any).ano_referencia || (selectedMensalidade as any).anoReferencia || ''}`
                 : ''}
             </strong>
           </p>
           <p className="text-2xl font-bold text-green-600">
-            {selectedMensalidade ? formatCurrency(selectedMensalidade.valorFinal) : ''}
+            {selectedMensalidade
+              ? formatCurrency(
+                  (selectedMensalidade as any).valor ||
+                    (selectedMensalidade as any).valorFinal ||
+                    0
+                )
+              : ''}
           </p>
           <Select
             label="Forma de Pagamento"
