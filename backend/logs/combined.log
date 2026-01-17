@@ -11967,3 +11967,38 @@ Error: CPF já cadastrado
 2026-01-17 05:08:31 [DEBUG]: Query executada em 226ms
 2026-01-17 05:08:31 [DEBUG]: Query executada em 226ms
 2026-01-17 05:08:31 [DEBUG]: Query executada em 225ms
+2026-01-17 05:08:31 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:32 [DEBUG]: Query executada em 225ms
+2026-01-17 05:08:32 [DEBUG]: Query executada em 225ms
+2026-01-17 05:08:32 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:32 [DEBUG]: Query executada em 225ms
+2026-01-17 05:08:33 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:33 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 05:08:33 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:33 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:33 [DEBUG]: Query executada em 228ms
+2026-01-17 05:08:33 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:34 [DEBUG]: Query executada em 228ms
+2026-01-17 05:08:34 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:34 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:34 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:35 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:35 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:35 [DEBUG]: Query executada em 228ms
+2026-01-17 05:08:35 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:36 [DEBUG]: Query executada em 225ms
+2026-01-17 05:08:36 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:36 [DEBUG]: Query executada em 230ms
+2026-01-17 05:08:36 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:36 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:37 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:37 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:37 [DEBUG]: Query executada em 226ms
+2026-01-17 05:09:15 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 05:09:15 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 05:09:15 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 05:09:16 [INFO]: Migrations executadas com sucesso!
+2026-01-17 05:09:16 [INFO]: Migrations executadas com sucesso
+2026-01-17 05:09:16 [INFO]: Servidor rodando na porta 3001
+2026-01-17 05:09:16 [INFO]: Ambiente: development
+2026-01-17 05:11:05 [INFO]: Encerrando servidor...
