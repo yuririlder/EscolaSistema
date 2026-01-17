@@ -29,11 +29,14 @@ exports.validateUsuario = [
 exports.validateAluno = [
     (0, express_validator_2.body)('nome').notEmpty().withMessage('Nome é obrigatório'),
     (0, express_validator_2.body)('data_nascimento').isISO8601().withMessage('Data de nascimento inválida'),
-    (0, express_validator_2.body)('responsavel_id').isUUID().withMessage('ID do responsável inválido')
+    (0, express_validator_2.body)('responsavel_id').isUUID().withMessage('ID do responsável inválido'),
+    (0, express_validator_2.body)('cpf').optional({ nullable: true, checkFalsy: true }).isLength({ min: 11, max: 14 }).withMessage('CPF inválido')
 ];
 exports.validateResponsavel = [
     (0, express_validator_2.body)('nome').notEmpty().withMessage('Nome é obrigatório'),
-    (0, express_validator_2.body)('cpf').notEmpty().withMessage('CPF é obrigatório')
+    (0, express_validator_2.body)('cpf')
+        .notEmpty().withMessage('CPF é obrigatório')
+        .isLength({ min: 11, max: 14 }).withMessage('CPF deve ter 11 dígitos')
 ];
 exports.validateTurma = [
     (0, express_validator_2.body)('nome').notEmpty().withMessage('Nome é obrigatório'),

@@ -4,6 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 class ResponsavelService {
   async criar(data: any) {
+    // Verificar se CPF foi informado
+    if (!data.cpf) {
+      throw new Error('CPF é obrigatório');
+    }
+
     // Verificar CPF único
     const cpfExists = await queryOne('SELECT id FROM responsaveis WHERE cpf = $1', [data.cpf]);
     if (cpfExists) {
@@ -50,6 +55,14 @@ class ResponsavelService {
     const responsavel = await this.buscarPorId(id);
     if (!responsavel) {
       throw new Error('Responsável não encontrado');
+    }
+
+    // Verificar CPF único se estiver sendo atualizado
+    if (data.cpf && data.cpf !== responsavel.cpf) {
+      const cpfExists = await queryOne('SELECT id FROM responsaveis WHERE cpf = $1 AND id != $2', [data.cpf, id]);
+      if (cpfExists) {
+        throw new Error('CPF já cadastrado para outro responsável');
+      }
     }
 
     const fields: string[] = [];

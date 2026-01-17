@@ -6,6 +6,10 @@ const logger_1 = require("../utils/logger");
 const uuid_1 = require("uuid");
 class ResponsavelService {
     async criar(data) {
+        // Verificar se CPF foi informado
+        if (!data.cpf) {
+            throw new Error('CPF é obrigatório');
+        }
         // Verificar CPF único
         const cpfExists = await (0, connection_1.queryOne)('SELECT id FROM responsaveis WHERE cpf = $1', [data.cpf]);
         if (cpfExists) {
@@ -39,6 +43,13 @@ class ResponsavelService {
         const responsavel = await this.buscarPorId(id);
         if (!responsavel) {
             throw new Error('Responsável não encontrado');
+        }
+        // Verificar CPF único se estiver sendo atualizado
+        if (data.cpf && data.cpf !== responsavel.cpf) {
+            const cpfExists = await (0, connection_1.queryOne)('SELECT id FROM responsaveis WHERE cpf = $1 AND id != $2', [data.cpf, id]);
+            if (cpfExists) {
+                throw new Error('CPF já cadastrado para outro responsável');
+            }
         }
         const fields = [];
         const values = [];

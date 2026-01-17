@@ -505,9 +505,167 @@ export const gerarTermoMatriculaPDF = (dados: DadosTermoMatricula, escola?: Dado
   doc.output('dataurlnewwindow');
 };
 
+// ==================== FICHA COMPLETA DO ALUNO ====================
+interface DadosFichaCompletaAluno {
+  aluno: {
+    nome: string;
+    data_nascimento?: string;
+    cpf?: string;
+    sexo?: string;
+    matricula_numero?: string;
+  };
+  responsavel: {
+    nome: string;
+    cpf?: string;
+    email?: string;
+    telefone?: string;
+    endereco?: string;
+    profissao?: string;
+  };
+  matricula?: {
+    ano_letivo: number;
+    data_matricula?: string;
+    valor_matricula: number;
+    desconto: number;
+    status: string;
+    pago?: boolean;
+  };
+  turma?: {
+    nome: string;
+    serie?: string;
+    turno?: string;
+    ano?: number;
+  };
+  plano?: {
+    nome: string;
+    valor: number;
+  };
+}
+
+export const gerarFichaCompletaAlunoPDF = (dados: DadosFichaCompletaAluno, escola?: DadosEscola): void => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  let y = addHeader(doc, 'FICHA COMPLETA DO ALUNO', escola);
+  
+  const lineHeight = 7;
+  const sectionGap = 12;
+  
+  // Função auxiliar para adicionar seção
+  const addSection = (title: string, currentY: number): number => {
+    doc.setFillColor(30, 64, 175);
+    doc.roundedRect(20, currentY - 5, pageWidth - 40, 10, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(255);
+    doc.text(title, 25, currentY + 2);
+    doc.setTextColor(0);
+    return currentY + 15;
+  };
+  
+  // Função auxiliar para adicionar linha de dados
+  const addDataLine = (label: string, value: string, currentY: number, x: number = 20): number => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text(`${label}:`, x, currentY);
+    doc.setFont('helvetica', 'normal');
+    const labelWidth = doc.getTextWidth(`${label}: `);
+    doc.text(value || '-', x + labelWidth, currentY);
+    return currentY + lineHeight;
+  };
+  
+  // SEÇÃO: DADOS DO ALUNO
+  y = addSection('DADOS DO ALUNO', y);
+  
+  y = addDataLine('Nome', dados.aluno.nome, y);
+  y = addDataLine('Matrícula', dados.aluno.matricula_numero || 'Não informada', y);
+  y = addDataLine('Data de Nascimento', dados.aluno.data_nascimento ? formatDate(dados.aluno.data_nascimento) : '-', y);
+  y = addDataLine('CPF', dados.aluno.cpf || 'Não informado', y);
+  y = addDataLine('Sexo', dados.aluno.sexo === 'M' ? 'Masculino' : dados.aluno.sexo === 'F' ? 'Feminino' : dados.aluno.sexo || '-', y);
+  
+  y += sectionGap;
+  
+  // SEÇÃO: DADOS DO RESPONSÁVEL
+  y = addSection('DADOS DO RESPONSÁVEL', y);
+  
+  y = addDataLine('Nome', dados.responsavel.nome, y);
+  y = addDataLine('CPF', dados.responsavel.cpf || '-', y);
+  y = addDataLine('E-mail', dados.responsavel.email || '-', y);
+  y = addDataLine('Telefone', dados.responsavel.telefone || '-', y);
+  y = addDataLine('Endereço', dados.responsavel.endereco || '-', y);
+  y = addDataLine('Profissão', dados.responsavel.profissao || '-', y);
+  
+  y += sectionGap;
+  
+  // SEÇÃO: DADOS DA MATRÍCULA
+  if (dados.matricula) {
+    y = addSection('DADOS DA MATRÍCULA', y);
+    
+    y = addDataLine('Ano Letivo', String(dados.matricula.ano_letivo), y);
+    y = addDataLine('Data da Matrícula', dados.matricula.data_matricula ? formatDate(dados.matricula.data_matricula) : formatDate(new Date().toISOString()), y);
+    y = addDataLine('Valor da Matrícula', formatCurrency(dados.matricula.valor_matricula), y);
+    y = addDataLine('Desconto', `${dados.matricula.desconto}%`, y);
+    y = addDataLine('Status', dados.matricula.status, y);
+    y = addDataLine('Pagamento', dados.matricula.pago ? 'PAGO' : 'PENDENTE', y);
+    
+    y += sectionGap;
+  }
+  
+  // SEÇÃO: DADOS DA TURMA
+  if (dados.turma) {
+    y = addSection('DADOS DA TURMA', y);
+    
+    y = addDataLine('Turma', dados.turma.nome, y);
+    y = addDataLine('Série', dados.turma.serie || '-', y);
+    y = addDataLine('Turno', dados.turma.turno || '-', y);
+    y = addDataLine('Ano', String(dados.turma.ano || '-'), y);
+    
+    y += sectionGap;
+  }
+  
+  // SEÇÃO: PLANO DE MENSALIDADE
+  if (dados.plano) {
+    y = addSection('PLANO DE MENSALIDADE', y);
+    
+    y = addDataLine('Plano', dados.plano.nome, y);
+    y = addDataLine('Valor Mensal', formatCurrency(dados.plano.valor), y);
+    
+    if (dados.matricula && dados.matricula.desconto > 0) {
+      const valorComDesconto = dados.plano.valor * (1 - dados.matricula.desconto / 100);
+      y = addDataLine('Valor com Desconto', formatCurrency(valorComDesconto), y);
+    }
+    
+    y += sectionGap;
+  }
+  
+  // Área de assinatura
+  y += 10;
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.5);
+  
+  // Assinatura do Responsável
+  doc.line(20, y + 15, 90, y + 15);
+  doc.setFontSize(9);
+  doc.text('Assinatura do Responsável', 55, y + 20, { align: 'center' });
+  
+  // Assinatura da Escola
+  doc.line(pageWidth - 90, y + 15, pageWidth - 20, y + 15);
+  doc.text('Assinatura da Instituição', pageWidth - 55, y + 20, { align: 'center' });
+  
+  // Data
+  y += 35;
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Local e Data: __________________, ${formatDate(new Date().toISOString())}`, 20, y);
+  
+  addFooter(doc);
+  
+  doc.output('dataurlnewwindow');
+};
+
 export default {
   gerarReciboMensalidadePDF,
   gerarReciboDespesaPDF,
   gerarReciboPagamentoFuncionarioPDF,
   gerarTermoMatriculaPDF,
+  gerarFichaCompletaAlunoPDF,
 };

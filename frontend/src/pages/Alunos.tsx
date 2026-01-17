@@ -14,8 +14,10 @@ import { responsavelService } from '../services/responsavelService';
 import { turmaService } from '../services/turmaService';
 import { historicoEscolarService } from '../services/historicoEscolarService';
 import { removeMask } from '../utils/masks';
-import { Plus, Pencil, Trash2, Search, GraduationCap, BookOpen } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, GraduationCap, BookOpen, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { gerarFichaCompletaAlunoPDF } from '../utils/pdfGenerator';
+import { financeiroService } from '../services/financeiroService';
 
 export function Alunos() {
   const navigate = useNavigate();
@@ -174,6 +176,69 @@ export function Alunos() {
     }
   };
 
+  const handlePrintFichaAluno = async (aluno: Aluno) => {
+    try {
+      const alunoData = aluno as any;
+      const responsavel = responsaveis.find(r => r.id === (alunoData.responsavel_id || alunoData.responsavelId));
+      const turma = turmas.find(t => t.id === (alunoData.turma_id || alunoData.turmaId));
+      
+      // Buscar matrícula do aluno
+      const matriculas = await financeiroService.listarMatriculas();
+      const matriculaAluno = matriculas.find(m => {
+        const mat = m as any;
+        return (mat.aluno_id || mat.alunoId) === aluno.id;
+      });
+      
+      // Buscar plano se houver matrícula
+      let plano = null;
+      if (matriculaAluno) {
+        const planos = await financeiroService.listarPlanos();
+        const mat = matriculaAluno as any;
+        plano = planos.find(p => p.id === (mat.plano_id || mat.planoMensalidadeId));
+      }
+
+      gerarFichaCompletaAlunoPDF({
+        aluno: {
+          nome: aluno.nome,
+          data_nascimento: alunoData.data_nascimento || alunoData.dataNascimento,
+          cpf: aluno.cpf,
+          sexo: alunoData.sexo || alunoData.genero,
+          matricula_numero: alunoData.matricula_numero || alunoData.matriculaNumero,
+        },
+        responsavel: responsavel ? {
+          nome: responsavel.nome,
+          cpf: responsavel.cpf,
+          email: responsavel.email,
+          telefone: responsavel.telefone,
+          endereco: responsavel.endereco,
+          profissao: responsavel.profissao,
+        } : {
+          nome: alunoData.responsavel?.nome || alunoData.responsavel_nome || '-',
+        },
+        matricula: matriculaAluno ? {
+          ano_letivo: (matriculaAluno as any).ano_letivo || (matriculaAluno as any).anoLetivo,
+          data_matricula: (matriculaAluno as any).data_matricula || (matriculaAluno as any).dataMatricula,
+          valor_matricula: (matriculaAluno as any).valor_matricula || (matriculaAluno as any).valorMatricula || 0,
+          desconto: (matriculaAluno as any).desconto || 0,
+          status: matriculaAluno.status,
+          pago: true,
+        } : undefined,
+        turma: turma ? {
+          nome: turma.nome,
+          serie: turma.serie,
+          turno: turma.turno,
+          ano: turma.ano,
+        } : undefined,
+        plano: plano ? {
+          nome: plano.nome,
+          valor: plano.valor,
+        } : undefined,
+      });
+    } catch (error) {
+      toast.error('Erro ao gerar ficha do aluno');
+    }
+  };
+
   const formatDate = (date: Date | string) => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString('pt-BR');
@@ -220,6 +285,14 @@ export function Alunos() {
       header: 'Ações',
       render: (aluno: Aluno) => (
         <div className="flex gap-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => handlePrintFichaAluno(aluno)}
+            title="Imprimir Ficha do Aluno"
+          >
+            <Printer size={16} className="text-purple-500" />
+          </Button>
           <Button 
             size="sm" 
             variant="ghost" 

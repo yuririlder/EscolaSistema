@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { financeiroService } from '../services/financeiroService';
 import { DashboardMetrics } from '../types';
@@ -9,6 +10,7 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
+  UserPlus,
 } from 'lucide-react';
 import {
   BarChart,
@@ -50,6 +52,7 @@ const mockMetrics: DashboardMetrics = {
 };
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState<DashboardMetrics>(mockMetrics);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +117,38 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        {/* Botão de acesso rápido para Nova Matrícula */}
+        <button
+          onClick={() => navigate('/onboarding-matricula')}
+          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-lg"
+        >
+          <UserPlus size={20} />
+          <span className="font-medium">Nova Matrícula</span>
+        </button>
+      </div>
+
+      {/* Card de Acesso Rápido - Nova Matrícula */}
+      <div 
+        className="bg-gradient-to-r from-primary-500 to-primary-700 text-white cursor-pointer hover:from-primary-600 hover:to-primary-800 transition-all rounded-xl shadow-lg"
+        onClick={() => navigate('/onboarding-matricula')}
+      >
+        <div className="flex items-center justify-between p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-white/20 rounded-xl">
+              <UserPlus size={32} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Onboarding de Matrícula</h2>
+              <p className="text-primary-100">
+                Cadastre novos alunos em um processo guiado passo a passo
+              </p>
+            </div>
+          </div>
+          <div className="text-5xl font-bold opacity-50">→</div>
+        </div>
+      </div>
 
       {/* Cards de métricas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

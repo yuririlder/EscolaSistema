@@ -64,3 +64,8 @@ error: insert or update on table "pagamentos_funcionarios" violates foreign key 
     at query (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\database\connection.ts:30:20)
     at FinanceiroService.criarPagamentoFuncionario (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\financeiroService.ts:369:5)
     at criarPagamentoFuncionario (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\financeiroController.ts:228:25)
+2026-01-17 05:00:04 [ERROR]: Erro ao criar aluno CPF já cadastrado
+Error: CPF já cadastrado
+    at AlunoService.criar (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\alunoService.ts:11:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at criar (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\alunoController.ts:9:21)

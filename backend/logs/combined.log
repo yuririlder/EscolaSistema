@@ -11665,3 +11665,305 @@ error: insert or update on table "pagamentos_funcionarios" violates foreign key 
 2026-01-17 04:29:58 [DEBUG]: Query executada em 221ms
 2026-01-17 04:29:58 [DEBUG]: Query executada em 223ms
 2026-01-17 04:29:58 [DEBUG]: Query executada em 221ms
+2026-01-17 04:30:04 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 04:30:04 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 04:30:04 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 04:30:05 [INFO]: Migrations executadas com sucesso!
+2026-01-17 04:30:05 [INFO]: Migrations executadas com sucesso
+2026-01-17 04:30:05 [INFO]: Servidor rodando na porta 3001
+2026-01-17 04:30:05 [INFO]: Ambiente: development
+2026-01-17 04:38:00 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:38:02 [DEBUG]: Query executada em 2140ms
+2026-01-17 04:38:03 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:03 [DEBUG]: Query executada em 222ms
+2026-01-17 04:38:03 [DEBUG]: Query executada em 222ms
+2026-01-17 04:38:03 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:04 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:04 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:04 [DEBUG]: Query executada em 227ms
+2026-01-17 04:38:04 [DEBUG]: Query executada em 222ms
+2026-01-17 04:38:04 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:05 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:05 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:05 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:05 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:06 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:06 [DEBUG]: Query executada em 221ms
+2026-01-17 04:38:06 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:06 [DEBUG]: Query executada em 221ms
+2026-01-17 04:38:06 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:07 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:07 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:38:07 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:07 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:07 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:08 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:08 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:08 [DEBUG]: Query executada em 216ms
+2026-01-17 04:38:08 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:08 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:09 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:09 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:09 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:09 [DEBUG]: Query executada em 221ms
+2026-01-17 04:38:10 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:10 [DEBUG]: Query executada em 225ms
+2026-01-17 04:38:10 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:10 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:10 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:11 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:11 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:11 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:11 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:38:11 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:12 [DEBUG]: Query executada em 221ms
+2026-01-17 04:38:12 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:12 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:12 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:12 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:13 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:13 [DEBUG]: Query executada em 223ms
+2026-01-17 04:38:13 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:13 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:13 [DEBUG]: Query executada em 223ms
+2026-01-17 04:38:14 [DEBUG]: Query executada em 248ms
+2026-01-17 04:38:14 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:14 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:14 [DEBUG]: Query executada em 216ms
+2026-01-17 04:38:15 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:15 [DEBUG]: Query executada em 224ms
+2026-01-17 04:38:15 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:15 [DEBUG]: Query executada em 221ms
+2026-01-17 04:38:16 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:16 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:38:16 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:16 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:16 [DEBUG]: Query executada em 217ms
+2026-01-17 04:38:16 [DEBUG]: Query executada em 237ms
+2026-01-17 04:38:17 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:17 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:17 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:17 [DEBUG]: Query executada em 223ms
+2026-01-17 04:38:18 [DEBUG]: Query executada em 222ms
+2026-01-17 04:38:18 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:18 [DEBUG]: Query executada em 233ms
+2026-01-17 04:38:18 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:18 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:19 [DEBUG]: Query executada em 221ms
+2026-01-17 04:38:19 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:19 [DEBUG]: Query executada em 219ms
+2026-01-17 04:38:19 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:20 [DEBUG]: Query executada em 221ms
+2026-01-17 04:38:20 [DEBUG]: Query executada em 220ms
+2026-01-17 04:38:20 [DEBUG]: Query executada em 218ms
+2026-01-17 04:38:43 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 04:38:45 [DEBUG]: Query executada em 1803ms
+2026-01-17 04:38:45 [DEBUG]: Query executada em 223ms
+2026-01-17 04:38:45 [DEBUG]: Query executada em 227ms
+2026-01-17 04:38:45 [DEBUG]: Query executada em 227ms
+2026-01-17 04:38:46 [DEBUG]: Query executada em 222ms
+2026-01-17 04:38:46 [DEBUG]: Query executada em 224ms
+2026-01-17 04:38:46 [DEBUG]: Query executada em 228ms
+2026-01-17 04:38:46 [DEBUG]: Query executada em 225ms
+2026-01-17 04:38:46 [DEBUG]: Query executada em 223ms
+2026-01-17 04:38:47 [DEBUG]: Query executada em 224ms
+2026-01-17 04:38:47 [DEBUG]: Query executada em 226ms
+2026-01-17 04:38:47 [DEBUG]: Query executada em 226ms
+2026-01-17 04:38:47 [DEBUG]: Query executada em 223ms
+2026-01-17 04:38:48 [DEBUG]: Query executada em 221ms
+2026-01-17 04:38:48 [DEBUG]: Query executada em 222ms
+2026-01-17 04:38:48 [DEBUG]: Query executada em 223ms
+2026-01-17 04:38:48 [DEBUG]: Query executada em 225ms
+2026-01-17 04:38:49 [DEBUG]: Query executada em 224ms
+2026-01-17 04:38:49 [DEBUG]: Query executada em 222ms
+2026-01-17 04:38:49 [DEBUG]: Query executada em 223ms
+2026-01-17 04:58:28 [HTTP]: GET /api/responsaveis
+2026-01-17 04:58:28 [HTTP]: GET /api/turmas
+2026-01-17 04:58:28 [HTTP]: GET /api/financeiro/planos
+2026-01-17 04:58:30 [DEBUG]: Query executada em 2277ms
+2026-01-17 04:58:30 [HTTP]: GET /api/financeiro/planos
+2026-01-17 04:58:30 [DEBUG]: Query executada em 2350ms
+2026-01-17 04:58:30 [DEBUG]: Query executada em 2350ms
+2026-01-17 04:58:30 [HTTP]: GET /api/responsaveis
+2026-01-17 04:58:30 [DEBUG]: Query executada em 223ms
+2026-01-17 04:58:30 [DEBUG]: Query executada em 229ms
+2026-01-17 04:58:30 [DEBUG]: Query executada em 237ms
+2026-01-17 04:58:31 [HTTP]: GET /api/turmas
+2026-01-17 04:58:31 [DEBUG]: Query executada em 226ms
+2026-01-17 04:58:31 [DEBUG]: Query executada em 228ms
+2026-01-17 04:59:21 [HTTP]: POST /api/responsaveis
+2026-01-17 04:59:23 [DEBUG]: Query executada em 1875ms
+2026-01-17 04:59:23 [DEBUG]: Query executada em 235ms
+2026-01-17 04:59:23 [INFO]: Responsável criado: Maria Iracema da conceição martins
+2026-01-17 04:59:23 [DEBUG]: Query executada em 224ms
+2026-01-17 05:00:03 [HTTP]: POST /api/alunos
+2026-01-17 05:00:04 [DEBUG]: Query executada em 1866ms
+2026-01-17 05:00:04 [ERROR]: Erro ao criar aluno CPF já cadastrado
+Error: CPF já cadastrado
+    at AlunoService.criar (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\alunoService.ts:11:15)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at criar (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\alunoController.ts:9:21)
+2026-01-17 05:00:29 [HTTP]: POST /api/alunos
+2026-01-17 05:00:31 [DEBUG]: Query executada em 1901ms
+2026-01-17 05:00:31 [DEBUG]: Query executada em 226ms
+2026-01-17 05:00:31 [DEBUG]: Query executada em 230ms
+2026-01-17 05:00:31 [INFO]: Aluno criado: Zoe Emanuele Rilder Toledo Martins
+2026-01-17 05:00:31 [DEBUG]: Query executada em 230ms
+2026-01-17 05:00:41 [HTTP]: POST /api/financeiro/matriculas
+2026-01-17 05:00:41 [DEBUG]: Query executada em 226ms
+2026-01-17 05:00:42 [DEBUG]: Query executada em 226ms
+2026-01-17 05:00:45 [INFO]: Matrícula realizada para aluno Zoe Emanuele Rilder Toledo Martins
+2026-01-17 05:00:47 [DEBUG]: Query executada em 1856ms
+2026-01-17 05:00:57 [HTTP]: POST /api/historico-escolar
+2026-01-17 05:00:57 [DEBUG]: Query executada em 223ms
+2026-01-17 05:00:57 [DEBUG]: Query executada em 225ms
+2026-01-17 05:00:57 [DEBUG]: Query executada em 220ms
+2026-01-17 05:00:58 [DEBUG]: Query executada em 231ms
+2026-01-17 05:00:58 [DEBUG]: Query executada em 225ms
+2026-01-17 05:00:58 [INFO]: Aluno b18fb2ad-dcc8-4247-9172-3d1570924d23 vinculado à turma ca219cc6-1575-4997-8949-9bd77b69c8d7 no ano letivo 2026
+2026-01-17 05:00:58 [DEBUG]: Query executada em 225ms
+2026-01-17 05:01:04 [HTTP]: GET /api/alunos
+2026-01-17 05:01:04 [HTTP]: GET /api/responsaveis
+2026-01-17 05:01:04 [HTTP]: GET /api/turmas
+2026-01-17 05:01:04 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:04 [HTTP]: GET /api/alunos
+2026-01-17 05:01:04 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:06 [DEBUG]: Query executada em 1843ms
+2026-01-17 05:01:06 [DEBUG]: Query executada em 1862ms
+2026-01-17 05:01:06 [HTTP]: GET /api/responsaveis
+2026-01-17 05:01:06 [DEBUG]: Query executada em 220ms
+2026-01-17 05:01:06 [HTTP]: GET /api/turmas
+2026-01-17 05:01:06 [DEBUG]: Query executada em 224ms
+2026-01-17 05:01:06 [DEBUG]: Query executada em 222ms
+2026-01-17 05:01:06 [DEBUG]: Query executada em 220ms
+2026-01-17 05:01:19 [HTTP]: GET /api/alunos/b18fb2ad-dcc8-4247-9172-3d1570924d23
+2026-01-17 05:01:19 [HTTP]: GET /api/historico-escolar/aluno/b18fb2ad-dcc8-4247-9172-3d1570924d23
+2026-01-17 05:01:21 [DEBUG]: Query executada em 1896ms
+2026-01-17 05:01:21 [HTTP]: GET /api/alunos/b18fb2ad-dcc8-4247-9172-3d1570924d23
+2026-01-17 05:01:21 [DEBUG]: Query executada em 1904ms
+2026-01-17 05:01:22 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:22 [DEBUG]: Query executada em 230ms
+2026-01-17 05:01:22 [DEBUG]: Query executada em 229ms
+2026-01-17 05:01:22 [HTTP]: GET /api/historico-escolar/aluno/b18fb2ad-dcc8-4247-9172-3d1570924d23
+2026-01-17 05:01:22 [DEBUG]: Query executada em 234ms
+2026-01-17 05:01:22 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:22 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:26 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 05:01:26 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:26 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:26 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:27 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:27 [DEBUG]: Query executada em 225ms
+2026-01-17 05:01:27 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:27 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:28 [DEBUG]: Query executada em 228ms
+2026-01-17 05:01:28 [DEBUG]: Query executada em 228ms
+2026-01-17 05:01:28 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:28 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:29 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:29 [DEBUG]: Query executada em 229ms
+2026-01-17 05:01:29 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:29 [DEBUG]: Query executada em 228ms
+2026-01-17 05:01:29 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:30 [DEBUG]: Query executada em 230ms
+2026-01-17 05:01:30 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:30 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:30 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:30 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 05:01:31 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:31 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:31 [DEBUG]: Query executada em 225ms
+2026-01-17 05:01:31 [DEBUG]: Query executada em 229ms
+2026-01-17 05:01:31 [DEBUG]: Query executada em 229ms
+2026-01-17 05:01:32 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:32 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:32 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:32 [DEBUG]: Query executada em 225ms
+2026-01-17 05:01:33 [DEBUG]: Query executada em 228ms
+2026-01-17 05:01:33 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:33 [DEBUG]: Query executada em 230ms
+2026-01-17 05:01:33 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:34 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:34 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:34 [HTTP]: GET /api/responsaveis
+2026-01-17 05:01:34 [HTTP]: GET /api/turmas
+2026-01-17 05:01:34 [HTTP]: GET /api/financeiro/planos
+2026-01-17 05:01:34 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:34 [DEBUG]: Query executada em 227ms
+2026-01-17 05:01:34 [DEBUG]: Query executada em 226ms
+2026-01-17 05:01:35 [DEBUG]: Query executada em 229ms
+2026-01-17 05:01:35 [DEBUG]: Query executada em 225ms
+2026-01-17 05:01:36 [DEBUG]: Query executada em 1802ms
+2026-01-17 05:01:36 [DEBUG]: Query executada em 1802ms
+2026-01-17 05:01:36 [HTTP]: GET /api/financeiro/planos
+2026-01-17 05:01:36 [DEBUG]: Query executada em 1861ms
+2026-01-17 05:01:36 [HTTP]: GET /api/responsaveis
+2026-01-17 05:01:36 [DEBUG]: Query executada em 223ms
+2026-01-17 05:01:36 [DEBUG]: Query executada em 221ms
+2026-01-17 05:01:36 [HTTP]: GET /api/turmas
+2026-01-17 05:01:36 [DEBUG]: Query executada em 223ms
+2026-01-17 05:01:36 [DEBUG]: Query executada em 223ms
+2026-01-17 05:01:36 [DEBUG]: Query executada em 226ms
+2026-01-17 05:02:18 [HTTP]: POST /api/alunos
+2026-01-17 05:02:19 [DEBUG]: Query executada em 1767ms
+2026-01-17 05:02:20 [DEBUG]: Query executada em 220ms
+2026-01-17 05:02:20 [DEBUG]: Query executada em 227ms
+2026-01-17 05:02:20 [INFO]: Aluno criado: Aylla cristhine Rilder Toledo Martins
+2026-01-17 05:02:20 [DEBUG]: Query executada em 221ms
+2026-01-17 05:02:30 [HTTP]: POST /api/financeiro/matriculas
+2026-01-17 05:02:30 [DEBUG]: Query executada em 218ms
+2026-01-17 05:02:30 [DEBUG]: Query executada em 222ms
+2026-01-17 05:02:34 [INFO]: Matrícula realizada para aluno Aylla cristhine Rilder Toledo Martins
+2026-01-17 05:02:36 [DEBUG]: Query executada em 1814ms
+2026-01-17 05:02:41 [HTTP]: POST /api/historico-escolar
+2026-01-17 05:02:42 [DEBUG]: Query executada em 223ms
+2026-01-17 05:02:42 [DEBUG]: Query executada em 224ms
+2026-01-17 05:02:42 [DEBUG]: Query executada em 221ms
+2026-01-17 05:02:42 [DEBUG]: Query executada em 253ms
+2026-01-17 05:02:42 [DEBUG]: Query executada em 226ms
+2026-01-17 05:02:42 [INFO]: Aluno 88c9bde4-edbf-4e0e-920d-e7641529d7b5 vinculado à turma ca219cc6-1575-4997-8949-9bd77b69c8d7 no ano letivo 2026
+2026-01-17 05:02:43 [DEBUG]: Query executada em 222ms
+2026-01-17 05:04:45 [HTTP]: GET /api/financeiro/matriculas
+2026-01-17 05:04:45 [HTTP]: GET /api/alunos
+2026-01-17 05:04:45 [HTTP]: GET /api/financeiro/planos
+2026-01-17 05:04:47 [DEBUG]: Query executada em 1874ms
+2026-01-17 05:04:47 [HTTP]: GET /api/financeiro/matriculas
+2026-01-17 05:04:47 [DEBUG]: Query executada em 1947ms
+2026-01-17 05:04:47 [DEBUG]: Query executada em 1950ms
+2026-01-17 05:04:47 [HTTP]: GET /api/financeiro/planos
+2026-01-17 05:04:47 [HTTP]: GET /api/alunos
+2026-01-17 05:04:48 [DEBUG]: Query executada em 226ms
+2026-01-17 05:04:48 [DEBUG]: Query executada em 231ms
+2026-01-17 05:04:48 [DEBUG]: Query executada em 234ms
+2026-01-17 05:06:03 [HTTP]: GET /api/financeiro/matriculas
+2026-01-17 05:06:03 [HTTP]: GET /api/alunos
+2026-01-17 05:06:03 [HTTP]: GET /api/financeiro/planos
+2026-01-17 05:06:05 [DEBUG]: Query executada em 1777ms
+2026-01-17 05:06:05 [DEBUG]: Query executada em 1829ms
+2026-01-17 05:06:05 [DEBUG]: Query executada em 1799ms
+2026-01-17 05:07:06 [HTTP]: GET /api/financeiro/mensalidades
+2026-01-17 05:07:08 [DEBUG]: Query executada em 1960ms
+2026-01-17 05:07:08 [HTTP]: GET /api/financeiro/mensalidades
+2026-01-17 05:07:08 [DEBUG]: Query executada em 309ms
+2026-01-17 05:07:37 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 05:07:37 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 05:07:37 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 05:07:37 [INFO]: Migrations executadas com sucesso!
+2026-01-17 05:07:37 [INFO]: Migrations executadas com sucesso
+2026-01-17 05:07:37 [INFO]: Servidor rodando na porta 3001
+2026-01-17 05:07:37 [INFO]: Ambiente: development
+2026-01-17 05:08:26 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 05:08:28 [DEBUG]: Query executada em 1842ms
+2026-01-17 05:08:28 [DEBUG]: Query executada em 228ms
+2026-01-17 05:08:29 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:29 [DEBUG]: Query executada em 229ms
+2026-01-17 05:08:29 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:29 [DEBUG]: Query executada em 228ms
+2026-01-17 05:08:30 [DEBUG]: Query executada em 228ms
+2026-01-17 05:08:30 [DEBUG]: Query executada em 232ms
+2026-01-17 05:08:30 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:30 [DEBUG]: Query executada em 228ms
+2026-01-17 05:08:31 [DEBUG]: Query executada em 227ms
+2026-01-17 05:08:31 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:31 [DEBUG]: Query executada em 226ms
+2026-01-17 05:08:31 [DEBUG]: Query executada em 225ms

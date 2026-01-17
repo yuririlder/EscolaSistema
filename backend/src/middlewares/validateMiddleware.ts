@@ -33,12 +33,15 @@ export const validateUsuario = [
 export const validateAluno = [
   body('nome').notEmpty().withMessage('Nome é obrigatório'),
   body('data_nascimento').isISO8601().withMessage('Data de nascimento inválida'),
-  body('responsavel_id').isUUID().withMessage('ID do responsável inválido')
+  body('responsavel_id').isUUID().withMessage('ID do responsável inválido'),
+  body('cpf').optional({ nullable: true, checkFalsy: true }).isLength({ min: 11, max: 14 }).withMessage('CPF inválido')
 ];
 
 export const validateResponsavel = [
   body('nome').notEmpty().withMessage('Nome é obrigatório'),
-  body('cpf').notEmpty().withMessage('CPF é obrigatório')
+  body('cpf')
+    .notEmpty().withMessage('CPF é obrigatório')
+    .isLength({ min: 11, max: 14 }).withMessage('CPF deve ter 11 dígitos')
 ];
 
 export const validateTurma = [

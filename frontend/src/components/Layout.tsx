@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  UserPlus,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -27,6 +28,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/onboarding-matricula', label: 'Nova Matrícula', icon: UserPlus },
   { path: '/escola', label: 'Escola', icon: Building },
   { path: '/usuarios', label: 'Usuários', icon: Users },
   { path: '/professores', label: 'Professores', icon: GraduationCap },
