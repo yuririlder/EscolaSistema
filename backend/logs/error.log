@@ -1,0 +1,66 @@
+2026-01-17 00:55:18 [ERROR]: Erro no login connection_1.db.query is not a function
+TypeError: connection_1.db.query is not a function
+    at AuthService.login (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\authService.ts:11:29)
+    at login (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\authController.ts:15:40)
+    at Layer.handle [as handle_request] (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\express\lib\router\route.js:149:13)
+    at C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\middlewares\validateMiddleware.ts:11:14
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-01-17 01:05:11 [ERROR]: Erro ao conectar com banco de dados PostgreSQL: {"code":"ECONNREFUSED"}
+AggregateError: 
+    at C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\pg-pool\index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at testConnection (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\database\connection.ts:31:20)
+    at startServer (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\server.ts:53:5)
+2026-01-17 01:18:11 [ERROR]: Erro no login Credenciais inválidas
+Error: Credenciais inválidas
+    at AuthService.login (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\authService.ts:17:13)
+    at login (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\authController.ts:15:40)
+    at Layer.handle [as handle_request] (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\express\lib\router\route.js:149:13)
+    at C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\middlewares\validateMiddleware.ts:11:14
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-01-17 01:39:09 [ERROR]: Erro ao executar migrations: duplicate key value violates unique constraint "pg_extension_name_index" {"length":230,"name":"error","severity":"ERROR","code":"23505","detail":"Key (extname)=(uuid-ossp) already exists.","schema":"pg_catalog","table":"pg_extension","constraint":"pg_extension_name_index","file":"nbtinsert.c","line":"666","routine":"_bt_check_unique"}
+error: duplicate key value violates unique constraint "pg_extension_name_index"
+    at C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\pg-pool\index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runMigrations (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\database\migrate.ts:253:5)
+    at startServer (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\server.ts:57:5)
+2026-01-17 02:06:01 [ERROR]: Erro ao criar professor null value in column "data_contratacao" of relation "funcionarios" violates not-null constraint {"length":486,"name":"error","severity":"ERROR","code":"23502","detail":"Failing row contains (8e122f8d-d2f6-4218-a4ca-d95e1cce927d, Izabelle Cristhine Rilder, 03554889148, null, null, 26999992600, izabelle@gmail.com, RUA AT19 UNIDADE 305, 07, null, null, null, Professor, 2000.00, null, null, t, null, 2026-01-17 05:05:36.761823, 2026-01-17 05:05:36.761823).","schema":"public","table":"funcionarios","column":"data_contratacao","file":"execMain.c","line":"2022","routine":"ExecConstraints"}
+error: null value in column "data_contratacao" of relation "funcionarios" violates not-null constraint
+    at C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\pg\lib\client.js:588:17
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at ProfessorService.criar (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\professorService.ts:15:7)
+    at criar (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\professorController.ts:9:25)
+2026-01-17 02:50:50 [ERROR]: Erro na query: null value in column "data_vencimento" of relation "despesas" violates not-null constraint
+2026-01-17 02:50:50 [ERROR]: Erro ao criar despesa null value in column "data_vencimento" of relation "despesas" violates not-null constraint {"length":371,"name":"error","severity":"ERROR","code":"23502","detail":"Failing row contains (450d92d1-57e8-4e2d-ae29-0938cfc33dec, banner, MANUTENCAO, 350.00, null, null, PENDENTE, grafica, null, 2026-01-17 05:50:26.364941, 2026-01-17 05:50:26.364941).","schema":"public","table":"despesas","column":"data_vencimento","file":"execMain.c","line":"2022","routine":"ExecConstraints"}
+error: null value in column "data_vencimento" of relation "despesas" violates not-null constraint
+    at C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\pg-pool\index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at query (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\database\connection.ts:30:20)
+    at FinanceiroService.criarDespesa (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\financeiroService.ts:286:5)
+    at criarDespesa (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\financeiroController.ts:163:23)
+2026-01-17 02:54:19 [ERROR]: Erro na query: null value in column "funcionario_id" of relation "pagamentos_funcionarios" violates not-null constraint
+2026-01-17 02:54:19 [ERROR]: Erro ao criar pagamento null value in column "funcionario_id" of relation "pagamentos_funcionarios" violates not-null constraint {"length":397,"name":"error","severity":"ERROR","code":"23502","detail":"Failing row contains (6afa667b-e7d4-4314-aae6-03346a1e2360, null, null, null, null, 0.00, 0.00, NaN, null, PENDENTE, null, 2026-01-17 05:53:55.463159, 2026-01-17 05:53:55.463159).","schema":"public","table":"pagamentos_funcionarios","column":"funcionario_id","file":"execMain.c","line":"2022","routine":"ExecConstraints"}
+error: null value in column "funcionario_id" of relation "pagamentos_funcionarios" violates not-null constraint
+    at C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\pg-pool\index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at query (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\database\connection.ts:30:20)
+    at FinanceiroService.criarPagamentoFuncionario (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\financeiroService.ts:369:5)
+    at criarPagamentoFuncionario (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\financeiroController.ts:228:25)
+2026-01-17 03:00:37 [ERROR]: Erro na query: insert or update on table "pagamentos_funcionarios" violates foreign key constraint "pagamentos_funcionarios_funcionario_id_fkey"
+2026-01-17 03:00:37 [ERROR]: Erro ao criar pagamento insert or update on table "pagamentos_funcionarios" violates foreign key constraint "pagamentos_funcionarios_funcionario_id_fkey" {"length":377,"name":"error","severity":"ERROR","code":"23503","detail":"Key (funcionario_id)=(17c09cea-66b9-4fe5-8766-b37be0eb4b26) is not present in table \"funcionarios\".","schema":"public","table":"pagamentos_funcionarios","constraint":"pagamentos_funcionarios_funcionario_id_fkey","file":"ri_triggers.c","line":"2599","routine":"ri_ReportViolation"}
+error: insert or update on table "pagamentos_funcionarios" violates foreign key constraint "pagamentos_funcionarios_funcionario_id_fkey"
+    at C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\pg-pool\index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at query (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\database\connection.ts:30:20)
+    at FinanceiroService.criarPagamentoFuncionario (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\financeiroService.ts:369:5)
+    at criarPagamentoFuncionario (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\financeiroController.ts:228:25)
+2026-01-17 03:00:58 [ERROR]: Erro na query: insert or update on table "pagamentos_funcionarios" violates foreign key constraint "pagamentos_funcionarios_funcionario_id_fkey"
+2026-01-17 03:00:58 [ERROR]: Erro ao criar pagamento insert or update on table "pagamentos_funcionarios" violates foreign key constraint "pagamentos_funcionarios_funcionario_id_fkey" {"length":377,"name":"error","severity":"ERROR","code":"23503","detail":"Key (funcionario_id)=(17c09cea-66b9-4fe5-8766-b37be0eb4b26) is not present in table \"funcionarios\".","schema":"public","table":"pagamentos_funcionarios","constraint":"pagamentos_funcionarios_funcionario_id_fkey","file":"ri_triggers.c","line":"2599","routine":"ri_ReportViolation"}
+error: insert or update on table "pagamentos_funcionarios" violates foreign key constraint "pagamentos_funcionarios_funcionario_id_fkey"
+    at C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\node_modules\pg-pool\index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at query (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\database\connection.ts:30:20)
+    at FinanceiroService.criarPagamentoFuncionario (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\services\financeiroService.ts:369:5)
+    at criarPagamentoFuncionario (C:\Yuri\Meus Projetos\Escola\EscolaSistema\backend\src\controllers\financeiroController.ts:228:25)

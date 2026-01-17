@@ -53,7 +53,7 @@ export const financeiroService = {
   },
 
   async pagarMensalidade(id: string, data: { formaPagamento: string }): Promise<Mensalidade> {
-    const response = await api.put<Mensalidade>(`/financeiro/mensalidades/${id}/pagar`, data);
+    const response = await api.post<Mensalidade>(`/financeiro/mensalidades/${id}/pagar`, data);
     return response.data;
   },
 
@@ -73,8 +73,8 @@ export const financeiroService = {
     return response.data;
   },
 
-  async pagarDespesa(id: string): Promise<Despesa> {
-    const response = await api.put<Despesa>(`/financeiro/despesas/${id}/pagar`);
+  async pagarDespesa(id: string, data?: { forma_pagamento: string }): Promise<Despesa> {
+    const response = await api.post<Despesa>(`/financeiro/despesas/${id}/pagar`, data || {});
     return response.data;
   },
 
@@ -93,8 +93,8 @@ export const financeiroService = {
     return response.data;
   },
 
-  async pagarFuncionario(id: string): Promise<PagamentoFuncionario> {
-    const response = await api.put<PagamentoFuncionario>(`/financeiro/pagamentos-funcionarios/${id}/pagar`);
+  async pagarFuncionario(id: string, data?: { forma_pagamento: string }): Promise<PagamentoFuncionario> {
+    const response = await api.post<PagamentoFuncionario>(`/financeiro/pagamentos-funcionarios/${id}/pagar`, data || {});
     return response.data;
   },
 

@@ -6,11 +6,14 @@ import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
 import { Table } from '../components/ui/Table';
 import { Badge } from '../components/ui/Badge';
+import { Autocomplete } from '../components/ui/Autocomplete';
 import { PagamentoFuncionario, Funcionario, StatusDespesa } from '../types';
 import { financeiroService } from '../services/financeiroService';
 import { professorService } from '../services/professorService';
-import { Plus, Search, DollarSign } from 'lucide-react';
+import { Plus, Search, DollarSign, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatCurrencyInput, currencyToNumber, formatNumberInput } from '../utils/masks';
+import { gerarReciboPagamentoFuncionarioPDF } from '../utils/pdfGenerator';
 
 export function PagamentosFuncionarios() {
   const [pagamentos, setPagamentos] = useState<PagamentoFuncionario[]>([]);
@@ -19,13 +22,17 @@ export function PagamentosFuncionarios() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [selectedPagamento, setSelectedPagamento] = useState<PagamentoFuncionario | null>(null);
+  const [formaPagamento, setFormaPagamento] = useState('TRANSFERENCIA');
+  const [isPaying, setIsPaying] = useState(false);
   const [formData, setFormData] = useState({
     funcionarioId: '',
     mesReferencia: new Date().getMonth() + 1,
-    anoReferencia: new Date().getFullYear(),
-    valorBase: 0,
-    bonus: 0,
-    descontos: 0,
+    anoReferencia: new Date().getFullYear().toString(),
+    valorBase: '',
+    bonus: '',
+    descontos: '',
     observacao: '',
   });
 
@@ -52,10 +59,10 @@ export function PagamentosFuncionarios() {
     setFormData({
       funcionarioId: '',
       mesReferencia: new Date().getMonth() + 1,
-      anoReferencia: new Date().getFullYear(),
-      valorBase: 0,
-      bonus: 0,
-      descontos: 0,
+      anoReferencia: new Date().getFullYear().toString(),
+      valorBase: '',
+      bonus: '',
+      descontos: '',
       observacao: '',
     });
     setIsModalOpen(true);
@@ -65,12 +72,14 @@ export function PagamentosFuncionarios() {
     setIsModalOpen(false);
   };
 
-  const handleFuncionarioChange = (funcionarioId: string) => {
-    const funcionario = funcionarios.find((f) => f.id === funcionarioId);
+  const handleFuncionarioChange = (professorId: string) => {
+    const funcionario = funcionarios.find((f) => f.id === professorId) as any;
+    // Usar funcionario_id do professor para o pagamento
+    const funcId = funcionario?.funcionario_id || funcionario?.id;
     setFormData({
       ...formData,
-      funcionarioId,
-      valorBase: funcionario?.salario || 0,
+      funcionarioId: funcId,
+      valorBase: funcionario?.salario ? formatCurrencyInput((funcionario.salario * 100).toString()) : '',
     });
   };
 
@@ -78,8 +87,18 @@ export function PagamentosFuncionarios() {
     e.preventDefault();
     setIsSaving(true);
 
+    const payload = {
+      funcionario_id: formData.funcionarioId,
+      mes_referencia: formData.mesReferencia,
+      ano_referencia: parseInt(formData.anoReferencia, 10),
+      salario_base: currencyToNumber(formData.valorBase),
+      bonus: currencyToNumber(formData.bonus),
+      descontos: currencyToNumber(formData.descontos),
+      observacoes: formData.observacao,
+    };
+
     try {
-      await financeiroService.criarPagamentoFuncionario(formData);
+      await financeiroService.criarPagamentoFuncionario(payload);
       toast.success('Pagamento criado com sucesso!');
       handleCloseModal();
       loadData();
@@ -91,13 +110,74 @@ export function PagamentosFuncionarios() {
   };
 
   const handlePagar = async (id: string) => {
+    setIsPaying(true);
     try {
-      await financeiroService.pagarFuncionario(id);
+      await financeiroService.pagarFuncionario(id, { forma_pagamento: formaPagamento });
       toast.success('Pagamento realizado com sucesso!');
+      
+      // Gerar PDF do recibo
+      if (selectedPagamento) {
+        const pag = selectedPagamento as any;
+        const mesRef = pag.mes_referencia || pag.mesReferencia || 1;
+        const anoRef = pag.ano_referencia || pag.anoReferencia || '';
+        const salarioBase = pag.salario_base || pag.valorBase || 0;
+        const bonus = pag.bonus || 0;
+        const descontos = pag.descontos || 0;
+        const valorLiquido = pag.valor_liquido || pag.valorFinal || salarioBase + bonus - descontos;
+        const funcionarioNome = pag.funcionario?.nome || pag.funcionario_nome || '';
+        
+        gerarReciboPagamentoFuncionarioPDF({
+          funcionarioNome,
+          mesReferencia: meses[mesRef - 1],
+          anoReferencia: anoRef,
+          salarioBase,
+          bonus,
+          descontos,
+          valorLiquido,
+          dataPagamento: new Date().toLocaleDateString('pt-BR'),
+          formaPagamento,
+        });
+      }
+      
+      setIsPayModalOpen(false);
+      setSelectedPagamento(null);
       loadData();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao realizar pagamento');
+    } finally {
+      setIsPaying(false);
     }
+  };
+
+  const handleOpenPayModal = (pagamento: PagamentoFuncionario) => {
+    setSelectedPagamento(pagamento);
+    setFormaPagamento('TRANSFERENCIA');
+    setIsPayModalOpen(true);
+  };
+
+  const handlePrintRecibo = (pagamento: PagamentoFuncionario) => {
+    const pag = pagamento as any;
+    const mesRef = pag.mes_referencia || pag.mesReferencia || 1;
+    const anoRef = pag.ano_referencia || pag.anoReferencia || '';
+    const salarioBase = pag.salario_base || pag.valorBase || 0;
+    const bonus = pag.bonus || 0;
+    const descontos = pag.descontos || 0;
+    const valorLiquido = pag.valor_liquido || pag.valorFinal || salarioBase + bonus - descontos;
+    const funcionarioNome = pag.funcionario?.nome || pag.funcionario_nome || '';
+    const dataPagamento = pag.data_pagamento || pag.dataPagamento;
+    const formaPag = pag.forma_pagamento || pag.formaPagamento || '-';
+    
+    gerarReciboPagamentoFuncionarioPDF({
+      funcionarioNome,
+      mesReferencia: meses[mesRef - 1],
+      anoReferencia: anoRef,
+      salarioBase,
+      bonus,
+      descontos,
+      valorLiquido,
+      dataPagamento: dataPagamento ? new Date(dataPagamento).toLocaleDateString('pt-BR') : '-',
+      formaPagamento: formaPag,
+    });
   };
 
   const formatCurrency = (value: number) => {
@@ -122,33 +202,56 @@ export function PagamentosFuncionarios() {
 
   const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-  const filteredPagamentos = pagamentos.filter((p) =>
-    p.funcionario?.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPagamentos = pagamentos.filter((p) => {
+    const pag = p as any;
+    const funcionarioNome = pag.funcionario?.nome || pag.funcionario_nome || '';
+    return funcionarioNome.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
-  const valorFinal = formData.valorBase + formData.bonus - formData.descontos;
+  // Opções de funcionários para o Autocomplete
+  const funcionarioOptions = funcionarios.map((f) => ({
+    value: f.id,
+    label: `${f.nome}${f.cpf ? ` - CPF: ${f.cpf}` : ''}`,
+  }));
+
+  const valorFinal = currencyToNumber(formData.valorBase) + currencyToNumber(formData.bonus) - currencyToNumber(formData.descontos);
 
   const columns = [
     {
       key: 'funcionario.nome',
       header: 'Funcionário',
-      render: (pagamento: PagamentoFuncionario) => pagamento.funcionario?.nome || '-',
+      render: (pagamento: PagamentoFuncionario) => {
+        const pag = pagamento as any;
+        return pag.funcionario?.nome || pag.funcionario_nome || '-';
+      },
     },
     {
       key: 'referencia',
       header: 'Referência',
-      render: (pagamento: PagamentoFuncionario) =>
-        `${meses[pagamento.mesReferencia - 1]}/${pagamento.anoReferencia}`,
+      render: (pagamento: PagamentoFuncionario) => {
+        const pag = pagamento as any;
+        const mes = pag.mesReferencia || pag.mes_referencia || 1;
+        const ano = pag.anoReferencia || pag.ano_referencia || '';
+        return `${meses[mes - 1]}/${ano}`;
+      },
     },
     {
       key: 'valorBase',
       header: 'Valor Base',
-      render: (pagamento: PagamentoFuncionario) => formatCurrency(pagamento.valorBase),
+      render: (pagamento: PagamentoFuncionario) => {
+        const pag = pagamento as any;
+        const valor = pag.valorBase || pag.salario_base || 0;
+        return formatCurrency(valor);
+      },
     },
     {
       key: 'valorFinal',
       header: 'Valor Final',
-      render: (pagamento: PagamentoFuncionario) => formatCurrency(pagamento.valorFinal),
+      render: (pagamento: PagamentoFuncionario) => {
+        const pag = pagamento as any;
+        const valor = pag.valorFinal || pag.valor_liquido || 0;
+        return formatCurrency(valor);
+      },
     },
     {
       key: 'status',
@@ -166,10 +269,20 @@ export function PagamentosFuncionarios() {
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => handlePagar(pagamento.id)}
+              onClick={() => handleOpenPayModal(pagamento)}
               title="Realizar Pagamento"
             >
               <DollarSign size={16} className="text-green-500" />
+            </Button>
+          )}
+          {pagamento.status === StatusDespesa.PAGO && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handlePrintRecibo(pagamento)}
+              title="Imprimir Recibo"
+            >
+              <Printer size={16} className="text-blue-500" />
             </Button>
           )}
         </div>
@@ -227,15 +340,12 @@ export function PagamentosFuncionarios() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
+            <Autocomplete
               label="Funcionário"
               value={formData.funcionarioId}
-              onChange={(e) => handleFuncionarioChange(e.target.value)}
-              options={funcionarios.map((f) => ({
-                value: f.id,
-                label: f.nome,
-              }))}
-              placeholder="Selecione um funcionário"
+              options={funcionarioOptions}
+              onChange={(value) => handleFuncionarioChange(value)}
+              placeholder="Digite o nome do funcionário..."
               required
             />
             <div className="flex gap-4">
@@ -252,35 +362,36 @@ export function PagamentosFuncionarios() {
               />
               <Input
                 label="Ano"
-                type="number"
+                type="text"
                 value={formData.anoReferencia}
                 onChange={(e) =>
-                  setFormData({ ...formData, anoReferencia: parseInt(e.target.value) })
+                  setFormData({ ...formData, anoReferencia: formatNumberInput(e.target.value).slice(0, 4) })
                 }
+                maxLength={4}
                 required
               />
             </div>
             <Input
               label="Valor Base (Salário)"
-              type="number"
-              step="0.01"
-              value={formData.valorBase}
-              onChange={(e) => setFormData({ ...formData, valorBase: parseFloat(e.target.value) })}
+              type="text"
+              value={formData.valorBase ? `R$ ${formData.valorBase}` : ''}
+              onChange={(e) => setFormData({ ...formData, valorBase: formatCurrencyInput(e.target.value) })}
+              placeholder="R$ 0,00"
               required
             />
             <Input
               label="Bônus"
-              type="number"
-              step="0.01"
-              value={formData.bonus}
-              onChange={(e) => setFormData({ ...formData, bonus: parseFloat(e.target.value) })}
+              type="text"
+              value={formData.bonus ? `R$ ${formData.bonus}` : ''}
+              onChange={(e) => setFormData({ ...formData, bonus: formatCurrencyInput(e.target.value) })}
+              placeholder="R$ 0,00"
             />
             <Input
               label="Descontos"
-              type="number"
-              step="0.01"
-              value={formData.descontos}
-              onChange={(e) => setFormData({ ...formData, descontos: parseFloat(e.target.value) })}
+              type="text"
+              value={formData.descontos ? `R$ ${formData.descontos}` : ''}
+              onChange={(e) => setFormData({ ...formData, descontos: formatCurrencyInput(e.target.value) })}
+              placeholder="R$ 0,00"
             />
             <div className="flex items-end">
               <div className="text-lg">
@@ -305,6 +416,76 @@ export function PagamentosFuncionarios() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal de Pagamento */}
+      <Modal
+        isOpen={isPayModalOpen}
+        onClose={() => {
+          setIsPayModalOpen(false);
+          setSelectedPagamento(null);
+        }}
+        title="Confirmar Pagamento de Funcionário"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Confirmar pagamento do funcionário:{' '}
+            <strong>
+              {selectedPagamento
+                ? (selectedPagamento as any).funcionario?.nome ||
+                  (selectedPagamento as any).funcionario_nome ||
+                  ''
+                : ''}
+            </strong>
+          </p>
+          <p className="text-gray-600">
+            Referência:{' '}
+            <strong>
+              {selectedPagamento
+                ? `${meses[((selectedPagamento as any).mes_referencia || (selectedPagamento as any).mesReferencia || 1) - 1]}/${(selectedPagamento as any).ano_referencia || (selectedPagamento as any).anoReferencia || ''}`
+                : ''}
+            </strong>
+          </p>
+          <p className="text-2xl font-bold text-green-600">
+            {selectedPagamento
+              ? formatCurrency(
+                  (selectedPagamento as any).valor_liquido ||
+                    (selectedPagamento as any).valorFinal ||
+                    0
+                )
+              : ''}
+          </p>
+          <Select
+            label="Forma de Pagamento"
+            value={formaPagamento}
+            onChange={(e) => setFormaPagamento(e.target.value)}
+            options={[
+              { value: 'TRANSFERENCIA', label: 'Transferência Bancária' },
+              { value: 'PIX', label: 'PIX' },
+              { value: 'DINHEIRO', label: 'Dinheiro' },
+              { value: 'CHEQUE', label: 'Cheque' },
+            ]}
+          />
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setIsPayModalOpen(false);
+                setSelectedPagamento(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => selectedPagamento && handlePagar(selectedPagamento.id)}
+              isLoading={isPaying}
+              variant="success"
+            >
+              Confirmar Pagamento
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from './contexts/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PrivateRoute } from './components/PrivateRoute';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
@@ -18,9 +18,21 @@ import { Despesas } from './pages/Despesas';
 import { PagamentosFuncionarios } from './pages/PagamentosFuncionarios';
 import { Escola } from './pages/Escola';
 
+// Configuração do React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      cacheTime: 1000 * 60 * 30, // 30 minutos
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 function App() {
   return (
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
       <Router>
         <Toaster position="top-right" />
         <Routes>
@@ -43,7 +55,7 @@ function App() {
           </Route>
         </Routes>
       </Router>
-    </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

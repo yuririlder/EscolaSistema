@@ -8,6 +8,7 @@ import { Responsavel } from '../types';
 import { responsavelService } from '../services/responsavelService';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatCPF, formatPhone } from '../utils/masks';
 
 export function Responsaveis() {
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
@@ -45,9 +46,9 @@ export function Responsaveis() {
       setEditingResponsavel(responsavel);
       setFormData({
         nome: responsavel.nome,
-        cpf: responsavel.cpf,
+        cpf: formatCPF(responsavel.cpf),
         email: responsavel.email,
-        telefone: responsavel.telefone,
+        telefone: formatPhone(responsavel.telefone),
         endereco: responsavel.endereco,
         profissao: responsavel.profissao || '',
       });
@@ -74,12 +75,18 @@ export function Responsaveis() {
     e.preventDefault();
     setIsSaving(true);
 
+    const payload = {
+      ...formData,
+      cpf: formData.cpf.replace(/\D/g, ''),
+      telefone: formData.telefone.replace(/\D/g, ''),
+    };
+
     try {
       if (editingResponsavel) {
-        await responsavelService.atualizar(editingResponsavel.id, formData);
+        await responsavelService.atualizar(editingResponsavel.id, payload);
         toast.success('Responsável atualizado com sucesso!');
       } else {
-        await responsavelService.criar(formData);
+        await responsavelService.criar(payload);
         toast.success('Responsável criado com sucesso!');
       }
       handleCloseModal();
@@ -191,7 +198,8 @@ export function Responsaveis() {
             <Input
               label="CPF"
               value={formData.cpf}
-              onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, cpf: formatCPF(e.target.value) })}
+              placeholder="000.000.000-00"
               required
             />
             <Input
@@ -204,7 +212,8 @@ export function Responsaveis() {
             <Input
               label="Telefone"
               value={formData.telefone}
-              onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, telefone: formatPhone(e.target.value) })}
+              placeholder="(00) 00000-0000"
               required
             />
             <Input

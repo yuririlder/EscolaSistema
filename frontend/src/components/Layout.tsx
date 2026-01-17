@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores';
+import { useLogout } from '../hooks';
 import {
   LayoutDashboard,
   Users,
@@ -10,9 +11,6 @@ import {
   Users2,
   ClipboardList,
   DollarSign,
-  Receipt,
-  CreditCard,
-  Wallet,
   Building,
   LogOut,
   Menu,
@@ -51,7 +49,8 @@ const menuItems: MenuItem[] = [
 ];
 
 export function Layout() {
-  const { usuario, logout } = useAuth();
+  const { usuario } = useAuthStore();
+  const logout = useLogout();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);

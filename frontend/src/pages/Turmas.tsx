@@ -27,7 +27,7 @@ export function Turmas() {
     nome: '',
     ano: new Date().getFullYear(),
     serie: '',
-    turno: 'MANHA',
+    turno: 'MATUTINO',
     capacidade: 30,
     salaNumero: '',
     ativa: true,
@@ -70,7 +70,7 @@ export function Turmas() {
         nome: '',
         ano: new Date().getFullYear(),
         serie: '',
-        turno: 'MANHA',
+        turno: 'MATUTINO',
         capacidade: 30,
         salaNumero: '',
         ativa: true,
@@ -260,9 +260,8 @@ export function Turmas() {
               value={formData.turno}
               onChange={(e) => setFormData({ ...formData, turno: e.target.value })}
               options={[
-                { value: 'MANHA', label: 'Manhã' },
-                { value: 'TARDE', label: 'Tarde' },
-                { value: 'NOITE', label: 'Noite' },
+                { value: 'MATUTINO', label: 'Matutino' },
+                { value: 'VESPERTINO', label: 'Vespertino' },
                 { value: 'INTEGRAL', label: 'Integral' },
               ]}
             />

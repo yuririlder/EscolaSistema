@@ -1,0 +1,571 @@
+import { pool, query, queryOne, queryMany } from '../database/connection';
+import { logger } from '../utils/logger';
+import { v4 as uuidv4 } from 'uuid';
+
+class FinanceiroService {
+  // ==================== PLANOS ====================
+  
+  async criarPlano(data: any) {
+    const id = uuidv4();
+    await query(
+      `INSERT INTO planos_mensalidade (id, nome, descricao, valor, ativo)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, data.nome, data.descricao, data.valor, data.ativo !== false]
+    );
+    logger.info(`Plano criado: ${data.nome}`);
+    return this.buscarPlanoPorId(id);
+  }
+
+  async listarPlanos() {
+    return await queryMany('SELECT * FROM planos_mensalidade ORDER BY nome ASC');
+  }
+
+  async listarPlanosAtivos() {
+    return await queryMany('SELECT * FROM planos_mensalidade WHERE ativo = true ORDER BY nome ASC');
+  }
+
+  async buscarPlanoPorId(id: string) {
+    return await queryOne('SELECT * FROM planos_mensalidade WHERE id = $1', [id]);
+  }
+
+  async atualizarPlano(id: string, data: any) {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    const campos = ['nome', 'descricao', 'valor', 'ativo'];
+    for (const campo of campos) {
+      if (data[campo] !== undefined) {
+        fields.push(`${campo} = $${paramIndex++}`);
+        values.push(data[campo]);
+      }
+    }
+
+    if (fields.length === 0) {
+      return this.buscarPlanoPorId(id);
+    }
+
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(id);
+
+    await query(
+      `UPDATE planos_mensalidade SET ${fields.join(', ')} WHERE id = $${paramIndex}`,
+      values
+    );
+
+    return this.buscarPlanoPorId(id);
+  }
+
+  async deletarPlano(id: string): Promise<void> {
+    await query('DELETE FROM planos_mensalidade WHERE id = $1', [id]);
+    logger.info(`Plano deletado: ${id}`);
+  }
+
+  // ==================== MATRÍCULAS ====================
+
+  async realizarMatricula(data: any) {
+    // Verificar se aluno existe
+    const aluno = await queryOne('SELECT id, nome FROM alunos WHERE id = $1', [data.aluno_id]);
+    if (!aluno) {
+      throw new Error('Aluno não encontrado');
+    }
+
+    // Verificar se plano existe
+    const plano = await this.buscarPlanoPorId(data.plano_id);
+    if (!plano) {
+      throw new Error('Plano não encontrado');
+    }
+
+    const valorMensalidade = plano.valor * (1 - (data.desconto || 0) / 100);
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const matriculaId = uuidv4();
+      const dataMatricula = new Date().toISOString().split('T')[0];
+
+      // Criar matrícula
+      await client.query(
+        `INSERT INTO matriculas (id, aluno_id, plano_id, ano_letivo, valor_matricula, valor_mensalidade, dia_vencimento, data_matricula, status, desconto, observacoes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ATIVA', $9, $10)`,
+        [matriculaId, data.aluno_id, data.plano_id, data.ano_letivo, data.valor_matricula, valorMensalidade, data.dia_vencimento || 10, dataMatricula, data.desconto || 0, data.observacoes]
+      );
+
+      // Atualizar aluno como matriculado
+      await client.query(
+        "UPDATE alunos SET matricula_ativa = true, data_matricula = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+        [dataMatricula, data.aluno_id]
+      );
+
+      // Gerar mensalidades do ano
+      const anoAtual = data.ano_letivo;
+      const mesInicio = new Date().getMonth() + 1;
+      
+      for (let mes = mesInicio; mes <= 12; mes++) {
+        const diaVenc = data.dia_vencimento || 10;
+        const dataVencimento = `${anoAtual}-${String(mes).padStart(2, '0')}-${String(diaVenc).padStart(2, '0')}`;
+        await client.query(
+          `INSERT INTO mensalidades (id, aluno_id, matricula_id, mes_referencia, ano_referencia, valor, desconto, data_vencimento, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDENTE')`,
+          [uuidv4(), data.aluno_id, matriculaId, mes, anoAtual, valorMensalidade, data.desconto || 0, dataVencimento]
+        );
+      }
+
+      await client.query('COMMIT');
+
+      logger.info(`Matrícula realizada para aluno ${aluno.nome}`);
+      return this.buscarMatriculaPorId(matriculaId);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async listarMatriculas() {
+    return await queryMany(
+      `SELECT m.*, a.nome as aluno_nome, p.nome as plano_nome
+       FROM matriculas m
+       INNER JOIN alunos a ON m.aluno_id = a.id
+       INNER JOIN planos_mensalidade p ON m.plano_id = p.id
+       ORDER BY m.data_matricula DESC`
+    );
+  }
+
+  async buscarMatriculaPorId(id: string) {
+    return await queryOne(
+      `SELECT m.*, a.nome as aluno_nome, p.nome as plano_nome
+       FROM matriculas m
+       INNER JOIN alunos a ON m.aluno_id = a.id
+       INNER JOIN planos_mensalidade p ON m.plano_id = p.id
+       WHERE m.id = $1`,
+      [id]
+    );
+  }
+
+  async atualizarMatricula(id: string, data: any) {
+    const matricula = await this.buscarMatriculaPorId(id);
+    if (!matricula) {
+      throw new Error('Matrícula não encontrada');
+    }
+
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    const camposPermitidos = [
+      { campo: 'plano_id', valor: data.plano_id },
+      { campo: 'ano_letivo', valor: data.ano_letivo },
+      { campo: 'valor_matricula', valor: data.valor_matricula },
+      { campo: 'desconto', valor: data.desconto },
+      { campo: 'status', valor: data.status },
+      { campo: 'observacoes', valor: data.observacoes },
+    ];
+
+    for (const { campo, valor } of camposPermitidos) {
+      if (valor !== undefined) {
+        fields.push(`${campo} = $${paramIndex++}`);
+        values.push(valor);
+      }
+    }
+
+    if (fields.length === 0) {
+      return this.buscarMatriculaPorId(id);
+    }
+
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(id);
+
+    await query(
+      `UPDATE matriculas SET ${fields.join(', ')} WHERE id = $${paramIndex}`,
+      values
+    );
+
+    logger.info(`Matrícula atualizada: ${id}`);
+    return this.buscarMatriculaPorId(id);
+  }
+
+  async cancelarMatricula(id: string) {
+    const matricula = await this.buscarMatriculaPorId(id);
+    if (!matricula) {
+      throw new Error('Matrícula não encontrada');
+    }
+
+    await query(
+      "UPDATE matriculas SET status = 'CANCELADA', updated_at = CURRENT_TIMESTAMP WHERE id = $1",
+      [id]
+    );
+
+    await query(
+      "UPDATE alunos SET matricula_ativa = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1",
+      [matricula.aluno_id]
+    );
+
+    // Cancelar mensalidades pendentes
+    await query(
+      "UPDATE mensalidades SET status = 'CANCELADO', updated_at = CURRENT_TIMESTAMP WHERE matricula_id = $1 AND status = 'PENDENTE'",
+      [id]
+    );
+
+    logger.info(`Matrícula cancelada: ${id}`);
+    return this.buscarMatriculaPorId(id);
+  }
+
+  // ==================== MENSALIDADES ====================
+
+  async listarMensalidades(filtros: { mes?: number; ano?: number; status?: string }) {
+    let sql = `
+      SELECT m.*, a.nome as aluno_nome
+      FROM mensalidades m
+      INNER JOIN alunos a ON m.aluno_id = a.id
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (filtros.mes) {
+      sql += ` AND m.mes_referencia = $${paramIndex++}`;
+      params.push(filtros.mes);
+    }
+    if (filtros.ano) {
+      sql += ` AND m.ano_referencia = $${paramIndex++}`;
+      params.push(filtros.ano);
+    }
+    if (filtros.status) {
+      sql += ` AND m.status = $${paramIndex++}`;
+      params.push(filtros.status);
+    }
+
+    sql += ' ORDER BY m.data_vencimento DESC';
+    return await queryMany(sql, params);
+  }
+
+  async listarInadimplentes() {
+    return await queryMany(
+      `SELECT m.*, a.nome as aluno_nome, r.nome as responsavel_nome, r.telefone, r.celular, r.email
+       FROM mensalidades m
+       INNER JOIN alunos a ON m.aluno_id = a.id
+       INNER JOIN responsaveis r ON a.responsavel_id = r.id
+       WHERE m.status IN ('PENDENTE', 'ATRASADO') AND m.data_vencimento < CURRENT_DATE
+       ORDER BY m.data_vencimento ASC`
+    );
+  }
+
+  async buscarMensalidadePorId(id: string) {
+    return await queryOne(
+      `SELECT m.*, a.nome as aluno_nome
+       FROM mensalidades m
+       INNER JOIN alunos a ON m.aluno_id = a.id
+       WHERE m.id = $1`,
+      [id]
+    );
+  }
+
+  async registrarPagamentoMensalidade(id: string, data: any) {
+    const mensalidade = await this.buscarMensalidadePorId(id);
+    if (!mensalidade) {
+      throw new Error('Mensalidade não encontrada');
+    }
+
+    const dataPagamento = new Date().toISOString().split('T')[0];
+    await query(
+      "UPDATE mensalidades SET status = 'PAGO', valor_pago = $1, data_pagamento = $2, forma_pagamento = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4",
+      [data.valor_pago || mensalidade.valor, dataPagamento, data.forma_pagamento, id]
+    );
+
+    logger.info(`Pagamento de mensalidade registrado: ${id}`);
+    return this.buscarMensalidadePorId(id);
+  }
+
+  // ==================== DESPESAS ====================
+
+  async criarDespesa(data: any) {
+    const id = uuidv4();
+    await query(
+      `INSERT INTO despesas (id, descricao, categoria, valor, data_vencimento, fornecedor, observacoes, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDENTE')`,
+      [id, data.descricao, data.categoria, data.valor, data.data_vencimento, data.fornecedor, data.observacoes]
+    );
+    logger.info(`Despesa criada: ${data.descricao}`);
+    return this.buscarDespesaPorId(id);
+  }
+
+  async listarDespesas(filtros: { mes?: number; ano?: number; categoria?: string }) {
+    let sql = 'SELECT * FROM despesas WHERE 1=1';
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (filtros.mes) {
+      sql += ` AND EXTRACT(MONTH FROM data_vencimento) = $${paramIndex++}`;
+      params.push(filtros.mes);
+    }
+    if (filtros.ano) {
+      sql += ` AND EXTRACT(YEAR FROM data_vencimento) = $${paramIndex++}`;
+      params.push(filtros.ano);
+    }
+    if (filtros.categoria) {
+      sql += ` AND categoria = $${paramIndex++}`;
+      params.push(filtros.categoria);
+    }
+
+    sql += ' ORDER BY data_vencimento DESC';
+    return await queryMany(sql, params);
+  }
+
+  async buscarDespesaPorId(id: string) {
+    return await queryOne('SELECT * FROM despesas WHERE id = $1', [id]);
+  }
+
+  async atualizarDespesa(id: string, data: any) {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    const campos = ['descricao', 'categoria', 'valor', 'data_vencimento', 'fornecedor', 'observacoes', 'status'];
+    for (const campo of campos) {
+      if (data[campo] !== undefined) {
+        fields.push(`${campo} = $${paramIndex++}`);
+        values.push(data[campo]);
+      }
+    }
+
+    if (fields.length === 0) {
+      return this.buscarDespesaPorId(id);
+    }
+
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(id);
+
+    await query(
+      `UPDATE despesas SET ${fields.join(', ')} WHERE id = $${paramIndex}`,
+      values
+    );
+
+    return this.buscarDespesaPorId(id);
+  }
+
+  async pagarDespesa(id: string, data?: any) {
+    const dataPagamento = new Date().toISOString().split('T')[0];
+    const formaPagamento = data?.forma_pagamento || 'PIX';
+    await query(
+      "UPDATE despesas SET status = 'PAGO', data_pagamento = $1, forma_pagamento = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+      [dataPagamento, id, formaPagamento]
+    );
+    return this.buscarDespesaPorId(id);
+  }
+
+  async deletarDespesa(id: string): Promise<void> {
+    await query('DELETE FROM despesas WHERE id = $1', [id]);
+    logger.info(`Despesa deletada: ${id}`);
+  }
+
+  // ==================== PAGAMENTOS FUNCIONÁRIOS ====================
+
+  async criarPagamentoFuncionario(data: any) {
+    const id = uuidv4();
+    const valorLiquido = data.salario_base + (data.bonus || 0) - (data.descontos || 0);
+    
+    await query(
+      `INSERT INTO pagamentos_funcionarios (id, funcionario_id, mes_referencia, ano_referencia, salario_base, bonus, descontos, valor_liquido, status, observacoes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDENTE', $9)`,
+      [id, data.funcionario_id, data.mes_referencia, data.ano_referencia, data.salario_base, data.bonus || 0, data.descontos || 0, valorLiquido, data.observacoes]
+    );
+    
+    logger.info(`Pagamento criado para funcionário ${data.funcionario_id}`);
+    return this.buscarPagamentoPorId(id);
+  }
+
+  async gerarPagamentosMes(mes: number, ano: number) {
+    const funcionarios = await queryMany(
+      'SELECT id, salario FROM funcionarios WHERE ativo = true'
+    );
+
+    const pagamentos = [];
+    for (const func of funcionarios) {
+      // Verificar se já existe pagamento
+      const existe = await queryOne(
+        'SELECT id FROM pagamentos_funcionarios WHERE funcionario_id = $1 AND mes_referencia = $2 AND ano_referencia = $3',
+        [func.id, mes, ano]
+      );
+
+      if (!existe) {
+        const pag = await this.criarPagamentoFuncionario({
+          funcionario_id: func.id,
+          mes_referencia: mes,
+          ano_referencia: ano,
+          salario_base: func.salario
+        });
+        pagamentos.push(pag);
+      }
+    }
+
+    return pagamentos;
+  }
+
+  async listarPagamentosFuncionarios(filtros: { mes?: number; ano?: number }) {
+    let sql = `
+      SELECT pf.*, f.nome as funcionario_nome, f.cargo
+      FROM pagamentos_funcionarios pf
+      INNER JOIN funcionarios f ON pf.funcionario_id = f.id
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (filtros.mes) {
+      sql += ` AND pf.mes_referencia = $${paramIndex++}`;
+      params.push(filtros.mes);
+    }
+    if (filtros.ano) {
+      sql += ` AND pf.ano_referencia = $${paramIndex++}`;
+      params.push(filtros.ano);
+    }
+
+    sql += ' ORDER BY pf.ano_referencia DESC, pf.mes_referencia DESC, f.nome ASC';
+    return await queryMany(sql, params);
+  }
+
+  async buscarPagamentoPorId(id: string) {
+    return await queryOne(
+      `SELECT pf.*, f.nome as funcionario_nome, f.cargo
+       FROM pagamentos_funcionarios pf
+       INNER JOIN funcionarios f ON pf.funcionario_id = f.id
+       WHERE pf.id = $1`,
+      [id]
+    );
+  }
+
+  async registrarPagamentoFuncionario(id: string, data?: any) {
+    const dataPagamento = new Date().toISOString().split('T')[0];
+    const formaPagamento = data?.forma_pagamento || 'TRANSFERENCIA';
+    await query(
+      "UPDATE pagamentos_funcionarios SET status = 'PAGO', data_pagamento = $1, forma_pagamento = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+      [dataPagamento, id, formaPagamento]
+    );
+    return this.buscarPagamentoPorId(id);
+  }
+
+  // ==================== DASHBOARD ====================
+
+  async obterDashboard() {
+    const mesAtual = new Date().getMonth() + 1;
+    const anoAtual = new Date().getFullYear();
+
+    const totalAlunos = await queryOne('SELECT COUNT(*) as count FROM alunos', []);
+    const totalProfessores = await queryOne('SELECT COUNT(*) as count FROM professores p INNER JOIN funcionarios f ON p.funcionario_id = f.id WHERE f.ativo = true', []);
+    const totalTurmas = await queryOne('SELECT COUNT(*) as count FROM turmas WHERE ativa = true', []);
+    
+    const receitaMes = await queryOne(
+      `SELECT COALESCE(SUM(valor_pago), 0) as total FROM mensalidades 
+       WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`,
+      [mesAtual, anoAtual]
+    );
+    
+    const despesasMes = await queryOne(
+      `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
+       WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`,
+      [mesAtual, anoAtual]
+    );
+    
+    const mensalidadesPendentes = await queryOne("SELECT COUNT(*) as count FROM mensalidades WHERE status = 'PENDENTE'", []);
+
+    // Alunos por turma
+    const alunosPorTurma = await queryMany(
+      `SELECT t.nome as turma, COUNT(a.id) as quantidade 
+       FROM turmas t 
+       LEFT JOIN alunos a ON a.turma_id = t.id 
+       WHERE t.ativa = true 
+       GROUP BY t.id, t.nome 
+       ORDER BY t.nome`
+    );
+
+    // Mensalidades por status
+    const mensalidadesPorStatus = await queryMany(
+      `SELECT 
+         CASE 
+           WHEN status = 'PAGO' THEN 'Pago'
+           WHEN status = 'PENDENTE' AND data_vencimento >= CURRENT_DATE THEN 'Pendente'
+           ELSE 'Atrasado'
+         END as status,
+         COUNT(*) as quantidade
+       FROM mensalidades
+       GROUP BY 
+         CASE 
+           WHEN status = 'PAGO' THEN 'Pago'
+           WHEN status = 'PENDENTE' AND data_vencimento >= CURRENT_DATE THEN 'Pendente'
+           ELSE 'Atrasado'
+         END`
+    );
+
+    // Histórico receita vs despesa (últimos 6 meses)
+    const nomeMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const receitaVsDespesa = [];
+    
+    for (let i = 5; i >= 0; i--) {
+      const data = new Date();
+      data.setMonth(data.getMonth() - i);
+      const mes = data.getMonth() + 1;
+      const ano = data.getFullYear();
+      
+      const receita = await queryOne(
+        `SELECT COALESCE(SUM(valor_pago), 0) as total FROM mensalidades 
+         WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`,
+        [mes, ano]
+      );
+      
+      const despesa = await queryOne(
+        `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
+         WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`,
+        [mes, ano]
+      );
+      
+      receitaVsDespesa.push({
+        mes: nomeMeses[mes - 1],
+        receita: parseFloat(receita?.total || '0'),
+        despesa: parseFloat(despesa?.total || '0')
+      });
+    }
+
+    return {
+      totalAlunos: parseInt(totalAlunos?.count || '0'),
+      totalProfessores: parseInt(totalProfessores?.count || '0'),
+      totalTurmas: parseInt(totalTurmas?.count || '0'),
+      mensalidadesPendentes: parseInt(mensalidadesPendentes?.count || '0'),
+      receitaMensal: parseFloat(receitaMes?.total || '0'),
+      despesaMensal: parseFloat(despesasMes?.total || '0'),
+      alunosPorTurma: alunosPorTurma.map((r: any) => ({ turma: r.turma, quantidade: parseInt(r.quantidade) })),
+      mensalidadesPorStatus: mensalidadesPorStatus.map((r: any) => ({ status: r.status, quantidade: parseInt(r.quantidade) })),
+      receitaVsDespesa
+    };
+  }
+
+  async obterHistoricoAnual(ano: number) {
+    const meses = [];
+    for (let mes = 1; mes <= 12; mes++) {
+      const receita = await queryOne(
+        `SELECT COALESCE(SUM(valor_pago), 0) as total FROM mensalidades 
+         WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento) = $1 AND EXTRACT(YEAR FROM data_pagamento) = $2`,
+        [mes, ano]
+      );
+      
+      const despesa = await queryOne(
+        `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
+         WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento) = $1 AND EXTRACT(YEAR FROM data_pagamento) = $2`,
+        [mes, ano]
+      );
+
+      meses.push({
+        mes,
+        receita: parseFloat(receita?.total || '0'),
+        despesa: parseFloat(despesa?.total || '0'),
+        saldo: parseFloat(receita?.total || '0') - parseFloat(despesa?.total || '0')
+      });
+    }
+
+    return meses;
+  }
+}
+
+export const financeiroService = new FinanceiroService();

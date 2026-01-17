@@ -1,31 +1,42 @@
 {
   "name": "escola-sistema-frontend",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0",
-    "axios": "^1.7.7",
-    "recharts": "^2.13.3",
-    "lucide-react": "^0.460.0",
-    "react-hot-toast": "^2.4.1"
+    "@hookform/resolvers": "^3.3.3",
+    "@tanstack/react-query": "^4.36.1",
+    "axios": "^1.6.3",
+    "clsx": "^2.1.0",
+    "jspdf": "^4.0.0",
+    "lucide-react": "^0.303.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.49.2",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^6.21.1",
+    "recharts": "^2.10.3",
+    "zod": "^3.22.4",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@tauri-apps/cli": "^1.5.8",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.14",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
     "typescript": "~5.3.3",
-    "vite": "^4.5.5"
+    "vite": "^4.5.2"
   }
 }

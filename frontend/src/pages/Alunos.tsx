@@ -5,10 +5,13 @@ import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
 import { Table } from '../components/ui/Table';
+import { MaskedInput } from '../components/ui/MaskedInput';
+import { Autocomplete } from '../components/ui/Autocomplete';
 import { Aluno, Responsavel, Turma } from '../types';
 import { alunoService } from '../services/alunoService';
 import { responsavelService } from '../services/responsavelService';
 import { turmaService } from '../services/turmaService';
+import { removeMask } from '../utils/masks';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -23,11 +26,11 @@ export function Alunos() {
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
-    dataNascimento: '',
+    data_nascimento: '',
     cpf: '',
-    genero: 'M',
-    responsavelId: '',
-    turmaId: '',
+    sexo: 'M',
+    responsavel_id: '',
+    turma_id: '',
   });
 
   useEffect(() => {
@@ -54,23 +57,25 @@ export function Alunos() {
   const handleOpenModal = (aluno?: Aluno) => {
     if (aluno) {
       setEditingAluno(aluno);
+      const a = aluno as any;
+      const dataNasc = a.data_nascimento || a.dataNascimento;
       setFormData({
         nome: aluno.nome,
-        dataNascimento: new Date(aluno.dataNascimento).toISOString().split('T')[0],
+        data_nascimento: dataNasc ? new Date(dataNasc).toISOString().split('T')[0] : '',
         cpf: aluno.cpf || '',
-        genero: aluno.genero,
-        responsavelId: aluno.responsavelId,
-        turmaId: aluno.turmaId,
+        sexo: a.sexo || a.genero || 'M',
+        responsavel_id: a.responsavel_id || a.responsavelId || '',
+        turma_id: a.turma_id || a.turmaId || '',
       });
     } else {
       setEditingAluno(null);
       setFormData({
         nome: '',
-        dataNascimento: '',
+        data_nascimento: '',
         cpf: '',
-        genero: 'M',
-        responsavelId: '',
-        turmaId: '',
+        sexo: 'M',
+        responsavel_id: '',
+        turma_id: '',
       });
     }
     setIsModalOpen(true);
@@ -86,9 +91,13 @@ export function Alunos() {
     setIsSaving(true);
 
     try {
-      const payload = {
-        ...formData,
-        dataNascimento: new Date(formData.dataNascimento),
+      const payload: any = {
+        nome: formData.nome,
+        data_nascimento: formData.data_nascimento,
+        cpf: removeMask(formData.cpf) || undefined,
+        sexo: formData.sexo,
+        responsavel_id: formData.responsavel_id,
+        turma_id: formData.turma_id || undefined,
       };
 
       if (editingAluno) {
@@ -101,7 +110,8 @@ export function Alunos() {
       handleCloseModal();
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao salvar aluno');
+      const errorMsg = error.response?.data?.error || error.response?.data?.details?.[0]?.msg || 'Erro ao salvar aluno';
+      toast.error(errorMsg);
     } finally {
       setIsSaving(false);
     }
@@ -119,33 +129,43 @@ export function Alunos() {
     }
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
+    if (!date) return '-';
     return new Date(date).toLocaleDateString('pt-BR');
   };
 
-  const filteredAlunos = alunos.filter(
-    (a) =>
-      a.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.matriculaNumero.includes(searchTerm)
-  );
+  const filteredAlunos = alunos.filter((a) => {
+    const searchLower = searchTerm.toLowerCase();
+    const aluno = a as any;
+    return (
+      aluno.nome?.toLowerCase().includes(searchLower) ||
+      aluno.matricula_numero?.includes(searchTerm) ||
+      aluno.matriculaNumero?.includes(searchTerm)
+    );
+  });
+
+  const responsavelOptions = responsaveis.map((r) => ({
+    value: r.id,
+    label: `${r.nome} - CPF: ${r.cpf || 'N/A'}`,
+  }));
 
   const columns = [
-    { key: 'matriculaNumero', header: 'Matrícula' },
+    { key: 'matricula_numero', header: 'Matrícula', render: (a: Aluno) => (a as any).matricula_numero || (a as any).matriculaNumero || '-' },
     { key: 'nome', header: 'Nome' },
     {
-      key: 'dataNascimento',
+      key: 'data_nascimento',
       header: 'Data de Nascimento',
-      render: (aluno: Aluno) => formatDate(aluno.dataNascimento),
+      render: (aluno: Aluno) => formatDate((aluno as any).data_nascimento || (aluno as any).dataNascimento),
     },
     {
-      key: 'turma.nome',
+      key: 'turma',
       header: 'Turma',
-      render: (aluno: Aluno) => aluno.turma?.nome || '-',
+      render: (aluno: Aluno) => aluno.turma?.nome || (aluno as any).turma_nome || '-',
     },
     {
-      key: 'responsavel.nome',
+      key: 'responsavel',
       header: 'Responsável',
-      render: (aluno: Aluno) => aluno.responsavel?.nome || '-',
+      render: (aluno: Aluno) => aluno.responsavel?.nome || (aluno as any).responsavel_nome || '-',
     },
     {
       key: 'actions',
@@ -219,49 +239,47 @@ export function Alunos() {
               onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
               required
             />
-            <Input
+            <MaskedInput
               label="CPF"
+              mask="cpf"
               value={formData.cpf}
-              onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+              onChange={(value) => setFormData({ ...formData, cpf: value })}
+              placeholder="000.000.000-00"
             />
             <Input
               label="Data de Nascimento"
               type="date"
-              value={formData.dataNascimento}
-              onChange={(e) => setFormData({ ...formData, dataNascimento: e.target.value })}
+              value={formData.data_nascimento}
+              onChange={(e) => setFormData({ ...formData, data_nascimento: e.target.value })}
               required
             />
             <Select
               label="Gênero"
-              value={formData.genero}
-              onChange={(e) => setFormData({ ...formData, genero: e.target.value })}
+              value={formData.sexo}
+              onChange={(e) => setFormData({ ...formData, sexo: e.target.value })}
               options={[
                 { value: 'M', label: 'Masculino' },
                 { value: 'F', label: 'Feminino' },
                 { value: 'O', label: 'Outro' },
               ]}
             />
-            <Select
+            <Autocomplete
               label="Responsável"
-              value={formData.responsavelId}
-              onChange={(e) => setFormData({ ...formData, responsavelId: e.target.value })}
-              options={responsaveis.map((r) => ({
-                value: r.id,
-                label: r.nome,
-              }))}
-              placeholder="Selecione um responsável"
+              value={formData.responsavel_id}
+              options={responsavelOptions}
+              onChange={(value) => setFormData({ ...formData, responsavel_id: value })}
+              placeholder="Digite o nome do responsável..."
               required
             />
             <Select
               label="Turma"
-              value={formData.turmaId}
-              onChange={(e) => setFormData({ ...formData, turmaId: e.target.value })}
+              value={formData.turma_id}
+              onChange={(e) => setFormData({ ...formData, turma_id: e.target.value })}
               options={turmas.map((t) => ({
                 value: t.id,
-                label: `${t.nome} - ${t.serie}`,
+                label: `${t.nome} - ${t.serie || t.turno}`,
               }))}
               placeholder="Selecione uma turma"
-              required
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">

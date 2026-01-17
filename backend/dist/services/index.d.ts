@@ -1,0 +1,10 @@
+export { authService } from './authService';
+export { usuarioService } from './usuarioService';
+export { escolaService } from './escolaService';
+export { responsavelService } from './responsavelService';
+export { alunoService } from './alunoService';
+export { turmaService } from './turmaService';
+export { professorService } from './professorService';
+export { notaService } from './notaService';
+export { financeiroService } from './financeiroService';
+//# sourceMappingURL=index.d.ts.map
