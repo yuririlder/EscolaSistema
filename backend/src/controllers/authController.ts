@@ -52,35 +52,43 @@ class AuthController {
         return sendError(res, 'Setup já foi realizado. Sistema já possui usuários cadastrados.', 400);
       }
 
-      // Criar escola padrão
-      const escolaResult = await query(
-        `INSERT INTO escolas (nome, cnpj, telefone, email, endereco, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *`,
-        ['Escola Padrão', '00.000.000/0001-00', '(00) 0000-0000', 'escola@exemplo.com', 'Endereço da Escola']
-      );
-      const escola = escolaResult.rows[0];
+      // Verificar se já existe escola, senão criar
+      let escola = await queryOne('SELECT * FROM escolas LIMIT 1');
+      
+      if (!escola) {
+        const escolaResult = await query(
+          `INSERT INTO escolas (nome, cnpj, telefone, email, endereco, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *`,
+          ['Escola Padrão', '00.000.000/0001-00', '(00) 0000-0000', 'escola@exemplo.com', 'Endereço da Escola']
+        );
+        escola = escolaResult.rows[0];
+      }
 
       // Criar usuário admin
       const senhaHash = await bcrypt.hash('admin123', 10);
-      const adminResult = await query(
+      await query(
         `INSERT INTO usuarios (nome, email, senha, perfil, ativo, escola_id, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *`,
         ['Administrador', 'admin@escola.com', senhaHash, 'Diretor', true, escola.id]
       );
 
-      // Criar planos de mensalidade padrão
-      await query(
-        `INSERT INTO planos_mensalidade (nome, valor, descricao, ativo, escola_id, created_at, updated_at)
-         VALUES 
-           ($1, $2, $3, $4, $5, NOW(), NOW()),
-           ($6, $7, $8, $9, $10, NOW(), NOW()),
-           ($11, $12, $13, $14, $15, NOW(), NOW())`,
-        [
-          'Plano Básico', 500.00, 'Plano básico de mensalidade', true, escola.id,
-          'Plano Intermediário', 750.00, 'Plano intermediário de mensalidade', true, escola.id,
-          'Plano Premium', 1000.00, 'Plano premium de mensalidade', true, escola.id
-        ]
-      );
+      // Verificar se já existem planos, senão criar
+      const existingPlanos = await queryOne('SELECT id FROM planos_mensalidade LIMIT 1');
+      
+      if (!existingPlanos) {
+        await query(
+          `INSERT INTO planos_mensalidade (nome, valor, descricao, ativo, escola_id, created_at, updated_at)
+           VALUES 
+             ($1, $2, $3, $4, $5, NOW(), NOW()),
+             ($6, $7, $8, $9, $10, NOW(), NOW()),
+             ($11, $12, $13, $14, $15, NOW(), NOW())`,
+          [
+            'Plano Básico', 500.00, 'Plano básico de mensalidade', true, escola.id,
+            'Plano Intermediário', 750.00, 'Plano intermediário de mensalidade', true, escola.id,
+            'Plano Premium', 1000.00, 'Plano premium de mensalidade', true, escola.id
+          ]
+        );
+      }
 
       logger.info('Setup inicial realizado com sucesso');
 
