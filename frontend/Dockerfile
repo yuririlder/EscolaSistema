@@ -3,6 +3,10 @@ FROM node:20 AS builder
 
 WORKDIR /app
 
+# Build argument for API URL (passed from Railway)
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # Copy package files first
 COPY package.json package-lock.json* ./
 
