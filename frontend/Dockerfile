@@ -3,9 +3,6 @@ FROM node:20 AS builder
 
 WORKDIR /app
 
-# Install build tools globally
-RUN npm install -g typescript vite
-
 # Copy package files first
 COPY package.json package-lock.json* ./
 
@@ -15,8 +12,8 @@ RUN npm install
 # Copy all source code
 COPY . .
 
-# Build the app
-RUN tsc -b && vite build --force
+# Build the app using local node_modules binaries
+RUN ./node_modules/.bin/tsc -b && ./node_modules/.bin/vite build
 
 # Production stage
 FROM node:20-alpine AS runner
