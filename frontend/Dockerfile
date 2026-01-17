@@ -12,8 +12,8 @@ RUN npm install
 # Copy all source code
 COPY . .
 
-# Build the app
-RUN npm run build
+# Build the app using npx to ensure executables work
+RUN npx tsc -b && npx vite build --force
 
 # Production stage
 FROM node:20-alpine AS runner
