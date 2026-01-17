@@ -1,7 +1,10 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:20 AS builder
 
 WORKDIR /app
+
+# Install build tools globally
+RUN npm install -g typescript vite
 
 # Copy package files first
 COPY package.json package-lock.json* ./
@@ -12,8 +15,8 @@ RUN npm install
 # Copy all source code
 COPY . .
 
-# Build the app using npx to ensure executables work
-RUN npx tsc -b && npx vite build --force
+# Build the app
+RUN tsc -b && vite build --force
 
 # Production stage
 FROM node:20-alpine AS runner
