@@ -17,8 +17,9 @@ export function useLogin() {
       return response.data;
     },
     onSuccess: (data) => {
-      if (data.success) {
-        setAuth(data.data.token, data.data.usuario);
+      // Os dados já foram extraídos pelo interceptor
+      if (data.token && data.usuario) {
+        setAuth(data.token, data.usuario);
         toast.success('Login realizado com sucesso!');
       }
     },
