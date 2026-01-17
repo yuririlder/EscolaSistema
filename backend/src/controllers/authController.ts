@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { authService, usuarioService } from '../services';
 import { sendSuccess, sendError, sendUnauthorized } from '../utils/response';
 import { logger } from '../utils/logger';
-import db from '../database/connection';
+import { query, queryOne } from '../database/connection';
 
 class AuthController {
   async login(req: Request, res: Response) {
@@ -46,66 +46,41 @@ class AuthController {
   async setup(req: Request, res: Response) {
     try {
       // Verificar se já existe algum usuário
-      const existingUsers = await db('usuarios').select('id').limit(1);
+      const existingUser = await queryOne('SELECT id FROM usuarios LIMIT 1');
       
-      if (existingUsers.length > 0) {
+      if (existingUser) {
         return sendError(res, 'Setup já foi realizado. Sistema já possui usuários cadastrados.', 400);
       }
 
       // Criar escola padrão
-      const [escola] = await db('escolas').insert({
-        nome: 'Escola Padrão',
-        cnpj: '00.000.000/0001-00',
-        telefone: '(00) 0000-0000',
-        email: 'escola@exemplo.com',
-        endereco: 'Endereço da Escola',
-        created_at: new Date(),
-        updated_at: new Date()
-      }).returning('*');
+      const escolaResult = await query(
+        `INSERT INTO escolas (nome, cnpj, telefone, email, endereco, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *`,
+        ['Escola Padrão', '00.000.000/0001-00', '(00) 0000-0000', 'escola@exemplo.com', 'Endereço da Escola']
+      );
+      const escola = escolaResult.rows[0];
 
       // Criar usuário admin
       const senhaHash = await bcrypt.hash('admin123', 10);
-      const [admin] = await db('usuarios').insert({
-        nome: 'Administrador',
-        email: 'admin@escola.com',
-        senha: senhaHash,
-        perfil: 'Diretor',
-        ativo: true,
-        escola_id: escola.id,
-        created_at: new Date(),
-        updated_at: new Date()
-      }).returning('*');
+      const adminResult = await query(
+        `INSERT INTO usuarios (nome, email, senha, perfil, ativo, escola_id, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *`,
+        ['Administrador', 'admin@escola.com', senhaHash, 'Diretor', true, escola.id]
+      );
 
       // Criar planos de mensalidade padrão
-      await db('planos_mensalidade').insert([
-        {
-          nome: 'Plano Básico',
-          valor: 500.00,
-          descricao: 'Plano básico de mensalidade',
-          ativo: true,
-          escola_id: escola.id,
-          created_at: new Date(),
-          updated_at: new Date()
-        },
-        {
-          nome: 'Plano Intermediário',
-          valor: 750.00,
-          descricao: 'Plano intermediário de mensalidade',
-          ativo: true,
-          escola_id: escola.id,
-          created_at: new Date(),
-          updated_at: new Date()
-        },
-        {
-          nome: 'Plano Premium',
-          valor: 1000.00,
-          descricao: 'Plano premium de mensalidade',
-          ativo: true,
-          escola_id: escola.id,
-          created_at: new Date(),
-          updated_at: new Date()
-        }
-      ]);
+      await query(
+        `INSERT INTO planos_mensalidade (nome, valor, descricao, ativo, escola_id, created_at, updated_at)
+         VALUES 
+           ($1, $2, $3, $4, $5, NOW(), NOW()),
+           ($6, $7, $8, $9, $10, NOW(), NOW()),
+           ($11, $12, $13, $14, $15, NOW(), NOW())`,
+        [
+          'Plano Básico', 500.00, 'Plano básico de mensalidade', true, escola.id,
+          'Plano Intermediário', 750.00, 'Plano intermediário de mensalidade', true, escola.id,
+          'Plano Premium', 1000.00, 'Plano premium de mensalidade', true, escola.id
+        ]
+      );
 
       logger.info('Setup inicial realizado com sucesso');
 
