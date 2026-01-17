@@ -12,8 +12,8 @@ RUN npm install
 # Copy all source code
 COPY . .
 
-# Build the app using local node_modules binaries
-RUN ./node_modules/.bin/tsc -b && ./node_modules/.bin/vite build
+# Fix permissions and build
+RUN chmod -R +x node_modules/.bin && npm run build
 
 # Production stage
 FROM node:20-alpine AS runner
