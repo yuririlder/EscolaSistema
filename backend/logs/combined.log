@@ -12002,3 +12002,67 @@ Error: CPF já cadastrado
 2026-01-17 05:09:16 [INFO]: Servidor rodando na porta 3001
 2026-01-17 05:09:16 [INFO]: Ambiente: development
 2026-01-17 05:11:05 [INFO]: Encerrando servidor...
+2026-01-17 22:00:47 [INFO]: Conexão com banco de dados PostgreSQL estabelecida
+2026-01-17 22:00:47 [INFO]: Conexão com banco de dados estabelecida
+2026-01-17 22:00:47 [INFO]: Iniciando migrations do banco de dados PostgreSQL...
+2026-01-17 22:00:47 [INFO]: Migrations executadas com sucesso!
+2026-01-17 22:00:47 [INFO]: Migrations executadas com sucesso
+2026-01-17 22:00:47 [INFO]: Servidor rodando na porta 3001
+2026-01-17 22:00:47 [INFO]: Ambiente: development
+2026-01-17 22:01:32 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 22:01:34 [DEBUG]: Query executada em 1888ms
+2026-01-17 22:01:34 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:34 [DEBUG]: Query executada em 224ms
+2026-01-17 22:01:35 [DEBUG]: Query executada em 242ms
+2026-01-17 22:01:35 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:35 [DEBUG]: Query executada em 228ms
+2026-01-17 22:01:35 [DEBUG]: Query executada em 229ms
+2026-01-17 22:01:36 [DEBUG]: Query executada em 230ms
+2026-01-17 22:01:36 [DEBUG]: Query executada em 236ms
+2026-01-17 22:01:36 [DEBUG]: Query executada em 230ms
+2026-01-17 22:01:36 [DEBUG]: Query executada em 224ms
+2026-01-17 22:01:37 [DEBUG]: Query executada em 227ms
+2026-01-17 22:01:37 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:37 [DEBUG]: Query executada em 225ms
+2026-01-17 22:01:37 [DEBUG]: Query executada em 225ms
+2026-01-17 22:01:37 [DEBUG]: Query executada em 228ms
+2026-01-17 22:01:38 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:38 [DEBUG]: Query executada em 235ms
+2026-01-17 22:01:38 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:38 [DEBUG]: Query executada em 222ms
+2026-01-17 22:01:38 [HTTP]: GET /api/financeiro/dashboard
+2026-01-17 22:01:39 [DEBUG]: Query executada em 222ms
+2026-01-17 22:01:39 [DEBUG]: Query executada em 226ms
+2026-01-17 22:01:39 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:39 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:39 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:40 [DEBUG]: Query executada em 226ms
+2026-01-17 22:01:40 [DEBUG]: Query executada em 228ms
+2026-01-17 22:01:40 [DEBUG]: Query executada em 225ms
+2026-01-17 22:01:40 [DEBUG]: Query executada em 233ms
+2026-01-17 22:01:41 [DEBUG]: Query executada em 225ms
+2026-01-17 22:01:41 [DEBUG]: Query executada em 227ms
+2026-01-17 22:01:41 [DEBUG]: Query executada em 221ms
+2026-01-17 22:01:41 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:42 [DEBUG]: Query executada em 226ms
+2026-01-17 22:01:42 [DEBUG]: Query executada em 222ms
+2026-01-17 22:01:42 [DEBUG]: Query executada em 225ms
+2026-01-17 22:01:42 [DEBUG]: Query executada em 222ms
+2026-01-17 22:01:42 [DEBUG]: Query executada em 225ms
+2026-01-17 22:01:43 [DEBUG]: Query executada em 225ms
+2026-01-17 22:01:43 [DEBUG]: Query executada em 223ms
+2026-01-17 22:01:48 [HTTP]: GET /api/responsaveis
+2026-01-17 22:01:48 [HTTP]: GET /api/turmas
+2026-01-17 22:01:48 [HTTP]: GET /api/financeiro/planos
+2026-01-17 22:01:48 [DEBUG]: Query executada em 224ms
+2026-01-17 22:01:48 [HTTP]: GET /api/responsaveis
+2026-01-17 22:01:48 [DEBUG]: Query executada em 227ms
+2026-01-17 22:01:50 [DEBUG]: Query executada em 1898ms
+2026-01-17 22:01:50 [DEBUG]: Query executada em 1901ms
+2026-01-17 22:01:50 [HTTP]: GET /api/financeiro/planos
+2026-01-17 22:01:50 [DEBUG]: Query executada em 228ms
+2026-01-17 22:01:50 [HTTP]: GET /api/turmas
+2026-01-17 22:01:50 [DEBUG]: Query executada em 231ms
+2026-01-17 22:01:50 [DEBUG]: Query executada em 226ms
+2026-01-17 22:01:50 [DEBUG]: Query executada em 233ms
+2026-01-17 22:08:48 [INFO]: Encerrando servidor...

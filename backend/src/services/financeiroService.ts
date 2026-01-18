@@ -102,14 +102,24 @@ class FinanceiroService {
       // Gerar mensalidades do ano
       const anoAtual = data.ano_letivo;
       const mesInicio = new Date().getMonth() + 1;
+      const valorMatricula = data.valor_matricula || 0;
       
+      let isPrimeiraMensalidade = true;
       for (let mes = mesInicio; mes <= 12; mes++) {
         const diaVenc = data.dia_vencimento || 10;
         const dataVencimento = `${anoAtual}-${String(mes).padStart(2, '0')}-${String(diaVenc).padStart(2, '0')}`;
+        
+        // Na primeira mensalidade, abater o valor da matrícula
+        let valorMensalidadeFinal = valorMensalidade;
+        if (isPrimeiraMensalidade && valorMatricula > 0) {
+          valorMensalidadeFinal = Math.max(0, valorMensalidade - valorMatricula);
+          isPrimeiraMensalidade = false;
+        }
+        
         await client.query(
           `INSERT INTO mensalidades (id, aluno_id, matricula_id, mes_referencia, ano_referencia, valor, desconto, data_vencimento, status)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDENTE')`,
-          [uuidv4(), data.aluno_id, matriculaId, mes, anoAtual, valorMensalidade, data.desconto || 0, dataVencimento]
+          [uuidv4(), data.aluno_id, matriculaId, mes, anoAtual, valorMensalidadeFinal, data.desconto || 0, dataVencimento]
         );
       }
 
