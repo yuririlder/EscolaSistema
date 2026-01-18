@@ -14,11 +14,21 @@ import { Plus, Pencil, Search, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatCurrencyInput, currencyToNumber, formatNumberInput, formatPercentInput } from '../utils/masks';
 import { gerarTermoMatriculaPDF } from '../utils/pdfGenerator';
+import { escolaService } from '../services/escolaService';
+
+interface DadosEscola {
+  nome?: string;
+  cnpj?: string;
+  endereco?: string;
+  telefone?: string;
+  email?: string;
+}
 
 export function Matriculas() {
   const [matriculas, setMatriculas] = useState<Matricula[]>([]);
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [planos, setPlanos] = useState<PlanoMensalidade[]>([]);
+  const [escola, setEscola] = useState<DadosEscola | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,14 +50,18 @@ export function Matriculas() {
 
   const loadData = async () => {
     try {
-      const [matriculasData, alunosData, planosData] = await Promise.all([
+      const [matriculasData, alunosData, planosData, escolaData] = await Promise.all([
         financeiroService.listarMatriculas(),
         alunoService.listar(),
         financeiroService.listarPlanos(),
+        escolaService.obter().catch(() => null),
       ]);
       setMatriculas(matriculasData);
       setAlunos(alunosData);
       setPlanos(planosData);
+      if (escolaData) {
+        setEscola(escolaData);
+      }
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -151,7 +165,7 @@ export function Matriculas() {
       desconto,
       dataMatricula,
       turmaNome,
-    });
+    }, escola || undefined);
   };
 
   const formatCurrency = (value: number) => {

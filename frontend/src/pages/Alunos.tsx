@@ -18,6 +18,15 @@ import { Plus, Pencil, Trash2, Search, GraduationCap, BookOpen, Printer, AlertCi
 import toast from 'react-hot-toast';
 import { gerarFichaCompletaAlunoPDF } from '../utils/pdfGenerator';
 import { financeiroService } from '../services/financeiroService';
+import { escolaService } from '../services/escolaService';
+
+interface DadosEscola {
+  nome?: string;
+  cnpj?: string;
+  endereco?: string;
+  telefone?: string;
+  email?: string;
+}
 
 const PARENTESCO_OPTIONS = [
   { value: 'PAI', label: 'Pai' },
@@ -39,6 +48,7 @@ export function Alunos() {
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
+  const [escola, setEscola] = useState<DadosEscola | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -98,14 +108,18 @@ export function Alunos() {
 
   const loadData = async () => {
     try {
-      const [alunosData, responsaveisData, turmasData] = await Promise.all([
+      const [alunosData, responsaveisData, turmasData, escolaData] = await Promise.all([
         alunoService.listar(),
         responsavelService.listar(),
         turmaService.listar(),
+        escolaService.obter().catch(() => null),
       ]);
       setAlunos(alunosData);
       setResponsaveis(responsaveisData);
       setTurmas(turmasData);
+      if (escolaData) {
+        setEscola(escolaData);
+      }
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -344,7 +358,7 @@ export function Alunos() {
   const handlePrintFichaAluno = async (aluno: Aluno) => {
     try {
       const alunoData = aluno as any;
-      const responsavel = responsaveis.find(r => r.id === (alunoData.responsavel_id || alunoData.responsavelId));
+      const responsavel = responsaveis.find(r => r.id === (alunoData.responsavel_id || alunoData.responsavelId)) as any;
       const turma = turmas.find(t => t.id === (alunoData.turma_id || alunoData.turmaId));
       
       const matriculas = await financeiroService.listarMatriculas();
@@ -360,6 +374,18 @@ export function Alunos() {
         plano = planos.find(p => p.id === (mat.plano_id || mat.planoMensalidadeId));
       }
 
+      // Buscar contatos de emergência
+      const contatosEmergencia: { nome: string; telefone: string; parentesco: string }[] = [];
+      if (alunoData.contatos_emergencia && Array.isArray(alunoData.contatos_emergencia)) {
+        alunoData.contatos_emergencia.forEach((c: any) => {
+          contatosEmergencia.push({
+            nome: c.nome,
+            telefone: c.telefone,
+            parentesco: c.parentesco,
+          });
+        });
+      }
+
       gerarFichaCompletaAlunoPDF({
         aluno: {
           nome: aluno.nome,
@@ -367,17 +393,52 @@ export function Alunos() {
           cpf: aluno.cpf,
           sexo: alunoData.sexo || alunoData.genero,
           matricula_numero: alunoData.matricula_numero || alunoData.matriculaNumero,
+          parentesco_responsavel: alunoData.parentesco_responsavel,
         },
         responsavel: responsavel ? {
           nome: responsavel.nome,
           cpf: responsavel.cpf,
+          rg: responsavel.rg,
+          data_nascimento: responsavel.data_nascimento || responsavel.dataNascimento,
           email: responsavel.email,
           telefone: responsavel.telefone,
+          celular: responsavel.celular,
           endereco: responsavel.endereco,
+          bairro: responsavel.bairro,
+          complemento: responsavel.complemento,
+          cidade: responsavel.cidade,
+          estado: responsavel.estado,
+          cep: responsavel.cep,
           profissao: responsavel.profissao,
+          local_trabalho: responsavel.local_trabalho || responsavel.localTrabalho,
         } : {
           nome: alunoData.responsavel?.nome || alunoData.responsavel_nome || '-',
         },
+        contatosEmergencia: contatosEmergencia.length > 0 ? contatosEmergencia : undefined,
+        saude: {
+          possui_alergia: alunoData.possui_alergia,
+          alergia_descricao: alunoData.alergia_descricao,
+          restricao_alimentar: alunoData.restricao_alimentar,
+          restricao_alimentar_descricao: alunoData.restricao_alimentar_descricao,
+          uso_medicamento: alunoData.uso_medicamento,
+          medicamento_descricao: alunoData.medicamento_descricao,
+          necessidade_especial: alunoData.necessidade_especial,
+          necessidade_especial_descricao: alunoData.necessidade_especial_descricao,
+        },
+        autorizacoes: {
+          autoriza_atividades: alunoData.autoriza_atividades,
+          autoriza_emergencia: alunoData.autoriza_emergencia,
+          autoriza_imagem: alunoData.autoriza_imagem,
+        },
+        documentos: {
+          doc_certidao_nascimento: alunoData.doc_certidao_nascimento,
+          doc_cpf_aluno: alunoData.doc_cpf_aluno,
+          doc_rg_cpf_responsavel: alunoData.doc_rg_cpf_responsavel,
+          doc_comprovante_residencia: alunoData.doc_comprovante_residencia,
+          doc_cartao_sus: alunoData.doc_cartao_sus,
+          doc_carteira_vacinacao: alunoData.doc_carteira_vacinacao,
+        },
+        consideracoes: alunoData.consideracoes,
         matricula: matriculaAluno ? {
           ano_letivo: (matriculaAluno as any).ano_letivo || (matriculaAluno as any).anoLetivo,
           data_matricula: (matriculaAluno as any).data_matricula || (matriculaAluno as any).dataMatricula,
@@ -396,7 +457,7 @@ export function Alunos() {
           nome: plano.nome,
           valor: plano.valor,
         } : undefined,
-      });
+      }, escola || undefined);
     } catch (error) {
       toast.error('Erro ao gerar ficha do aluno');
     }

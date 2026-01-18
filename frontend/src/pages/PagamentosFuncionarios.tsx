@@ -14,10 +14,20 @@ import { Plus, Search, DollarSign, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatCurrencyInput, currencyToNumber, formatNumberInput } from '../utils/masks';
 import { gerarReciboPagamentoFuncionarioPDF } from '../utils/pdfGenerator';
+import { escolaService } from '../services/escolaService';
+
+interface DadosEscola {
+  nome?: string;
+  cnpj?: string;
+  endereco?: string;
+  telefone?: string;
+  email?: string;
+}
 
 export function PagamentosFuncionarios() {
   const [pagamentos, setPagamentos] = useState<PagamentoFuncionario[]>([]);
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
+  const [escola, setEscola] = useState<DadosEscola | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,12 +52,16 @@ export function PagamentosFuncionarios() {
 
   const loadData = async () => {
     try {
-      const [pagamentosData, funcionariosData] = await Promise.all([
+      const [pagamentosData, funcionariosData, escolaData] = await Promise.all([
         financeiroService.listarPagamentosFuncionarios(),
         professorService.listar(), // Professores são funcionários
+        escolaService.obter().catch(() => null),
       ]);
       setPagamentos(pagamentosData);
       setFuncionarios(funcionariosData);
+      if (escolaData) {
+        setEscola(escolaData);
+      }
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -136,7 +150,7 @@ export function PagamentosFuncionarios() {
           valorLiquido,
           dataPagamento: new Date().toLocaleDateString('pt-BR'),
           formaPagamento,
-        });
+        }, escola || undefined);
       }
       
       setIsPayModalOpen(false);
@@ -177,7 +191,7 @@ export function PagamentosFuncionarios() {
       valorLiquido,
       dataPagamento: dataPagamento ? new Date(dataPagamento).toLocaleDateString('pt-BR') : '-',
       formaPagamento: formaPag,
-    });
+    }, escola || undefined);
   };
 
   const formatCurrency = (value: number) => {

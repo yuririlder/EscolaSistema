@@ -1224,7 +1224,7 @@ export function OnboardingMatricula() {
           Voltar
         </Button>
         <div className="flex gap-3">
-          <Button type="button" variant="ghost" onClick={handleSkipPagamento}>
+          <Button type="button" variant="danger" onClick={handleSkipPagamento}>
             Pular (Pagar depois)
           </Button>
           <Button onClick={handlePagarMatricula} isLoading={isSaving}>
