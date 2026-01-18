@@ -1,4 +1,4 @@
-import { query, queryOne, queryMany } from '../database/connection';
+import { pool, query, queryOne, queryMany } from '../database/connection';
 import { logger } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -18,15 +18,49 @@ class AlunoService {
       throw new Error('Responsável não encontrado');
     }
 
-    const id = uuidv4();
-    await query(
-      `INSERT INTO alunos (id, nome, cpf, rg, data_nascimento, sexo, telefone, email, endereco, cidade, estado, cep, responsavel_id, observacoes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-      [id, data.nome, data.cpf, data.rg, data.data_nascimento, data.sexo, data.telefone, data.email, data.endereco, data.cidade, data.estado, data.cep, data.responsavel_id, data.observacoes]
-    );
-    
-    logger.info(`Aluno criado: ${data.nome}`);
-    return this.buscarPorId(id);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const id = uuidv4();
+      await client.query(
+        `INSERT INTO alunos (id, nome, cpf, rg, data_nascimento, sexo, telefone, email, endereco, cidade, estado, cep, responsavel_id, parentesco_responsavel,
+         possui_alergia, alergia_descricao, restricao_alimentar, restricao_alimentar_descricao, uso_medicamento, medicamento_descricao, necessidade_especial, necessidade_especial_descricao,
+         autoriza_atividades, autoriza_emergencia, autoriza_imagem,
+         doc_certidao_nascimento, doc_cpf_aluno, doc_rg_cpf_responsavel, doc_comprovante_residencia, doc_cartao_sus, doc_carteira_vacinacao,
+         consideracoes, observacoes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)`,
+        [id, data.nome, data.cpf, data.rg, data.data_nascimento, data.sexo, data.telefone, data.email, data.endereco, data.cidade, data.estado, data.cep, data.responsavel_id, data.parentesco_responsavel,
+         data.possui_alergia || false, data.alergia_descricao, data.restricao_alimentar || false, data.restricao_alimentar_descricao, data.uso_medicamento || false, data.medicamento_descricao, data.necessidade_especial || false, data.necessidade_especial_descricao,
+         data.autoriza_atividades !== false, data.autoriza_emergencia !== false, data.autoriza_imagem || false,
+         data.doc_certidao_nascimento || false, data.doc_cpf_aluno || false, data.doc_rg_cpf_responsavel || false, data.doc_comprovante_residencia || false, data.doc_cartao_sus || false, data.doc_carteira_vacinacao || false,
+         data.consideracoes, data.observacoes]
+      );
+
+      // Criar contatos de emergência se fornecidos
+      if (data.contatos_emergencia && Array.isArray(data.contatos_emergencia)) {
+        for (let i = 0; i < data.contatos_emergencia.length; i++) {
+          const contato = data.contatos_emergencia[i];
+          if (contato.nome && contato.telefone && contato.parentesco) {
+            await client.query(
+              `INSERT INTO contatos_emergencia (id, aluno_id, nome, telefone, parentesco, ordem)
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [uuidv4(), id, contato.nome, contato.telefone, contato.parentesco, i + 1]
+            );
+          }
+        }
+      }
+
+      await client.query('COMMIT');
+      
+      logger.info(`Aluno criado: ${data.nome}`);
+      return this.buscarPorId(id);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async buscarTodos(incluirInativos = false) {
@@ -78,7 +112,7 @@ class AlunoService {
   }
 
   async buscarPorId(id: string) {
-    return await queryOne(
+    const aluno = await queryOne(
       `SELECT a.*, r.nome as responsavel_nome, r.telefone as responsavel_telefone, r.email as responsavel_email, t.nome as turma_nome
        FROM alunos a
        LEFT JOIN responsaveis r ON a.responsavel_id = r.id
@@ -86,41 +120,84 @@ class AlunoService {
        WHERE a.id = $1`,
       [id]
     );
+
+    if (aluno) {
+      // Buscar contatos de emergência
+      const contatos = await queryMany(
+        `SELECT * FROM contatos_emergencia WHERE aluno_id = $1 ORDER BY ordem ASC`,
+        [id]
+      );
+      aluno.contatos_emergencia = contatos;
+    }
+
+    return aluno;
   }
 
   async atualizar(id: string, data: any) {
-    const aluno = await this.buscarPorId(id);
+    const aluno = await queryOne('SELECT * FROM alunos WHERE id = $1', [id]);
     if (!aluno) {
       throw new Error('Aluno não encontrado');
     }
 
-    const fields: string[] = [];
-    const values: any[] = [];
-    let paramIndex = 1;
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const campos = ['nome', 'cpf', 'rg', 'data_nascimento', 'sexo', 'telefone', 'email', 'endereco', 'cidade', 'estado', 'cep', 'responsavel_id', 'turma_id', 'matricula_ativa', 'data_matricula', 'observacoes'];
-    
-    for (const campo of campos) {
-      if (data[campo] !== undefined) {
-        fields.push(`${campo} = $${paramIndex++}`);
-        values.push(data[campo]);
+      const fields: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      const campos = ['nome', 'cpf', 'rg', 'data_nascimento', 'sexo', 'telefone', 'email', 'endereco', 'cidade', 'estado', 'cep', 'responsavel_id', 'turma_id', 'matricula_ativa', 'data_matricula', 'parentesco_responsavel',
+        'possui_alergia', 'alergia_descricao', 'restricao_alimentar', 'restricao_alimentar_descricao', 'uso_medicamento', 'medicamento_descricao', 'necessidade_especial', 'necessidade_especial_descricao',
+        'autoriza_atividades', 'autoriza_emergencia', 'autoriza_imagem',
+        'doc_certidao_nascimento', 'doc_cpf_aluno', 'doc_rg_cpf_responsavel', 'doc_comprovante_residencia', 'doc_cartao_sus', 'doc_carteira_vacinacao',
+        'consideracoes', 'observacoes'];
+      
+      for (const campo of campos) {
+        if (data[campo] !== undefined) {
+          fields.push(`${campo} = $${paramIndex++}`);
+          values.push(data[campo]);
+        }
       }
+
+      if (fields.length > 0) {
+        fields.push(`updated_at = CURRENT_TIMESTAMP`);
+        values.push(id);
+
+        await client.query(
+          `UPDATE alunos SET ${fields.join(', ')} WHERE id = $${paramIndex}`,
+          values
+        );
+      }
+
+      // Atualizar contatos de emergência se fornecidos
+      if (data.contatos_emergencia && Array.isArray(data.contatos_emergencia)) {
+        // Remover contatos antigos
+        await client.query('DELETE FROM contatos_emergencia WHERE aluno_id = $1', [id]);
+        
+        // Inserir novos contatos
+        for (let i = 0; i < data.contatos_emergencia.length; i++) {
+          const contato = data.contatos_emergencia[i];
+          if (contato.nome && contato.telefone && contato.parentesco) {
+            await client.query(
+              `INSERT INTO contatos_emergencia (id, aluno_id, nome, telefone, parentesco, ordem)
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [uuidv4(), id, contato.nome, contato.telefone, contato.parentesco, i + 1]
+            );
+          }
+        }
+      }
+
+      await client.query('COMMIT');
+
+      logger.info(`Aluno atualizado: ${id}`);
+      return this.buscarPorId(id);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
-
-    if (fields.length === 0) {
-      return aluno;
-    }
-
-    fields.push(`updated_at = CURRENT_TIMESTAMP`);
-    values.push(id);
-
-    await query(
-      `UPDATE alunos SET ${fields.join(', ')} WHERE id = $${paramIndex}`,
-      values
-    );
-
-    logger.info(`Aluno atualizado: ${id}`);
-    return this.buscarPorId(id);
   }
 
   async deletar(id: string): Promise<void> {

@@ -34,21 +34,24 @@ const authMiddleware = (req, res, next) => {
 };
 exports.authMiddleware = authMiddleware;
 const requireAdmin = (req, res, next) => {
-    if (req.usuario?.perfil !== 'ADMIN') {
+    const perfil = req.usuario?.perfil?.toUpperCase();
+    if (perfil !== 'ADMIN') {
         return (0, response_1.sendForbidden)(res, 'Acesso restrito a administradores');
     }
     return next();
 };
 exports.requireAdmin = requireAdmin;
 const requireDiretor = (req, res, next) => {
-    if (!['ADMIN', 'DIRETOR'].includes(req.usuario?.perfil || '')) {
+    const perfil = req.usuario?.perfil?.toUpperCase();
+    if (!['ADMIN', 'DIRETOR'].includes(perfil || '')) {
         return (0, response_1.sendForbidden)(res, 'Acesso restrito a diretores');
     }
     return next();
 };
 exports.requireDiretor = requireDiretor;
 const requireDiretorOuSecretario = (req, res, next) => {
-    if (!['ADMIN', 'DIRETOR', 'SECRETARIO'].includes(req.usuario?.perfil || '')) {
+    const perfil = req.usuario?.perfil?.toUpperCase();
+    if (!['ADMIN', 'DIRETOR', 'SECRETARIO'].includes(perfil || '')) {
         return (0, response_1.sendForbidden)(res, 'Acesso negado');
     }
     return next();

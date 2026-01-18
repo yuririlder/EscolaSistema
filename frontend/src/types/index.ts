@@ -76,14 +76,32 @@ export interface Responsavel {
   id: string;
   nome: string;
   cpf: string;
+  rg?: string;
+  data_nascimento?: string;
   email: string;
   telefone: string;
+  celular?: string;
   endereco: string;
+  bairro?: string;
+  complemento?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
   profissao?: string;
+  local_trabalho?: string;
+  observacoes?: string;
   escolaId: string;
   alunos?: Aluno[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ContatoEmergencia {
+  id?: string;
+  nome: string;
+  telefone: string;
+  parentesco: string;
+  ordem?: number;
 }
 
 export interface Turma {
@@ -114,6 +132,7 @@ export interface Aluno {
   sexo?: string;
   responsavelId?: string;
   responsavel_id?: string;
+  parentesco_responsavel?: string;
   turmaId?: string;
   turma_id?: string;
   escolaId?: string;
@@ -124,6 +143,31 @@ export interface Aluno {
   turma_nome?: string;
   notas?: Nota[];
   matriculas?: Matricula[];
+  // Contatos de emergência
+  contatos_emergencia?: ContatoEmergencia[];
+  // Informações de saúde
+  possui_alergia?: boolean;
+  alergia_descricao?: string;
+  restricao_alimentar?: boolean;
+  restricao_alimentar_descricao?: string;
+  uso_medicamento?: boolean;
+  medicamento_descricao?: string;
+  necessidade_especial?: boolean;
+  necessidade_especial_descricao?: string;
+  // Autorizações
+  autoriza_atividades?: boolean;
+  autoriza_emergencia?: boolean;
+  autoriza_imagem?: boolean;
+  // Documentos entregues
+  doc_certidao_nascimento?: boolean;
+  doc_cpf_aluno?: boolean;
+  doc_rg_cpf_responsavel?: boolean;
+  doc_comprovante_residencia?: boolean;
+  doc_cartao_sus?: boolean;
+  doc_carteira_vacinacao?: boolean;
+  // Considerações
+  consideracoes?: string;
+  observacoes?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -2,13 +2,45 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
 import { Table } from '../components/ui/Table';
+import { MaskedInput } from '../components/ui/MaskedInput';
 import { Responsavel } from '../types';
 import { responsavelService } from '../services/responsavelService';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { formatCPF, formatPhone } from '../utils/masks';
+import { formatCPF, formatPhone, removeMask } from '../utils/masks';
+
+const ESTADOS_BRASIL = [
+  { value: 'AC', label: 'Acre' },
+  { value: 'AL', label: 'Alagoas' },
+  { value: 'AP', label: 'Amapá' },
+  { value: 'AM', label: 'Amazonas' },
+  { value: 'BA', label: 'Bahia' },
+  { value: 'CE', label: 'Ceará' },
+  { value: 'DF', label: 'Distrito Federal' },
+  { value: 'ES', label: 'Espírito Santo' },
+  { value: 'GO', label: 'Goiás' },
+  { value: 'MA', label: 'Maranhão' },
+  { value: 'MT', label: 'Mato Grosso' },
+  { value: 'MS', label: 'Mato Grosso do Sul' },
+  { value: 'MG', label: 'Minas Gerais' },
+  { value: 'PA', label: 'Pará' },
+  { value: 'PB', label: 'Paraíba' },
+  { value: 'PR', label: 'Paraná' },
+  { value: 'PE', label: 'Pernambuco' },
+  { value: 'PI', label: 'Piauí' },
+  { value: 'RJ', label: 'Rio de Janeiro' },
+  { value: 'RN', label: 'Rio Grande do Norte' },
+  { value: 'RS', label: 'Rio Grande do Sul' },
+  { value: 'RO', label: 'Rondônia' },
+  { value: 'RR', label: 'Roraima' },
+  { value: 'SC', label: 'Santa Catarina' },
+  { value: 'SP', label: 'São Paulo' },
+  { value: 'SE', label: 'Sergipe' },
+  { value: 'TO', label: 'Tocantins' },
+];
 
 export function Responsaveis() {
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
@@ -20,10 +52,20 @@ export function Responsaveis() {
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
+    rg: '',
+    data_nascimento: '',
     email: '',
     telefone: '',
+    celular: '',
     endereco: '',
+    bairro: '',
+    complemento: '',
+    cidade: '',
+    estado: '',
+    cep: '',
     profissao: '',
+    local_trabalho: '',
+    observacoes: '',
   });
 
   useEffect(() => {
@@ -44,23 +86,44 @@ export function Responsaveis() {
   const handleOpenModal = (responsavel?: Responsavel) => {
     if (responsavel) {
       setEditingResponsavel(responsavel);
+      const r = responsavel as any;
       setFormData({
         nome: responsavel.nome,
         cpf: formatCPF(responsavel.cpf),
-        email: responsavel.email,
+        rg: r.rg || '',
+        data_nascimento: r.data_nascimento ? new Date(r.data_nascimento).toISOString().split('T')[0] : '',
+        email: responsavel.email || '',
         telefone: formatPhone(responsavel.telefone),
-        endereco: responsavel.endereco,
+        celular: formatPhone(r.celular || ''),
+        endereco: responsavel.endereco || '',
+        bairro: r.bairro || '',
+        complemento: r.complemento || '',
+        cidade: r.cidade || '',
+        estado: r.estado || '',
+        cep: r.cep || '',
         profissao: responsavel.profissao || '',
+        local_trabalho: r.local_trabalho || '',
+        observacoes: r.observacoes || '',
       });
     } else {
       setEditingResponsavel(null);
       setFormData({
         nome: '',
         cpf: '',
+        rg: '',
+        data_nascimento: '',
         email: '',
         telefone: '',
+        celular: '',
         endereco: '',
+        bairro: '',
+        complemento: '',
+        cidade: '',
+        estado: '',
+        cep: '',
         profissao: '',
+        local_trabalho: '',
+        observacoes: '',
       });
     }
     setIsModalOpen(true);
@@ -77,8 +140,10 @@ export function Responsaveis() {
 
     const payload = {
       ...formData,
-      cpf: formData.cpf.replace(/\D/g, ''),
-      telefone: formData.telefone.replace(/\D/g, ''),
+      cpf: removeMask(formData.cpf),
+      telefone: removeMask(formData.telefone),
+      celular: removeMask(formData.celular),
+      cep: removeMask(formData.cep),
     };
 
     try {
@@ -185,51 +250,137 @@ export function Responsaveis() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         title={editingResponsavel ? 'Editar Responsável' : 'Novo Responsável'}
-        size="lg"
+        size="xl"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Nome"
-              value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-              required
-            />
-            <Input
-              label="CPF"
-              value={formData.cpf}
-              onChange={(e) => setFormData({ ...formData, cpf: formatCPF(e.target.value) })}
-              placeholder="000.000.000-00"
-              required
-            />
-            <Input
-              label="E-mail"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-            />
-            <Input
-              label="Telefone"
-              value={formData.telefone}
-              onChange={(e) => setFormData({ ...formData, telefone: formatPhone(e.target.value) })}
-              placeholder="(00) 00000-0000"
-              required
-            />
-            <Input
-              label="Profissão"
-              value={formData.profissao}
-              onChange={(e) => setFormData({ ...formData, profissao: e.target.value })}
-            />
-            <div className="md:col-span-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Dados Pessoais */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Dados Pessoais</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <Input
+                  label="Nome Completo"
+                  value={formData.nome}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  required
+                />
+              </div>
               <Input
-                label="Endereço"
-                value={formData.endereco}
-                onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                label="Data de Nascimento"
+                type="date"
+                value={formData.data_nascimento}
+                onChange={(e) => setFormData({ ...formData, data_nascimento: e.target.value })}
+              />
+              <MaskedInput
+                label="CPF"
+                mask="cpf"
+                value={formData.cpf}
+                onChange={(value) => setFormData({ ...formData, cpf: value })}
+                placeholder="000.000.000-00"
                 required
+              />
+              <Input
+                label="RG"
+                value={formData.rg}
+                onChange={(e) => setFormData({ ...formData, rg: e.target.value })}
+              />
+              <Input
+                label="Profissão"
+                value={formData.profissao}
+                onChange={(e) => setFormData({ ...formData, profissao: e.target.value })}
+              />
+              <Input
+                label="Local de Trabalho"
+                value={formData.local_trabalho}
+                onChange={(e) => setFormData({ ...formData, local_trabalho: e.target.value })}
               />
             </div>
           </div>
+
+          {/* Contato */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Contato</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input
+                label="E-mail"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+              <MaskedInput
+                label="Telefone"
+                mask="phone"
+                value={formData.telefone}
+                onChange={(value) => setFormData({ ...formData, telefone: value })}
+                placeholder="(00) 00000-0000"
+                required
+              />
+              <MaskedInput
+                label="Celular"
+                mask="phone"
+                value={formData.celular}
+                onChange={(value) => setFormData({ ...formData, celular: value })}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+          </div>
+
+          {/* Endereço */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Endereço</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <Input
+                  label="Rua"
+                  value={formData.endereco}
+                  onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                  placeholder="Rua, Avenida, etc."
+                />
+              </div>
+              <Input
+                label="Bairro"
+                value={formData.bairro}
+                onChange={(e) => setFormData({ ...formData, bairro: e.target.value })}
+              />
+              <Input
+                label="Complemento"
+                value={formData.complemento}
+                onChange={(e) => setFormData({ ...formData, complemento: e.target.value })}
+                placeholder="Apto, Bloco, etc."
+              />
+              <Input
+                label="Cidade"
+                value={formData.cidade}
+                onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
+              />
+              <Select
+                label="Estado"
+                value={formData.estado}
+                onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
+                options={ESTADOS_BRASIL}
+                placeholder="Selecione"
+              />
+              <MaskedInput
+                label="CEP"
+                mask="cep"
+                value={formData.cep}
+                onChange={(value) => setFormData({ ...formData, cep: value })}
+                placeholder="00000-000"
+              />
+            </div>
+          </div>
+
+          {/* Observações */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+            <textarea
+              value={formData.observacoes}
+              onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+          </div>
+
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="secondary" onClick={handleCloseModal}>
               Cancelar

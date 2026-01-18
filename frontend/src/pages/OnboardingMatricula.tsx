@@ -65,10 +65,19 @@ export function OnboardingMatricula() {
   const [responsavelForm, setResponsavelForm] = useState({
     nome: '',
     cpf: '',
+    rg: '',
+    data_nascimento: '',
     email: '',
     telefone: '',
+    celular: '',
     endereco: '',
+    bairro: '',
+    complemento: '',
+    cidade: '',
+    estado: '',
+    cep: '',
     profissao: '',
+    local_trabalho: '',
   });
   
   const [alunoForm, setAlunoForm] = useState({
@@ -76,6 +85,36 @@ export function OnboardingMatricula() {
     data_nascimento: '',
     cpf: '',
     sexo: 'M',
+    parentesco_responsavel: '',
+    // Contatos de emergência
+    contato1_nome: '',
+    contato1_telefone: '',
+    contato1_parentesco: '',
+    contato2_nome: '',
+    contato2_telefone: '',
+    contato2_parentesco: '',
+    // Saúde
+    possui_alergia: false,
+    alergia_descricao: '',
+    restricao_alimentar: false,
+    restricao_alimentar_descricao: '',
+    uso_medicamento: false,
+    medicamento_descricao: '',
+    necessidade_especial: false,
+    necessidade_especial_descricao: '',
+    // Autorizações
+    autoriza_atividades: true,
+    autoriza_emergencia: true,
+    autoriza_imagem: false,
+    // Documentos
+    doc_certidao_nascimento: false,
+    doc_cpf_aluno: false,
+    doc_rg_cpf_responsavel: false,
+    doc_comprovante_residencia: false,
+    doc_cartao_sus: false,
+    doc_carteira_vacinacao: false,
+    // Considerações
+    consideracoes: '',
   });
   
   const [matriculaForm, setMatriculaForm] = useState({
@@ -136,6 +175,8 @@ export function OnboardingMatricula() {
         ...responsavelForm,
         cpf: removeMask(responsavelForm.cpf),
         telefone: removeMask(responsavelForm.telefone),
+        celular: removeMask(responsavelForm.celular),
+        cep: removeMask(responsavelForm.cep),
       };
       const novoResponsavel = await responsavelService.criar(payload);
       setCreatedResponsavel(novoResponsavel);
@@ -161,14 +202,54 @@ export function OnboardingMatricula() {
 
   const handleCreateAluno = async () => {
     if (!createdResponsavel) return;
+    
+    // Validar contatos de emergência
+    if (!alunoForm.contato1_nome || !alunoForm.contato1_telefone || !alunoForm.contato1_parentesco) {
+      toast.error('O primeiro contato de emergência é obrigatório');
+      return;
+    }
+    if (!alunoForm.contato2_nome || !alunoForm.contato2_telefone || !alunoForm.contato2_parentesco) {
+      toast.error('O segundo contato de emergência é obrigatório');
+      return;
+    }
+    
     setIsSaving(true);
     try {
+      const contatos_emergencia = [
+        { nome: alunoForm.contato1_nome, telefone: removeMask(alunoForm.contato1_telefone), parentesco: alunoForm.contato1_parentesco },
+        { nome: alunoForm.contato2_nome, telefone: removeMask(alunoForm.contato2_telefone), parentesco: alunoForm.contato2_parentesco },
+      ];
+
       const payload = {
         nome: alunoForm.nome,
         data_nascimento: alunoForm.data_nascimento,
         cpf: removeMask(alunoForm.cpf) || undefined,
         sexo: alunoForm.sexo,
         responsavel_id: createdResponsavel.id,
+        parentesco_responsavel: alunoForm.parentesco_responsavel,
+        contatos_emergencia,
+        // Saúde
+        possui_alergia: alunoForm.possui_alergia,
+        alergia_descricao: alunoForm.possui_alergia ? alunoForm.alergia_descricao : undefined,
+        restricao_alimentar: alunoForm.restricao_alimentar,
+        restricao_alimentar_descricao: alunoForm.restricao_alimentar ? alunoForm.restricao_alimentar_descricao : undefined,
+        uso_medicamento: alunoForm.uso_medicamento,
+        medicamento_descricao: alunoForm.uso_medicamento ? alunoForm.medicamento_descricao : undefined,
+        necessidade_especial: alunoForm.necessidade_especial,
+        necessidade_especial_descricao: alunoForm.necessidade_especial ? alunoForm.necessidade_especial_descricao : undefined,
+        // Autorizações
+        autoriza_atividades: alunoForm.autoriza_atividades,
+        autoriza_emergencia: alunoForm.autoriza_emergencia,
+        autoriza_imagem: alunoForm.autoriza_imagem,
+        // Documentos
+        doc_certidao_nascimento: alunoForm.doc_certidao_nascimento,
+        doc_cpf_aluno: alunoForm.doc_cpf_aluno,
+        doc_rg_cpf_responsavel: alunoForm.doc_rg_cpf_responsavel,
+        doc_comprovante_residencia: alunoForm.doc_comprovante_residencia,
+        doc_cartao_sus: alunoForm.doc_cartao_sus,
+        doc_carteira_vacinacao: alunoForm.doc_carteira_vacinacao,
+        // Considerações
+        consideracoes: alunoForm.consideracoes,
       };
       const novoAluno = await alunoService.criar(payload);
       setCreatedAluno(novoAluno);
@@ -344,16 +425,50 @@ export function OnboardingMatricula() {
     setResponsavelForm({
       nome: '',
       cpf: '',
+      rg: '',
+      data_nascimento: '',
       email: '',
       telefone: '',
+      celular: '',
       endereco: '',
+      bairro: '',
+      complemento: '',
+      cidade: '',
+      estado: '',
+      cep: '',
       profissao: '',
+      local_trabalho: '',
     });
     setAlunoForm({
       nome: '',
       data_nascimento: '',
       cpf: '',
       sexo: 'M',
+      parentesco_responsavel: '',
+      contato1_nome: '',
+      contato1_telefone: '',
+      contato1_parentesco: '',
+      contato2_nome: '',
+      contato2_telefone: '',
+      contato2_parentesco: '',
+      possui_alergia: false,
+      alergia_descricao: '',
+      restricao_alimentar: false,
+      restricao_alimentar_descricao: '',
+      uso_medicamento: false,
+      medicamento_descricao: '',
+      necessidade_especial: false,
+      necessidade_especial_descricao: '',
+      autoriza_atividades: true,
+      autoriza_emergencia: true,
+      autoriza_imagem: false,
+      doc_certidao_nascimento: false,
+      doc_cpf_aluno: false,
+      doc_rg_cpf_responsavel: false,
+      doc_comprovante_residencia: false,
+      doc_cartao_sus: false,
+      doc_carteira_vacinacao: false,
+      consideracoes: '',
     });
     setMatriculaForm({
       plano_id: '',
@@ -445,47 +560,126 @@ export function OnboardingMatricula() {
           </div>
         </div>
       ) : (
-        <form onSubmit={(e) => { e.preventDefault(); handleCreateResponsavel(); }} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Nome Completo"
-              value={responsavelForm.nome}
-              onChange={(e) => setResponsavelForm({ ...responsavelForm, nome: e.target.value })}
-              required
-            />
-            <MaskedInput
-              label="CPF"
-              mask="cpf"
-              value={responsavelForm.cpf}
-              onChange={(value) => setResponsavelForm({ ...responsavelForm, cpf: value })}
-              required
-            />
-            <Input
-              label="E-mail"
-              type="email"
-              value={responsavelForm.email}
-              onChange={(e) => setResponsavelForm({ ...responsavelForm, email: e.target.value })}
-              required
-            />
-            <MaskedInput
-              label="Telefone"
-              mask="phone"
-              value={responsavelForm.telefone}
-              onChange={(value) => setResponsavelForm({ ...responsavelForm, telefone: value })}
-              required
-            />
-            <Input
-              label="Endereço"
-              value={responsavelForm.endereco}
-              onChange={(e) => setResponsavelForm({ ...responsavelForm, endereco: e.target.value })}
-              required
-            />
-            <Input
-              label="Profissão"
-              value={responsavelForm.profissao}
-              onChange={(e) => setResponsavelForm({ ...responsavelForm, profissao: e.target.value })}
-            />
+        <form onSubmit={(e) => { e.preventDefault(); handleCreateResponsavel(); }} className="space-y-6">
+          {/* Dados Pessoais */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Dados Pessoais</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <Input
+                  label="Nome Completo"
+                  value={responsavelForm.nome}
+                  onChange={(e) => setResponsavelForm({ ...responsavelForm, nome: e.target.value })}
+                  required
+                />
+              </div>
+              <Input
+                label="Data de Nascimento"
+                type="date"
+                value={responsavelForm.data_nascimento}
+                onChange={(e) => setResponsavelForm({ ...responsavelForm, data_nascimento: e.target.value })}
+              />
+              <MaskedInput
+                label="CPF"
+                mask="cpf"
+                value={responsavelForm.cpf}
+                onChange={(value) => setResponsavelForm({ ...responsavelForm, cpf: value })}
+                required
+              />
+              <Input
+                label="RG"
+                value={responsavelForm.rg}
+                onChange={(e) => setResponsavelForm({ ...responsavelForm, rg: e.target.value })}
+              />
+              <Input
+                label="Profissão"
+                value={responsavelForm.profissao}
+                onChange={(e) => setResponsavelForm({ ...responsavelForm, profissao: e.target.value })}
+              />
+            </div>
           </div>
+          
+          {/* Contato */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Contato</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input
+                label="E-mail"
+                type="email"
+                value={responsavelForm.email}
+                onChange={(e) => setResponsavelForm({ ...responsavelForm, email: e.target.value })}
+              />
+              <MaskedInput
+                label="Telefone"
+                mask="phone"
+                value={responsavelForm.telefone}
+                onChange={(value) => setResponsavelForm({ ...responsavelForm, telefone: value })}
+                required
+              />
+              <MaskedInput
+                label="Celular"
+                mask="phone"
+                value={responsavelForm.celular}
+                onChange={(value) => setResponsavelForm({ ...responsavelForm, celular: value })}
+              />
+            </div>
+          </div>
+          
+          {/* Endereço */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Endereço</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <Input
+                  label="Rua"
+                  value={responsavelForm.endereco}
+                  onChange={(e) => setResponsavelForm({ ...responsavelForm, endereco: e.target.value })}
+                  placeholder="Rua, Avenida, etc."
+                />
+              </div>
+              <Input
+                label="Bairro"
+                value={responsavelForm.bairro}
+                onChange={(e) => setResponsavelForm({ ...responsavelForm, bairro: e.target.value })}
+              />
+              <Input
+                label="Complemento"
+                value={responsavelForm.complemento}
+                onChange={(e) => setResponsavelForm({ ...responsavelForm, complemento: e.target.value })}
+                placeholder="Apto, Bloco, etc."
+              />
+              <Input
+                label="Cidade"
+                value={responsavelForm.cidade}
+                onChange={(e) => setResponsavelForm({ ...responsavelForm, cidade: e.target.value })}
+              />
+              <Select
+                label="Estado"
+                value={responsavelForm.estado}
+                onChange={(e) => setResponsavelForm({ ...responsavelForm, estado: e.target.value })}
+                options={[
+                  { value: 'AC', label: 'AC' }, { value: 'AL', label: 'AL' }, { value: 'AP', label: 'AP' },
+                  { value: 'AM', label: 'AM' }, { value: 'BA', label: 'BA' }, { value: 'CE', label: 'CE' },
+                  { value: 'DF', label: 'DF' }, { value: 'ES', label: 'ES' }, { value: 'GO', label: 'GO' },
+                  { value: 'MA', label: 'MA' }, { value: 'MT', label: 'MT' }, { value: 'MS', label: 'MS' },
+                  { value: 'MG', label: 'MG' }, { value: 'PA', label: 'PA' }, { value: 'PB', label: 'PB' },
+                  { value: 'PR', label: 'PR' }, { value: 'PE', label: 'PE' }, { value: 'PI', label: 'PI' },
+                  { value: 'RJ', label: 'RJ' }, { value: 'RN', label: 'RN' }, { value: 'RS', label: 'RS' },
+                  { value: 'RO', label: 'RO' }, { value: 'RR', label: 'RR' }, { value: 'SC', label: 'SC' },
+                  { value: 'SP', label: 'SP' }, { value: 'SE', label: 'SE' }, { value: 'TO', label: 'TO' },
+                ]}
+                placeholder="UF"
+              />
+              <MaskedInput
+                label="CEP"
+                mask="cep"
+                value={responsavelForm.cep}
+                onChange={(value) => setResponsavelForm({ ...responsavelForm, cep: value })}
+                placeholder="00000-000"
+              />
+            </div>
+          </div>
+          
           <div className="flex justify-end">
             <Button type="submit" isLoading={isSaving}>
               Cadastrar e Continuar
@@ -497,59 +691,349 @@ export function OnboardingMatricula() {
     </div>
   );
 
-  const renderStepAluno = () => (
-    <div className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-blue-800 text-sm">
-          <strong>Etapa 2:</strong> Cadastre os dados do aluno. O aluno será vinculado ao responsável: <strong>{createdResponsavel?.nome}</strong>
-        </p>
-      </div>
+  const renderStepAluno = () => {
+    const PARENTESCO_OPTIONS = [
+      { value: 'PAI', label: 'Pai' },
+      { value: 'MAE', label: 'Mãe' },
+      { value: 'AVO', label: 'Avó' },
+      { value: 'AVO_M', label: 'Avô' },
+      { value: 'TIO', label: 'Tio' },
+      { value: 'TIA', label: 'Tia' },
+      { value: 'AMIGO', label: 'Amigo(a)' },
+      { value: 'VIZINHO', label: 'Vizinho(a)' },
+      { value: 'IRMAO', label: 'Irmão/Irmã' },
+      { value: 'PRIMO', label: 'Primo(a)' },
+      { value: 'CUNHADO', label: 'Cunhado(a)' },
+      { value: 'OUTRO', label: 'Outro' },
+    ];
 
-      <form onSubmit={(e) => { e.preventDefault(); handleCreateAluno(); }} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="Nome Completo do Aluno"
-            value={alunoForm.nome}
-            onChange={(e) => setAlunoForm({ ...alunoForm, nome: e.target.value })}
-            required
-          />
-          <Input
-            label="Data de Nascimento"
-            type="date"
-            value={alunoForm.data_nascimento}
-            onChange={(e) => setAlunoForm({ ...alunoForm, data_nascimento: e.target.value })}
-            required
-          />
-          <MaskedInput
-            label="CPF (opcional)"
-            mask="cpf"
-            value={alunoForm.cpf}
-            onChange={(value) => setAlunoForm({ ...alunoForm, cpf: value })}
-          />
-          <Select
-            label="Sexo"
-            value={alunoForm.sexo}
-            onChange={(e) => setAlunoForm({ ...alunoForm, sexo: e.target.value })}
-            options={[
-              { value: 'M', label: 'Masculino' },
-              { value: 'F', label: 'Feminino' },
-              { value: 'O', label: 'Outro' },
-            ]}
-          />
+    return (
+      <div className="space-y-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-800 text-sm">
+            <strong>Etapa 2:</strong> Cadastre os dados do aluno. O aluno será vinculado ao responsável: <strong>{createdResponsavel?.nome}</strong>
+          </p>
         </div>
-        <div className="flex justify-between">
-          <Button type="button" variant="secondary" onClick={() => setCurrentStep(1)}>
-            <ChevronLeft size={18} />
-            Voltar
-          </Button>
-          <Button type="submit" isLoading={isSaving}>
-            Cadastrar e Continuar
-            <ChevronRight size={18} />
-          </Button>
-        </div>
-      </form>
-    </div>
-  );
+
+        <form onSubmit={(e) => { e.preventDefault(); handleCreateAluno(); }} className="space-y-6">
+          {/* Dados do Aluno */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Dados do Aluno</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <Input
+                  label="Nome Completo do Aluno"
+                  value={alunoForm.nome}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, nome: e.target.value })}
+                  required
+                />
+              </div>
+              <Input
+                label="Data de Nascimento"
+                type="date"
+                value={alunoForm.data_nascimento}
+                onChange={(e) => setAlunoForm({ ...alunoForm, data_nascimento: e.target.value })}
+                required
+              />
+              <MaskedInput
+                label="CPF (opcional)"
+                mask="cpf"
+                value={alunoForm.cpf}
+                onChange={(value) => setAlunoForm({ ...alunoForm, cpf: value })}
+              />
+              <Select
+                label="Sexo"
+                value={alunoForm.sexo}
+                onChange={(e) => setAlunoForm({ ...alunoForm, sexo: e.target.value })}
+                options={[
+                  { value: 'M', label: 'Masculino' },
+                  { value: 'F', label: 'Feminino' },
+                  { value: 'O', label: 'Outro' },
+                ]}
+              />
+              <Select
+                label="Parentesco do Responsável"
+                value={alunoForm.parentesco_responsavel}
+                onChange={(e) => setAlunoForm({ ...alunoForm, parentesco_responsavel: e.target.value })}
+                options={PARENTESCO_OPTIONS}
+                placeholder="Selecione o parentesco"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Contatos de Emergência */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Contatos de Emergência (obrigatório 2 contatos)</h3>
+            
+            <div className="p-3 bg-gray-50 rounded-lg mb-3">
+              <p className="text-xs font-semibold text-gray-500 mb-2">Contato 1</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Input
+                  label="Nome"
+                  value={alunoForm.contato1_nome}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, contato1_nome: e.target.value })}
+                  required
+                />
+                <MaskedInput
+                  label="Telefone"
+                  mask="phone"
+                  value={alunoForm.contato1_telefone}
+                  onChange={(value) => setAlunoForm({ ...alunoForm, contato1_telefone: value })}
+                  required
+                />
+                <Select
+                  label="Parentesco"
+                  value={alunoForm.contato1_parentesco}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, contato1_parentesco: e.target.value })}
+                  options={PARENTESCO_OPTIONS}
+                  placeholder="Selecione"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs font-semibold text-gray-500 mb-2">Contato 2</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Input
+                  label="Nome"
+                  value={alunoForm.contato2_nome}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, contato2_nome: e.target.value })}
+                  required
+                />
+                <MaskedInput
+                  label="Telefone"
+                  mask="phone"
+                  value={alunoForm.contato2_telefone}
+                  onChange={(value) => setAlunoForm({ ...alunoForm, contato2_telefone: value })}
+                  required
+                />
+                <Select
+                  label="Parentesco"
+                  value={alunoForm.contato2_parentesco}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, contato2_parentesco: e.target.value })}
+                  options={PARENTESCO_OPTIONS}
+                  placeholder="Selecione"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Informações de Saúde */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Informações de Saúde</h3>
+            <div className="space-y-3">
+              <div className="p-3 border rounded-lg">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={alunoForm.possui_alergia}
+                    onChange={(e) => setAlunoForm({ ...alunoForm, possui_alergia: e.target.checked })}
+                    className="w-4 h-4 text-primary-600 rounded"
+                  />
+                  <span className="font-medium text-sm">Possui alergias?</span>
+                </label>
+                {alunoForm.possui_alergia && (
+                  <div className="mt-2">
+                    <Input
+                      value={alunoForm.alergia_descricao}
+                      onChange={(e) => setAlunoForm({ ...alunoForm, alergia_descricao: e.target.value })}
+                      placeholder="Descreva as alergias..."
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="p-3 border rounded-lg">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={alunoForm.restricao_alimentar}
+                    onChange={(e) => setAlunoForm({ ...alunoForm, restricao_alimentar: e.target.checked })}
+                    className="w-4 h-4 text-primary-600 rounded"
+                  />
+                  <span className="font-medium text-sm">Possui restrição alimentar?</span>
+                </label>
+                {alunoForm.restricao_alimentar && (
+                  <div className="mt-2">
+                    <Input
+                      value={alunoForm.restricao_alimentar_descricao}
+                      onChange={(e) => setAlunoForm({ ...alunoForm, restricao_alimentar_descricao: e.target.value })}
+                      placeholder="Descreva as restrições alimentares..."
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="p-3 border rounded-lg">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={alunoForm.uso_medicamento}
+                    onChange={(e) => setAlunoForm({ ...alunoForm, uso_medicamento: e.target.checked })}
+                    className="w-4 h-4 text-primary-600 rounded"
+                  />
+                  <span className="font-medium text-sm">Faz uso contínuo de medicamento?</span>
+                </label>
+                {alunoForm.uso_medicamento && (
+                  <div className="mt-2">
+                    <Input
+                      value={alunoForm.medicamento_descricao}
+                      onChange={(e) => setAlunoForm({ ...alunoForm, medicamento_descricao: e.target.value })}
+                      placeholder="Descreva os medicamentos..."
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="p-3 border rounded-lg">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={alunoForm.necessidade_especial}
+                    onChange={(e) => setAlunoForm({ ...alunoForm, necessidade_especial: e.target.checked })}
+                    className="w-4 h-4 text-primary-600 rounded"
+                  />
+                  <span className="font-medium text-sm">Possui necessidades especiais ou laudo médico?</span>
+                </label>
+                {alunoForm.necessidade_especial && (
+                  <div className="mt-2">
+                    <Input
+                      value={alunoForm.necessidade_especial_descricao}
+                      onChange={(e) => setAlunoForm({ ...alunoForm, necessidade_especial_descricao: e.target.value })}
+                      placeholder="Descreva as necessidades especiais ou laudos..."
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Autorizações */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Autorizações</h3>
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={alunoForm.autoriza_atividades}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, autoriza_atividades: e.target.checked })}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <span className="text-sm">Autorizo a participação em atividades escolares (passeios, eventos, etc.)</span>
+              </label>
+              
+              <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={alunoForm.autoriza_emergencia}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, autoriza_emergencia: e.target.checked })}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <span className="text-sm">Autorizo atendimento emergencial</span>
+              </label>
+              
+              <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={alunoForm.autoriza_imagem}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, autoriza_imagem: e.target.checked })}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <span className="text-sm">Autorizo uso de imagem para fins pedagógicos</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Documentos Entregues */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Documentos Entregues</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <label className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={alunoForm.doc_certidao_nascimento}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, doc_certidao_nascimento: e.target.checked })}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <span>Certidão de Nascimento</span>
+              </label>
+              <label className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={alunoForm.doc_cpf_aluno}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, doc_cpf_aluno: e.target.checked })}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <span>CPF da Criança</span>
+              </label>
+              <label className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={alunoForm.doc_rg_cpf_responsavel}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, doc_rg_cpf_responsavel: e.target.checked })}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <span>RG/CPF Responsável</span>
+              </label>
+              <label className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={alunoForm.doc_comprovante_residencia}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, doc_comprovante_residencia: e.target.checked })}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <span>Comprovante Residência</span>
+              </label>
+              <label className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={alunoForm.doc_cartao_sus}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, doc_cartao_sus: e.target.checked })}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <span>Cartão SUS</span>
+              </label>
+              <label className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={alunoForm.doc_carteira_vacinacao}
+                  onChange={(e) => setAlunoForm({ ...alunoForm, doc_carteira_vacinacao: e.target.checked })}
+                  className="w-4 h-4 text-primary-600 rounded"
+                />
+                <span>Carteira Vacinação</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Considerações */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Considerações Adicionais</h3>
+            <textarea
+              value={alunoForm.consideracoes}
+              onChange={(e) => setAlunoForm({ ...alunoForm, consideracoes: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="Informações adicionais que o responsável deseja acrescentar..."
+            />
+          </div>
+
+          <div className="flex justify-between pt-4">
+            <Button type="button" variant="secondary" onClick={() => setCurrentStep(1)}>
+              <ChevronLeft size={18} />
+              Voltar
+            </Button>
+            <Button type="submit" isLoading={isSaving}>
+              Cadastrar e Continuar
+              <ChevronRight size={18} />
+            </Button>
+          </div>
+        </form>
+      </div>
+    );
+  };
 
   const renderStepMatricula = () => (
     <div className="space-y-6">

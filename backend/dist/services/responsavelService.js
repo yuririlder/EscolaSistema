@@ -16,8 +16,8 @@ class ResponsavelService {
             throw new Error('CPF já cadastrado');
         }
         const id = (0, uuid_1.v4)();
-        await (0, connection_1.query)(`INSERT INTO responsaveis (id, nome, cpf, rg, data_nascimento, telefone, celular, email, endereco, cidade, estado, cep, profissao, local_trabalho, observacoes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`, [id, data.nome, data.cpf, data.rg, data.data_nascimento, data.telefone, data.celular, data.email, data.endereco, data.cidade, data.estado, data.cep, data.profissao, data.local_trabalho, data.observacoes]);
+        await (0, connection_1.query)(`INSERT INTO responsaveis (id, nome, cpf, rg, data_nascimento, telefone, celular, email, endereco, bairro, complemento, cidade, estado, cep, profissao, local_trabalho, observacoes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`, [id, data.nome, data.cpf, data.rg, data.data_nascimento, data.telefone, data.celular, data.email, data.endereco, data.bairro, data.complemento, data.cidade, data.estado, data.cep, data.profissao, data.local_trabalho, data.observacoes]);
         logger_1.logger.info(`Responsável criado: ${data.nome}`);
         return this.buscarPorId(id);
     }
@@ -54,7 +54,7 @@ class ResponsavelService {
         const fields = [];
         const values = [];
         let paramIndex = 1;
-        const campos = ['nome', 'cpf', 'rg', 'data_nascimento', 'telefone', 'celular', 'email', 'endereco', 'cidade', 'estado', 'cep', 'profissao', 'local_trabalho', 'observacoes'];
+        const campos = ['nome', 'cpf', 'rg', 'data_nascimento', 'telefone', 'celular', 'email', 'endereco', 'bairro', 'complemento', 'cidade', 'estado', 'cep', 'profissao', 'local_trabalho', 'observacoes'];
         for (const campo of campos) {
             if (data[campo] !== undefined) {
                 fields.push(`${campo} = $${paramIndex++}`);
