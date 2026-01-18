@@ -13,6 +13,7 @@ import { alunoService } from '../services/alunoService';
 import { turmaService } from '../services/turmaService';
 import { financeiroService } from '../services/financeiroService';
 import { historicoEscolarService } from '../services/historicoEscolarService';
+import { escolaService } from '../services/escolaService';
 import { removeMask, formatCPF, formatPhone, formatCurrencyInput, currencyToNumber } from '../utils/masks';
 import { gerarFichaCompletaAlunoPDF, gerarTermoMatriculaPDF } from '../utils/pdfGenerator';
 import {
@@ -49,6 +50,7 @@ export function OnboardingMatricula() {
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [planos, setPlanos] = useState<PlanoMensalidade[]>([]);
+  const [escola, setEscola] = useState<{ nome?: string; cnpj?: string; endereco?: string; telefone?: string; email?: string; } | null>(null);
   
   // Estados de seleção/criação
   const [useExistingResponsavel, setUseExistingResponsavel] = useState(false);
@@ -141,14 +143,18 @@ export function OnboardingMatricula() {
 
   const loadData = async () => {
     try {
-      const [responsaveisData, turmasData, planosData] = await Promise.all([
+      const [responsaveisData, turmasData, planosData, escolaData] = await Promise.all([
         responsavelService.listar(),
         turmaService.listar(),
         financeiroService.listarPlanos(),
+        escolaService.obter().catch(() => null),
       ]);
       setResponsaveis(responsaveisData);
       setTurmas(turmasData);
       setPlanos(planosData.filter(p => p.ativo));
+      if (escolaData) {
+        setEscola(escolaData);
+      }
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -346,7 +352,7 @@ export function OnboardingMatricula() {
       desconto: parseInt(matriculaForm.desconto, 10) || 0,
       dataMatricula: createdMatricula.data_matricula || createdMatricula.dataMatricula || new Date().toISOString(),
       turmaNome: turmaSelecionada ? `${turmaSelecionada.nome} - ${turmaSelecionada.serie || ''} (${turmaSelecionada.turno})` : undefined,
-    });
+    }, escola || undefined);
   };
 
   const handleImprimirFichaCompleta = () => {
@@ -358,6 +364,23 @@ export function OnboardingMatricula() {
     const turmaSelecionada = turmas.find(t => t.id === turmaForm.turma_id);
     const planoSelecionado = planos.find(p => p.id === matriculaForm.plano_id);
 
+    // Montar contatos de emergência
+    const contatosEmergencia = [];
+    if (alunoForm.contato1_nome && alunoForm.contato1_telefone) {
+      contatosEmergencia.push({
+        nome: alunoForm.contato1_nome,
+        telefone: alunoForm.contato1_telefone,
+        parentesco: alunoForm.contato1_parentesco,
+      });
+    }
+    if (alunoForm.contato2_nome && alunoForm.contato2_telefone) {
+      contatosEmergencia.push({
+        nome: alunoForm.contato2_nome,
+        telefone: alunoForm.contato2_telefone,
+        parentesco: alunoForm.contato2_parentesco,
+      });
+    }
+
     gerarFichaCompletaAlunoPDF({
       aluno: {
         nome: createdAluno.nome,
@@ -365,15 +388,50 @@ export function OnboardingMatricula() {
         cpf: alunoForm.cpf,
         sexo: alunoForm.sexo,
         matricula_numero: (createdAluno as any).matricula_numero || (createdAluno as any).matriculaNumero,
+        parentesco_responsavel: alunoForm.parentesco_responsavel,
       },
       responsavel: {
         nome: createdResponsavel.nome,
         cpf: responsavelForm.cpf || formatCPF(createdResponsavel.cpf),
+        rg: responsavelForm.rg || createdResponsavel.rg,
+        data_nascimento: responsavelForm.data_nascimento || createdResponsavel.data_nascimento,
         email: createdResponsavel.email,
         telefone: responsavelForm.telefone || formatPhone(createdResponsavel.telefone),
-        endereco: createdResponsavel.endereco,
+        celular: responsavelForm.celular || createdResponsavel.celular,
+        endereco: responsavelForm.endereco || createdResponsavel.endereco,
+        bairro: responsavelForm.bairro || (createdResponsavel as any).bairro,
+        complemento: responsavelForm.complemento || (createdResponsavel as any).complemento,
+        cidade: responsavelForm.cidade || createdResponsavel.cidade,
+        estado: responsavelForm.estado || createdResponsavel.estado,
+        cep: responsavelForm.cep || createdResponsavel.cep,
         profissao: createdResponsavel.profissao,
+        local_trabalho: createdResponsavel.local_trabalho,
       },
+      contatosEmergencia: contatosEmergencia.length > 0 ? contatosEmergencia : undefined,
+      saude: {
+        possui_alergia: alunoForm.possui_alergia,
+        alergia_descricao: alunoForm.alergia_descricao,
+        restricao_alimentar: alunoForm.restricao_alimentar,
+        restricao_alimentar_descricao: alunoForm.restricao_alimentar_descricao,
+        uso_medicamento: alunoForm.uso_medicamento,
+        medicamento_descricao: alunoForm.medicamento_descricao,
+        necessidade_especial: alunoForm.necessidade_especial,
+        necessidade_especial_descricao: alunoForm.necessidade_especial_descricao,
+      },
+      autorizacoes: {
+        autoriza_atividades: alunoForm.autoriza_atividades,
+        autoriza_emergencia: alunoForm.autoriza_emergencia,
+        autoriza_imagem: alunoForm.autoriza_imagem,
+      },
+      documentos: {
+        doc_certidao_nascimento: alunoForm.doc_certidao_nascimento,
+        doc_cpf_aluno: alunoForm.doc_cpf_aluno,
+        doc_rg_cpf_responsavel: alunoForm.doc_rg_cpf_responsavel,
+        doc_comprovante_residencia: alunoForm.doc_comprovante_residencia,
+        doc_cartao_sus: alunoForm.doc_cartao_sus,
+        doc_carteira_vacinacao: alunoForm.doc_carteira_vacinacao,
+      },
+      consideracoes: alunoForm.consideracoes,
       matricula: createdMatricula ? {
         ano_letivo: matriculaForm.ano_letivo,
         data_matricula: createdMatricula.data_matricula || createdMatricula.dataMatricula || new Date().toISOString(),
@@ -392,7 +450,7 @@ export function OnboardingMatricula() {
         nome: planoSelecionado.nome,
         valor: planoSelecionado.valor,
       } : undefined,
-    });
+    }, escola || undefined);
   };
 
   const handleFinalizar = () => {
@@ -1247,6 +1305,7 @@ export function OnboardingMatricula() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              {/* Dados do Aluno */}
               <Card>
                 <CardHeader>
                   <h4 className="font-semibold text-gray-700">Dados do Aluno</h4>
@@ -1255,10 +1314,15 @@ export function OnboardingMatricula() {
                   <p><span className="text-gray-500">Nome:</span> {createdAluno?.nome}</p>
                   <p><span className="text-gray-500">Data Nasc.:</span> {new Date(alunoForm.data_nascimento).toLocaleDateString('pt-BR')}</p>
                   {alunoForm.cpf && <p><span className="text-gray-500">CPF:</span> {alunoForm.cpf}</p>}
+                  <p><span className="text-gray-500">Sexo:</span> {alunoForm.sexo === 'M' ? 'Masculino' : 'Feminino'}</p>
                   <p><span className="text-gray-500">Matrícula:</span> {(createdAluno as any)?.matricula_numero || (createdAluno as any)?.matriculaNumero || '-'}</p>
+                  {alunoForm.parentesco_responsavel && (
+                    <p><span className="text-gray-500">Parentesco:</span> {alunoForm.parentesco_responsavel}</p>
+                  )}
                 </CardContent>
               </Card>
 
+              {/* Dados do Responsável */}
               <Card>
                 <CardHeader>
                   <h4 className="font-semibold text-gray-700">Dados do Responsável</h4>
@@ -1267,9 +1331,113 @@ export function OnboardingMatricula() {
                   <p><span className="text-gray-500">Nome:</span> {createdResponsavel?.nome}</p>
                   <p><span className="text-gray-500">CPF:</span> {responsavelForm.cpf || formatCPF(createdResponsavel?.cpf || '')}</p>
                   <p><span className="text-gray-500">Telefone:</span> {responsavelForm.telefone || createdResponsavel?.telefone}</p>
+                  {responsavelForm.celular && <p><span className="text-gray-500">Celular:</span> {responsavelForm.celular}</p>}
+                  {responsavelForm.email && <p><span className="text-gray-500">E-mail:</span> {responsavelForm.email}</p>}
+                  {responsavelForm.endereco && (
+                    <p><span className="text-gray-500">Endereço:</span> {responsavelForm.endereco}
+                      {responsavelForm.bairro && `, ${responsavelForm.bairro}`}
+                      {responsavelForm.cidade && `, ${responsavelForm.cidade}`}
+                      {responsavelForm.estado && `/${responsavelForm.estado}`}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
+              {/* Contatos de Emergência */}
+              <Card>
+                <CardHeader>
+                  <h4 className="font-semibold text-gray-700">Contatos de Emergência</h4>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {alunoForm.contato1_nome && (
+                    <p><span className="text-gray-500">1º Contato:</span> {alunoForm.contato1_nome} - {alunoForm.contato1_telefone} ({alunoForm.contato1_parentesco})</p>
+                  )}
+                  {alunoForm.contato2_nome && (
+                    <p><span className="text-gray-500">2º Contato:</span> {alunoForm.contato2_nome} - {alunoForm.contato2_telefone} ({alunoForm.contato2_parentesco})</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Informações de Saúde */}
+              <Card>
+                <CardHeader>
+                  <h4 className="font-semibold text-gray-700">Informações de Saúde</h4>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <p>
+                    <span className="text-gray-500">Alergias:</span>{' '}
+                    {alunoForm.possui_alergia ? alunoForm.alergia_descricao || 'Sim' : 'Não possui'}
+                  </p>
+                  <p>
+                    <span className="text-gray-500">Restrições Alimentares:</span>{' '}
+                    {alunoForm.restricao_alimentar ? alunoForm.restricao_alimentar_descricao || 'Sim' : 'Não possui'}
+                  </p>
+                  <p>
+                    <span className="text-gray-500">Uso de Medicamentos:</span>{' '}
+                    {alunoForm.uso_medicamento ? alunoForm.medicamento_descricao || 'Sim' : 'Não utiliza'}
+                  </p>
+                  <p>
+                    <span className="text-gray-500">Necessidades Especiais:</span>{' '}
+                    {alunoForm.necessidade_especial ? alunoForm.necessidade_especial_descricao || 'Sim' : 'Não possui'}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Autorizações */}
+              <Card>
+                <CardHeader>
+                  <h4 className="font-semibold text-gray-700">Autorizações</h4>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <p className="flex items-center gap-2">
+                    <span className={`w-4 h-4 rounded ${alunoForm.autoriza_atividades ? 'bg-green-500' : 'bg-red-400'}`}></span>
+                    <span className="text-gray-500">Atividades Externas:</span> {alunoForm.autoriza_atividades ? 'Autorizado' : 'Não autorizado'}
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className={`w-4 h-4 rounded ${alunoForm.autoriza_emergencia ? 'bg-green-500' : 'bg-red-400'}`}></span>
+                    <span className="text-gray-500">Atendimento de Emergência:</span> {alunoForm.autoriza_emergencia ? 'Autorizado' : 'Não autorizado'}
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className={`w-4 h-4 rounded ${alunoForm.autoriza_imagem ? 'bg-green-500' : 'bg-red-400'}`}></span>
+                    <span className="text-gray-500">Uso de Imagem:</span> {alunoForm.autoriza_imagem ? 'Autorizado' : 'Não autorizado'}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Documentos Entregues */}
+              <Card>
+                <CardHeader>
+                  <h4 className="font-semibold text-gray-700">Documentos Entregues</h4>
+                </CardHeader>
+                <CardContent className="space-y-1 text-sm">
+                  <p className="flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${alunoForm.doc_certidao_nascimento ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                    Certidão de Nascimento
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${alunoForm.doc_cpf_aluno ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                    CPF do Aluno
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${alunoForm.doc_rg_cpf_responsavel ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                    RG/CPF do Responsável
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${alunoForm.doc_comprovante_residencia ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                    Comprovante de Residência
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${alunoForm.doc_cartao_sus ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                    Cartão SUS
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${alunoForm.doc_carteira_vacinacao ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                    Carteira de Vacinação
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Dados da Matrícula */}
               <Card>
                 <CardHeader>
                   <h4 className="font-semibold text-gray-700">Dados da Matrícula</h4>
@@ -1278,6 +1446,9 @@ export function OnboardingMatricula() {
                   <p><span className="text-gray-500">Ano Letivo:</span> {matriculaForm.ano_letivo}</p>
                   <p><span className="text-gray-500">Plano:</span> {planos.find(p => p.id === matriculaForm.plano_id)?.nome || '-'}</p>
                   <p><span className="text-gray-500">Valor Matrícula:</span> {formatCurrency(currencyToNumber(matriculaForm.valor_matricula))}</p>
+                  {parseInt(matriculaForm.desconto) > 0 && (
+                    <p><span className="text-gray-500">Desconto:</span> {matriculaForm.desconto}%</p>
+                  )}
                   <p>
                     <span className="text-gray-500">Status Pagamento:</span>{' '}
                     <Badge variant={matriculaPaga ? 'success' : 'warning'}>
@@ -1287,6 +1458,7 @@ export function OnboardingMatricula() {
                 </CardContent>
               </Card>
 
+              {/* Dados da Turma */}
               <Card>
                 <CardHeader>
                   <h4 className="font-semibold text-gray-700">Dados da Turma</h4>
@@ -1306,6 +1478,20 @@ export function OnboardingMatricula() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Considerações Adicionais */}
+            {alunoForm.consideracoes && (
+              <div className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <h4 className="font-semibold text-gray-700">Considerações Adicionais</h4>
+                  </CardHeader>
+                  <CardContent className="text-sm">
+                    <p className="text-gray-600">{alunoForm.consideracoes}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
 
           {/* Botões de ação */}

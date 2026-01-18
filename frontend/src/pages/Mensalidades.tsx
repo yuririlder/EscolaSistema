@@ -6,6 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { Badge } from '../components/ui/Badge';
 import { Mensalidade, StatusMensalidade } from '../types';
 import { financeiroService } from '../services/financeiroService';
+import { escolaService } from '../services/escolaService';
 import { Search, DollarSign, Printer, ChevronDown, ChevronRight, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { gerarReciboMensalidadePDF } from '../utils/pdfGenerator';
@@ -13,9 +14,18 @@ import { gerarReciboMensalidadePDF } from '../utils/pdfGenerator';
 interface AlunoMensalidades {
   alunoId: string;
   alunoNome: string;
+  responsavelNome?: string;
   mensalidades: Mensalidade[];
   totalPendente: number;
   totalPago: number;
+}
+
+interface DadosEscola {
+  nome?: string;
+  cnpj?: string;
+  endereco?: string;
+  telefone?: string;
+  email?: string;
 }
 
 export function Mensalidades() {
@@ -27,10 +37,21 @@ export function Mensalidades() {
   const [selectedMensalidade, setSelectedMensalidade] = useState<Mensalidade | null>(null);
   const [formaPagamento, setFormaPagamento] = useState('PIX');
   const [isPaying, setIsPaying] = useState(false);
+  const [escola, setEscola] = useState<DadosEscola | null>(null);
 
   useEffect(() => {
     loadMensalidades();
+    loadEscola();
   }, []);
+
+  const loadEscola = async () => {
+    try {
+      const data = await escolaService.obter();
+      setEscola(data);
+    } catch (error) {
+      // Silently fail if school data is not available
+    }
+  };
 
   const loadMensalidades = async () => {
     try {
@@ -51,11 +72,13 @@ export function Mensalidades() {
       const mens = m as any;
       const alunoId = mens.aluno_id || mens.alunoId || '';
       const alunoNome = mens.aluno_nome || mens.matricula?.aluno?.nome || 'Sem nome';
+      const responsavelNome = mens.responsavel_nome || mens.matricula?.aluno?.responsavel?.nome;
 
       if (!grupos[alunoId]) {
         grupos[alunoId] = {
           alunoId,
           alunoNome,
+          responsavelNome,
           mensalidades: [],
           totalPendente: 0,
           totalPago: 0,
@@ -140,16 +163,18 @@ export function Mensalidades() {
       const dataVencimento = mens.data_vencimento || mens.dataVencimento;
       const valor = mens.valor || mens.valorFinal || 0;
       const alunoNome = mens.aluno_nome || '';
+      const responsavelNome = mens.responsavel_nome || '';
       
       gerarReciboMensalidadePDF({
         alunoNome,
+        responsavelNome,
         mesReferencia: meses[mesRef - 1],
         anoReferencia: anoRef,
         dataVencimento: dataVencimento ? formatDate(dataVencimento) : '-',
         dataPagamento: formatDate(new Date().toISOString()),
         valor,
         formaPagamento,
-      });
+      }, escola || undefined);
       
       handleClosePayModal();
       loadMensalidades();
@@ -163,6 +188,7 @@ export function Mensalidades() {
   const handlePrintRecibo = (mensalidade: Mensalidade) => {
     const mens = mensalidade as any;
     const alunoNome = mens.aluno_nome || '-';
+    const responsavelNome = mens.responsavel_nome || '';
     const mesRef = mens.mes_referencia || mens.mesReferencia || 1;
     const anoRef = mens.ano_referencia || mens.anoReferencia || '';
     const dataVencimento = mens.data_vencimento || mens.dataVencimento;
@@ -172,13 +198,14 @@ export function Mensalidades() {
 
     gerarReciboMensalidadePDF({
       alunoNome,
+      responsavelNome,
       mesReferencia: meses[mesRef - 1],
       anoReferencia: anoRef,
       dataVencimento: dataVencimento ? formatDate(dataVencimento) : '-',
       dataPagamento: dataPagamento ? formatDate(dataPagamento) : '-',
       valor: valorFinal,
       formaPagamento: formaPag,
-    });
+    }, escola || undefined);
   };
 
   const formatCurrency = (value: number) => {

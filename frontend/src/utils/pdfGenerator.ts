@@ -1,5 +1,83 @@
 import jsPDF from 'jspdf';
 
+// Função para converter valor em extenso
+const valorPorExtenso = (valor: number): string => {
+  const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+  const centenas = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+  
+  const numero = Math.floor(valor);
+  const centavos = Math.round((valor - numero) * 100);
+  
+  if (numero === 0 && centavos === 0) return 'zero reais';
+  
+  let extenso = '';
+  
+  if (numero >= 1000) {
+    const milhares = Math.floor(numero / 1000);
+    if (milhares === 1) {
+      extenso += 'mil';
+    } else if (milhares < 20) {
+      extenso += unidades[milhares] + ' mil';
+    } else {
+      const dezMilhar = Math.floor(milhares / 10);
+      const uniMilhar = milhares % 10;
+      extenso += dezenas[dezMilhar];
+      if (uniMilhar > 0) extenso += ' e ' + unidades[uniMilhar];
+      extenso += ' mil';
+    }
+  }
+  
+  const resto = numero % 1000;
+  if (resto > 0) {
+    if (extenso) extenso += ' ';
+    
+    if (resto === 100) {
+      extenso += 'cem';
+    } else {
+      const centena = Math.floor(resto / 100);
+      const dezenaUnidade = resto % 100;
+      
+      if (centena > 0) {
+        extenso += centenas[centena];
+        if (dezenaUnidade > 0) extenso += ' e ';
+      }
+      
+      if (dezenaUnidade > 0) {
+        if (dezenaUnidade < 20) {
+          extenso += unidades[dezenaUnidade];
+        } else {
+          const dezena = Math.floor(dezenaUnidade / 10);
+          const unidade = dezenaUnidade % 10;
+          extenso += dezenas[dezena];
+          if (unidade > 0) extenso += ' e ' + unidades[unidade];
+        }
+      }
+    }
+  }
+  
+  if (numero === 1) {
+    extenso += ' real';
+  } else if (numero > 0) {
+    extenso += ' reais';
+  }
+  
+  if (centavos > 0) {
+    if (numero > 0) extenso += ' e ';
+    if (centavos < 20) {
+      extenso += unidades[centavos];
+    } else {
+      const dezCent = Math.floor(centavos / 10);
+      const uniCent = centavos % 10;
+      extenso += dezenas[dezCent];
+      if (uniCent > 0) extenso += ' e ' + unidades[uniCent];
+    }
+    extenso += centavos === 1 ? ' centavo' : ' centavos';
+  }
+  
+  return extenso;
+};
+
 // Tipos
 interface DadosEscola {
   nome?: string;
@@ -17,6 +95,7 @@ interface DadosReciboMensalidade {
   dataPagamento: string;
   valor: number;
   formaPagamento: string;
+  responsavelNome?: string;
 }
 
 interface DadosReciboDespesa {
@@ -136,6 +215,19 @@ export const gerarReciboMensalidadePDF = (dados: DadosReciboMensalidade, escola?
   
   let y = addHeader(doc, 'RECIBO DE PAGAMENTO - MENSALIDADE', escola);
   
+  // Declaração
+  y += 5;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0);
+  
+  const valorFormatado = formatCurrency(dados.valor);
+  const declaracao = `Declaramos para os devidos fins que recebemos de ${dados.responsavelNome || dados.alunoNome} o valor de ${valorFormatado} (${valorPorExtenso(dados.valor)}), referente à mensalidade do mês de ${dados.mesReferencia}/${dados.anoReferencia} do(a) aluno(a) ${dados.alunoNome}.`;
+  const splitDeclaracao = doc.splitTextToSize(declaracao, pageWidth - 40);
+  doc.text(splitDeclaracao, 20, y);
+  
+  y += splitDeclaracao.length * 6 + 10;
+  
   // Informações do pagamento
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
@@ -143,35 +235,34 @@ export const gerarReciboMensalidadePDF = (dados: DadosReciboMensalidade, escola?
   
   const lineHeight = 10;
   
-  y += 10;
   doc.setFont('helvetica', 'bold');
   doc.text('Aluno:', 20, y);
   doc.setFont('helvetica', 'normal');
-  doc.text(dados.alunoNome, 60, y);
+  doc.text(dados.alunoNome, 70, y);
   
   y += lineHeight;
   doc.setFont('helvetica', 'bold');
   doc.text('Referência:', 20, y);
   doc.setFont('helvetica', 'normal');
-  doc.text(`${dados.mesReferencia}/${dados.anoReferencia}`, 60, y);
+  doc.text(`${dados.mesReferencia}/${dados.anoReferencia}`, 70, y);
   
   y += lineHeight;
   doc.setFont('helvetica', 'bold');
   doc.text('Vencimento:', 20, y);
   doc.setFont('helvetica', 'normal');
-  doc.text(dados.dataVencimento, 60, y);
+  doc.text(dados.dataVencimento, 70, y);
   
   y += lineHeight;
   doc.setFont('helvetica', 'bold');
   doc.text('Data Pagamento:', 20, y);
   doc.setFont('helvetica', 'normal');
-  doc.text(dados.dataPagamento, 60, y);
+  doc.text(dados.dataPagamento, 70, y);
   
   y += lineHeight;
   doc.setFont('helvetica', 'bold');
   doc.text('Forma Pagamento:', 20, y);
   doc.setFont('helvetica', 'normal');
-  doc.text(dados.formaPagamento, 60, y);
+  doc.text(dados.formaPagamento, 70, y);
   
   // Valor destacado
   y += 20;
@@ -506,6 +597,12 @@ export const gerarTermoMatriculaPDF = (dados: DadosTermoMatricula, escola?: Dado
 };
 
 // ==================== FICHA COMPLETA DO ALUNO ====================
+interface ContatoEmergencia {
+  nome: string;
+  telefone: string;
+  parentesco: string;
+}
+
 interface DadosFichaCompletaAluno {
   aluno: {
     nome: string;
@@ -513,15 +610,50 @@ interface DadosFichaCompletaAluno {
     cpf?: string;
     sexo?: string;
     matricula_numero?: string;
+    parentesco_responsavel?: string;
   };
   responsavel: {
     nome: string;
     cpf?: string;
+    rg?: string;
+    data_nascimento?: string;
     email?: string;
     telefone?: string;
+    celular?: string;
     endereco?: string;
+    bairro?: string;
+    complemento?: string;
+    cidade?: string;
+    estado?: string;
+    cep?: string;
     profissao?: string;
+    local_trabalho?: string;
   };
+  contatosEmergencia?: ContatoEmergencia[];
+  saude?: {
+    possui_alergia?: boolean;
+    alergia_descricao?: string;
+    restricao_alimentar?: boolean;
+    restricao_alimentar_descricao?: string;
+    uso_medicamento?: boolean;
+    medicamento_descricao?: string;
+    necessidade_especial?: boolean;
+    necessidade_especial_descricao?: string;
+  };
+  autorizacoes?: {
+    autoriza_atividades?: boolean;
+    autoriza_emergencia?: boolean;
+    autoriza_imagem?: boolean;
+  };
+  documentos?: {
+    doc_certidao_nascimento?: boolean;
+    doc_cpf_aluno?: boolean;
+    doc_rg_cpf_responsavel?: boolean;
+    doc_comprovante_residencia?: boolean;
+    doc_cartao_sus?: boolean;
+    doc_carteira_vacinacao?: boolean;
+  };
+  consideracoes?: string;
   matricula?: {
     ano_letivo: number;
     data_matricula?: string;
@@ -545,14 +677,25 @@ interface DadosFichaCompletaAluno {
 export const gerarFichaCompletaAlunoPDF = (dados: DadosFichaCompletaAluno, escola?: DadosEscola): void => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   
   let y = addHeader(doc, 'FICHA COMPLETA DO ALUNO', escola);
   
   const lineHeight = 7;
-  const sectionGap = 12;
+  const sectionGap = 10;
+  
+  // Função para verificar e adicionar nova página se necessário
+  const checkNewPage = (neededSpace: number): number => {
+    if (y + neededSpace > pageHeight - 30) {
+      doc.addPage();
+      y = 20;
+    }
+    return y;
+  };
   
   // Função auxiliar para adicionar seção
   const addSection = (title: string, currentY: number): number => {
+    currentY = checkNewPage(25);
     doc.setFillColor(30, 64, 175);
     doc.roundedRect(20, currentY - 5, pageWidth - 40, 10, 2, 2, 'F');
     doc.setFont('helvetica', 'bold');
@@ -565,13 +708,31 @@ export const gerarFichaCompletaAlunoPDF = (dados: DadosFichaCompletaAluno, escol
   
   // Função auxiliar para adicionar linha de dados
   const addDataLine = (label: string, value: string, currentY: number, x: number = 20): number => {
+    currentY = checkNewPage(lineHeight);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.text(`${label}:`, x, currentY);
     doc.setFont('helvetica', 'normal');
     const labelWidth = doc.getTextWidth(`${label}: `);
     doc.text(value || '-', x + labelWidth, currentY);
-    return currentY + lineHeight;
+    y = currentY + lineHeight;
+    return y;
+  };
+  
+  // Função auxiliar para checkbox
+  const addCheckbox = (label: string, checked: boolean, currentY: number, x: number = 20): number => {
+    currentY = checkNewPage(lineHeight);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.rect(x, currentY - 4, 4, 4);
+    if (checked) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('X', x + 0.8, currentY - 0.5);
+    }
+    doc.setFont('helvetica', 'normal');
+    doc.text(label, x + 7, currentY);
+    y = currentY + lineHeight;
+    return y;
   };
   
   // SEÇÃO: DADOS DO ALUNO
@@ -582,6 +743,9 @@ export const gerarFichaCompletaAlunoPDF = (dados: DadosFichaCompletaAluno, escol
   y = addDataLine('Data de Nascimento', dados.aluno.data_nascimento ? formatDate(dados.aluno.data_nascimento) : '-', y);
   y = addDataLine('CPF', dados.aluno.cpf || 'Não informado', y);
   y = addDataLine('Sexo', dados.aluno.sexo === 'M' ? 'Masculino' : dados.aluno.sexo === 'F' ? 'Feminino' : dados.aluno.sexo || '-', y);
+  if (dados.aluno.parentesco_responsavel) {
+    y = addDataLine('Parentesco com Responsável', dados.aluno.parentesco_responsavel, y);
+  }
   
   y += sectionGap;
   
@@ -590,12 +754,104 @@ export const gerarFichaCompletaAlunoPDF = (dados: DadosFichaCompletaAluno, escol
   
   y = addDataLine('Nome', dados.responsavel.nome, y);
   y = addDataLine('CPF', dados.responsavel.cpf || '-', y);
+  if (dados.responsavel.rg) y = addDataLine('RG', dados.responsavel.rg, y);
+  if (dados.responsavel.data_nascimento) y = addDataLine('Data de Nascimento', formatDate(dados.responsavel.data_nascimento), y);
   y = addDataLine('E-mail', dados.responsavel.email || '-', y);
   y = addDataLine('Telefone', dados.responsavel.telefone || '-', y);
-  y = addDataLine('Endereço', dados.responsavel.endereco || '-', y);
-  y = addDataLine('Profissão', dados.responsavel.profissao || '-', y);
+  if (dados.responsavel.celular) y = addDataLine('Celular', dados.responsavel.celular, y);
+  
+  // Endereço completo
+  let enderecoCompleto = dados.responsavel.endereco || '';
+  if (dados.responsavel.bairro) enderecoCompleto += `, ${dados.responsavel.bairro}`;
+  if (dados.responsavel.complemento) enderecoCompleto += ` - ${dados.responsavel.complemento}`;
+  if (dados.responsavel.cidade) enderecoCompleto += `, ${dados.responsavel.cidade}`;
+  if (dados.responsavel.estado) enderecoCompleto += `/${dados.responsavel.estado}`;
+  if (dados.responsavel.cep) enderecoCompleto += ` - CEP: ${dados.responsavel.cep}`;
+  y = addDataLine('Endereço', enderecoCompleto || '-', y);
+  
+  if (dados.responsavel.profissao) y = addDataLine('Profissão', dados.responsavel.profissao, y);
+  if (dados.responsavel.local_trabalho) y = addDataLine('Local de Trabalho', dados.responsavel.local_trabalho, y);
   
   y += sectionGap;
+  
+  // SEÇÃO: CONTATOS DE EMERGÊNCIA
+  if (dados.contatosEmergencia && dados.contatosEmergencia.length > 0) {
+    y = addSection('CONTATOS DE EMERGÊNCIA', y);
+    
+    dados.contatosEmergencia.forEach((contato, index) => {
+      y = addDataLine(`Contato ${index + 1}`, `${contato.nome} - ${contato.telefone} (${contato.parentesco})`, y);
+    });
+    
+    y += sectionGap;
+  }
+  
+  // SEÇÃO: INFORMAÇÕES DE SAÚDE
+  if (dados.saude) {
+    y = addSection('INFORMAÇÕES DE SAÚDE', y);
+    
+    if (dados.saude.possui_alergia) {
+      y = addDataLine('Alergias', dados.saude.alergia_descricao || 'Sim', y);
+    } else {
+      y = addDataLine('Alergias', 'Não possui', y);
+    }
+    
+    if (dados.saude.restricao_alimentar) {
+      y = addDataLine('Restrições Alimentares', dados.saude.restricao_alimentar_descricao || 'Sim', y);
+    } else {
+      y = addDataLine('Restrições Alimentares', 'Não possui', y);
+    }
+    
+    if (dados.saude.uso_medicamento) {
+      y = addDataLine('Uso de Medicamentos', dados.saude.medicamento_descricao || 'Sim', y);
+    } else {
+      y = addDataLine('Uso de Medicamentos', 'Não utiliza', y);
+    }
+    
+    if (dados.saude.necessidade_especial) {
+      y = addDataLine('Necessidades Especiais', dados.saude.necessidade_especial_descricao || 'Sim', y);
+    } else {
+      y = addDataLine('Necessidades Especiais', 'Não possui', y);
+    }
+    
+    y += sectionGap;
+  }
+  
+  // SEÇÃO: AUTORIZAÇÕES
+  if (dados.autorizacoes) {
+    y = addSection('AUTORIZAÇÕES', y);
+    
+    y = addCheckbox('Autorizo a participação em atividades externas, passeios e eventos', dados.autorizacoes.autoriza_atividades || false, y);
+    y = addCheckbox('Autorizo atendimento médico de emergência quando necessário', dados.autorizacoes.autoriza_emergencia || false, y);
+    y = addCheckbox('Autorizo o uso da imagem do aluno para fins educacionais e divulgação', dados.autorizacoes.autoriza_imagem || false, y);
+    
+    y += sectionGap;
+  }
+  
+  // SEÇÃO: DOCUMENTOS ENTREGUES
+  if (dados.documentos) {
+    y = addSection('DOCUMENTOS ENTREGUES', y);
+    
+    y = addCheckbox('Certidão de Nascimento', dados.documentos.doc_certidao_nascimento || false, y);
+    y = addCheckbox('CPF do Aluno', dados.documentos.doc_cpf_aluno || false, y);
+    y = addCheckbox('RG/CPF do Responsável', dados.documentos.doc_rg_cpf_responsavel || false, y);
+    y = addCheckbox('Comprovante de Residência', dados.documentos.doc_comprovante_residencia || false, y);
+    y = addCheckbox('Cartão SUS', dados.documentos.doc_cartao_sus || false, y);
+    y = addCheckbox('Carteira de Vacinação', dados.documentos.doc_carteira_vacinacao || false, y);
+    
+    y += sectionGap;
+  }
+  
+  // SEÇÃO: CONSIDERAÇÕES ADICIONAIS
+  if (dados.consideracoes) {
+    y = addSection('CONSIDERAÇÕES ADICIONAIS', y);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    const splitConsideracoes = doc.splitTextToSize(dados.consideracoes, pageWidth - 40);
+    checkNewPage(splitConsideracoes.length * 5 + 10);
+    doc.text(splitConsideracoes, 20, y);
+    y += splitConsideracoes.length * 5 + sectionGap;
+  }
   
   // SEÇÃO: DADOS DA MATRÍCULA
   if (dados.matricula) {
@@ -639,6 +895,7 @@ export const gerarFichaCompletaAlunoPDF = (dados: DadosFichaCompletaAluno, escol
   }
   
   // Área de assinatura
+  checkNewPage(50);
   y += 10;
   doc.setDrawColor(0);
   doc.setLineWidth(0.5);
