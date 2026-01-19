@@ -53,12 +53,18 @@ class FinanceiroService {
         if (!aluno) {
             throw new Error('Aluno não encontrado');
         }
+        // Verificar se aluno já está matriculado no mesmo ano letivo
+        const matriculaExistente = await (0, connection_1.queryOne)(`SELECT id FROM matriculas 
+       WHERE aluno_id = $1 AND ano_letivo = $2 AND status != 'CANCELADA'`, [data.aluno_id, data.ano_letivo]);
+        if (matriculaExistente) {
+            throw new Error(`Este aluno já possui matrícula ativa no ano letivo ${data.ano_letivo}`);
+        }
         // Verificar se plano existe
         const plano = await this.buscarPlanoPorId(data.plano_id);
         if (!plano) {
             throw new Error('Plano não encontrado');
         }
-        const valorMensalidade = plano.valor * (1 - (data.desconto || 0) / 100);
+        const valorMensalidade = plano.valor;
         const client = await connection_1.pool.connect();
         try {
             await client.query('BEGIN');
@@ -66,7 +72,7 @@ class FinanceiroService {
             const dataMatricula = new Date().toISOString().split('T')[0];
             // Criar matrícula
             await client.query(`INSERT INTO matriculas (id, aluno_id, plano_id, ano_letivo, valor_matricula, valor_mensalidade, dia_vencimento, data_matricula, status, desconto, observacoes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ATIVA', $9, $10)`, [matriculaId, data.aluno_id, data.plano_id, data.ano_letivo, data.valor_matricula, valorMensalidade, data.dia_vencimento || 10, dataMatricula, data.desconto || 0, data.observacoes]);
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ATIVA', $9, $10)`, [matriculaId, data.aluno_id, data.plano_id, data.ano_letivo, data.valor_matricula, valorMensalidade, data.dia_vencimento || 10, dataMatricula, 0, data.observacoes]);
             // Atualizar aluno como matriculado
             await client.query("UPDATE alunos SET matricula_ativa = true, data_matricula = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", [dataMatricula, data.aluno_id]);
             // Gerar mensalidades do ano
@@ -84,7 +90,7 @@ class FinanceiroService {
                     isPrimeiraMensalidade = false;
                 }
                 await client.query(`INSERT INTO mensalidades (id, aluno_id, matricula_id, mes_referencia, ano_referencia, valor, desconto, data_vencimento, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDENTE')`, [(0, uuid_1.v4)(), data.aluno_id, matriculaId, mes, anoAtual, valorMensalidadeFinal, data.desconto || 0, dataVencimento]);
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDENTE')`, [(0, uuid_1.v4)(), data.aluno_id, matriculaId, mes, anoAtual, valorMensalidadeFinal, 0, dataVencimento]);
             }
             await client.query('COMMIT');
             logger_1.logger.info(`Matrícula realizada para aluno ${aluno.nome}`);

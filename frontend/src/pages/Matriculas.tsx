@@ -12,7 +12,7 @@ import { financeiroService } from '../services/financeiroService';
 import { alunoService } from '../services/alunoService';
 import { Plus, Pencil, Search, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { formatCurrencyInput, currencyToNumber, formatNumberInput, formatPercentInput } from '../utils/masks';
+import { formatCurrencyInput, currencyToNumber, formatNumberInput } from '../utils/masks';
 import { gerarTermoMatriculaPDF } from '../utils/pdfGenerator';
 import { escolaService } from '../services/escolaService';
 
@@ -39,7 +39,6 @@ export function Matriculas() {
     planoMensalidadeId: '',
     anoLetivo: new Date().getFullYear().toString(),
     valorMatricula: '',
-    desconto: '0',
     status: StatusMatricula.ATIVA,
     observacao: '',
   });
@@ -78,7 +77,6 @@ export function Matriculas() {
         planoMensalidadeId: mat.planoMensalidadeId || mat.plano_id || '',
         anoLetivo: (mat.anoLetivo || mat.ano_letivo || new Date().getFullYear()).toString(),
         valorMatricula: formatCurrencyInput(((mat.valorMatricula || mat.valor_matricula || 0) * 100).toString()),
-        desconto: (mat.desconto || 0).toString(),
         status: mat.status || StatusMatricula.ATIVA,
         observacao: mat.observacao || mat.observacoes || '',
       });
@@ -89,7 +87,6 @@ export function Matriculas() {
         planoMensalidadeId: '',
         anoLetivo: new Date().getFullYear().toString(),
         valorMatricula: '',
-        desconto: '0',
         status: StatusMatricula.ATIVA,
         observacao: '',
       });
@@ -112,7 +109,6 @@ export function Matriculas() {
       plano_id: formData.planoMensalidadeId,
       ano_letivo: parseInt(formData.anoLetivo, 10),
       valor_matricula: currencyToNumber(formData.valorMatricula),
-      desconto: parseInt(formData.desconto, 10) || 0,
       status: formData.status,
       observacoes: formData.observacao,
     };
@@ -352,13 +348,6 @@ export function Matriculas() {
               onChange={(e) => setFormData({ ...formData, valorMatricula: formatCurrencyInput(e.target.value) })}
               placeholder="R$ 0,00"
               required
-            />
-            <Input
-              label="Desconto (%)"
-              type="text"
-              value={formData.desconto}
-              onChange={(e) => setFormData({ ...formData, desconto: formatPercentInput(e.target.value) })}
-              maxLength={3}
             />
             <Select
               label="Status"
