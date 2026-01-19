@@ -3,13 +3,15 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
+import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { Mensalidade, StatusMensalidade } from '../types';
 import { financeiroService } from '../services/financeiroService';
 import { escolaService } from '../services/escolaService';
-import { Search, DollarSign, Printer, ChevronDown, ChevronRight, User } from 'lucide-react';
+import { Search, DollarSign, Printer, ChevronDown, ChevronRight, User, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { gerarReciboMensalidadePDF } from '../utils/pdfGenerator';
+import { formatCurrencyInput, currencyToNumber } from '../utils/masks';
 
 interface AlunoMensalidades {
   alunoId: string;
@@ -38,6 +40,14 @@ export function Mensalidades() {
   const [formaPagamento, setFormaPagamento] = useState('PIX');
   const [isPaying, setIsPaying] = useState(false);
   const [escola, setEscola] = useState<DadosEscola | null>(null);
+  
+  // Estados para edição de valor
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedMensalidadeEdit, setSelectedMensalidadeEdit] = useState<Mensalidade | null>(null);
+  const [novoValor, setNovoValor] = useState('');
+  const [motivoAlteracao, setMotivoAlteracao] = useState('');
+  const [aplicarEmTodas, setAplicarEmTodas] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     loadMensalidades();
@@ -208,6 +218,60 @@ export function Mensalidades() {
     }, escola || undefined);
   };
 
+  // Funções para edição de valor
+  const handleOpenEditModal = (mensalidade: Mensalidade) => {
+    const mens = mensalidade as any;
+    const valorAtual = mens.valor || mens.valorFinal || 0;
+    setSelectedMensalidadeEdit(mensalidade);
+    // Formatar valor com máscara (multiplicar por 100 para a máscara funcionar corretamente)
+    setNovoValor(formatCurrencyInput((valorAtual * 100).toString()));
+    setMotivoAlteracao('');
+    setAplicarEmTodas(false);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedMensalidadeEdit(null);
+    setNovoValor('');
+    setMotivoAlteracao('');
+    setAplicarEmTodas(false);
+  };
+
+  const handleAlterarValor = async () => {
+    if (!selectedMensalidadeEdit) return;
+    
+    const valorNumerico = currencyToNumber(novoValor);
+    if (isNaN(valorNumerico) || valorNumerico <= 0) {
+      toast.error('Informe um valor válido maior que zero');
+      return;
+    }
+
+    if (!motivoAlteracao.trim()) {
+      toast.error('Informe o motivo da alteração');
+      return;
+    }
+
+    setIsEditing(true);
+    try {
+      await financeiroService.alterarValorMensalidade(selectedMensalidadeEdit.id, {
+        valor: valorNumerico,
+        motivo: motivoAlteracao.trim(),
+        aplicarEmTodas,
+      });
+      const msg = aplicarEmTodas 
+        ? 'Valor alterado em todas as mensalidades futuras!' 
+        : 'Valor da mensalidade alterado com sucesso!';
+      toast.success(msg);
+      handleCloseEditModal();
+      loadMensalidades();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao alterar valor da mensalidade');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -363,6 +427,20 @@ export function Mensalidades() {
                                 </td>
                                 <td className="px-6 py-3">
                                   <div className="flex gap-2">
+                                    {/* Botão de editar valor - apenas para mensalidades FUTURAS */}
+                                    {(mensalidade.status === StatusMensalidade.FUTURA || (mensalidade.status as string) === 'FUTURA') && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleOpenEditModal(mensalidade);
+                                        }}
+                                        title="Alterar Valor"
+                                      >
+                                        <Pencil size={16} className="text-orange-500" />
+                                      </Button>
+                                    )}
                                     {mensalidade.status !== StatusMensalidade.PAGO && (
                                       <Button
                                         size="sm"
@@ -447,6 +525,74 @@ export function Mensalidades() {
             </Button>
             <Button onClick={handlePagar} isLoading={isPaying} variant="success">
               Confirmar Pagamento
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal de Alteração de Valor */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        title="Alterar Valor da Mensalidade"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Alterar valor da mensalidade de{' '}
+            <strong>
+              {selectedMensalidadeEdit
+                ? `${meses[((selectedMensalidadeEdit as any).mes_referencia || (selectedMensalidadeEdit as any).mesReferencia || 1) - 1]}/${(selectedMensalidadeEdit as any).ano_referencia || (selectedMensalidadeEdit as any).anoReferencia || ''}`
+                : ''}
+            </strong>
+          </p>
+          
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <p className="text-sm text-yellow-800">
+              <strong>Atenção:</strong> Apenas mensalidades futuras podem ter o valor alterado.
+              Mensalidades passadas (pagas ou não) não podem ser modificadas.
+            </p>
+          </div>
+
+          <Input
+            label="Novo Valor (R$)"
+            type="text"
+            value={novoValor}
+            onChange={(e) => setNovoValor(formatCurrencyInput(e.target.value))}
+            placeholder="0,00"
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Motivo da Alteração *
+            </label>
+            <textarea
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              rows={3}
+              value={motivoAlteracao}
+              onChange={(e) => setMotivoAlteracao(e.target.value)}
+              placeholder="Ex: Troca de período (manhã para integral), desconto concedido, correção de valor..."
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="aplicarEmTodas"
+              checked={aplicarEmTodas}
+              onChange={(e) => setAplicarEmTodas(e.target.checked)}
+              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <label htmlFor="aplicarEmTodas" className="text-sm text-gray-700">
+              Aplicar este valor em <strong>todas</strong> as mensalidades futuras deste aluno
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="secondary" onClick={handleCloseEditModal}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAlterarValor} isLoading={isEditing}>
+              Confirmar Alteração
             </Button>
           </div>
         </div>

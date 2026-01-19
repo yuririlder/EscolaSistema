@@ -57,6 +57,11 @@ export const financeiroService = {
     return response.data;
   },
 
+  async alterarValorMensalidade(id: string, data: { valor: number; motivo: string; aplicarEmTodas?: boolean }): Promise<Mensalidade> {
+    const response = await api.put<Mensalidade>(`/financeiro/mensalidades/${id}`, data);
+    return response.data;
+  },
+
   // Despesas
   async listarDespesas(): Promise<Despesa[]> {
     const response = await api.get<Despesa[]>('/financeiro/despesas');

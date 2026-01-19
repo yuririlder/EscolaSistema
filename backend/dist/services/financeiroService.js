@@ -261,6 +261,64 @@ class FinanceiroService {
         logger_1.logger.info(`Pagamento de mensalidade registrado: ${id}`);
         return this.buscarMensalidadePorId(id);
     }
+    /**
+     * Altera o valor de uma mensalidade futura
+     * Apenas mensalidades com status FUTURA podem ter o valor alterado
+     */
+    async alterarValorMensalidade(id, data) {
+        const mensalidade = await this.buscarMensalidadePorId(id);
+        if (!mensalidade) {
+            throw new Error('Mensalidade não encontrada');
+        }
+        // Verificar se a mensalidade é futura
+        const statusAtual = this.calcularStatusMensalidade(mensalidade);
+        if (statusAtual !== 'FUTURA') {
+            throw new Error('Apenas mensalidades futuras podem ter o valor alterado');
+        }
+        if (!data.valor || data.valor <= 0) {
+            throw new Error('O valor deve ser maior que zero');
+        }
+        if (!data.motivo || data.motivo.trim().length === 0) {
+            throw new Error('É necessário informar o motivo da alteração');
+        }
+        // Salvar o valor anterior e o motivo da alteração nas observações
+        const valorAnterior = parseFloat(mensalidade.valor) || 0;
+        const novoValor = parseFloat(data.valor.toString()) || 0;
+        const dataAlteracao = new Date().toISOString();
+        const observacaoAlteracao = `[${dataAlteracao}] Valor alterado de R$ ${valorAnterior.toFixed(2)} para R$ ${novoValor.toFixed(2)}. Motivo: ${data.motivo}`;
+        if (data.aplicarEmTodas) {
+            // Aplicar em todas as mensalidades futuras do mesmo aluno
+            const hoje = new Date();
+            const mesAtual = hoje.getMonth() + 1;
+            const anoAtual = hoje.getFullYear();
+            // Buscar todas as mensalidades futuras do aluno (não pagas e com data futura)
+            const mensalidadesFuturas = await (0, connection_1.queryMany)(`SELECT id, observacoes FROM mensalidades 
+         WHERE aluno_id = $1 
+         AND status NOT IN ('PAGO', 'CANCELADO')
+         AND (ano_referencia > $2 OR (ano_referencia = $2 AND mes_referencia > $3))`, [mensalidade.aluno_id, anoAtual, mesAtual]);
+            // Atualizar cada mensalidade futura
+            for (const m of mensalidadesFuturas) {
+                const obsAtuais = m.observacoes || '';
+                const novasObs = obsAtuais ? `${obsAtuais}\n${observacaoAlteracao}` : observacaoAlteracao;
+                await (0, connection_1.query)(`UPDATE mensalidades 
+           SET valor = $1, observacoes = $2, updated_at = CURRENT_TIMESTAMP 
+           WHERE id = $3`, [novoValor, novasObs, m.id]);
+            }
+            logger_1.logger.info(`Valor de ${mensalidadesFuturas.length} mensalidades futuras do aluno ${mensalidade.aluno_id} alterado para ${novoValor}. Motivo: ${data.motivo}`);
+        }
+        else {
+            // Aplicar apenas na mensalidade selecionada
+            const observacoesAtuais = mensalidade.observacoes || '';
+            const novasObservacoes = observacoesAtuais
+                ? `${observacoesAtuais}\n${observacaoAlteracao}`
+                : observacaoAlteracao;
+            await (0, connection_1.query)(`UPDATE mensalidades 
+         SET valor = $1, observacoes = $2, updated_at = CURRENT_TIMESTAMP 
+         WHERE id = $3`, [novoValor, novasObservacoes, id]);
+            logger_1.logger.info(`Valor da mensalidade ${id} alterado de ${valorAnterior} para ${novoValor}. Motivo: ${data.motivo}`);
+        }
+        return this.buscarMensalidadePorId(id);
+    }
     // ==================== DESPESAS ====================
     async criarDespesa(data) {
         const id = (0, uuid_1.v4)();

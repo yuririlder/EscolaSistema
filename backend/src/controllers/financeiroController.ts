@@ -156,6 +156,16 @@ class FinanceiroController {
     }
   }
 
+  async alterarValorMensalidade(req: Request, res: Response) {
+    try {
+      const mensalidade = await financeiroService.alterarValorMensalidade(req.params.id, req.body);
+      return sendSuccess(res, mensalidade, 'Valor da mensalidade alterado com sucesso');
+    } catch (error: any) {
+      logger.error('Erro ao alterar valor da mensalidade', error);
+      return sendError(res, error.message);
+    }
+  }
+
   // ==================== DESPESAS ====================
 
   async criarDespesa(req: Request, res: Response) {
