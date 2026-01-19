@@ -322,6 +322,113 @@ BEGIN
     ALTER TABLE responsaveis ADD COLUMN ativo BOOLEAN DEFAULT true;
   END IF;
 END $$;
+
+-- Adicionar novos campos em responsaveis (bairro, complemento)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='responsaveis' AND column_name='bairro') THEN
+    ALTER TABLE responsaveis ADD COLUMN bairro VARCHAR(100);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='responsaveis' AND column_name='complemento') THEN
+    ALTER TABLE responsaveis ADD COLUMN complemento VARCHAR(255);
+  END IF;
+END $$;
+
+-- Adicionar campo parentesco em alunos (relação com responsável)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='parentesco_responsavel') THEN
+    ALTER TABLE alunos ADD COLUMN parentesco_responsavel VARCHAR(50);
+  END IF;
+END $$;
+
+-- Adicionar campos de saúde em alunos
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='possui_alergia') THEN
+    ALTER TABLE alunos ADD COLUMN possui_alergia BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='alergia_descricao') THEN
+    ALTER TABLE alunos ADD COLUMN alergia_descricao TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='restricao_alimentar') THEN
+    ALTER TABLE alunos ADD COLUMN restricao_alimentar BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='restricao_alimentar_descricao') THEN
+    ALTER TABLE alunos ADD COLUMN restricao_alimentar_descricao TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='uso_medicamento') THEN
+    ALTER TABLE alunos ADD COLUMN uso_medicamento BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='medicamento_descricao') THEN
+    ALTER TABLE alunos ADD COLUMN medicamento_descricao TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='necessidade_especial') THEN
+    ALTER TABLE alunos ADD COLUMN necessidade_especial BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='necessidade_especial_descricao') THEN
+    ALTER TABLE alunos ADD COLUMN necessidade_especial_descricao TEXT;
+  END IF;
+END $$;
+
+-- Adicionar campos de autorização em alunos
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='autoriza_atividades') THEN
+    ALTER TABLE alunos ADD COLUMN autoriza_atividades BOOLEAN DEFAULT true;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='autoriza_emergencia') THEN
+    ALTER TABLE alunos ADD COLUMN autoriza_emergencia BOOLEAN DEFAULT true;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='autoriza_imagem') THEN
+    ALTER TABLE alunos ADD COLUMN autoriza_imagem BOOLEAN DEFAULT false;
+  END IF;
+END $$;
+
+-- Adicionar campos de documentos em alunos
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='doc_certidao_nascimento') THEN
+    ALTER TABLE alunos ADD COLUMN doc_certidao_nascimento BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='doc_cpf_aluno') THEN
+    ALTER TABLE alunos ADD COLUMN doc_cpf_aluno BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='doc_rg_cpf_responsavel') THEN
+    ALTER TABLE alunos ADD COLUMN doc_rg_cpf_responsavel BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='doc_comprovante_residencia') THEN
+    ALTER TABLE alunos ADD COLUMN doc_comprovante_residencia BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='doc_cartao_sus') THEN
+    ALTER TABLE alunos ADD COLUMN doc_cartao_sus BOOLEAN DEFAULT false;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='doc_carteira_vacinacao') THEN
+    ALTER TABLE alunos ADD COLUMN doc_carteira_vacinacao BOOLEAN DEFAULT false;
+  END IF;
+END $$;
+
+-- Adicionar campo considerações em alunos
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='consideracoes') THEN
+    ALTER TABLE alunos ADD COLUMN consideracoes TEXT;
+  END IF;
+END $$;
+
+-- Criar tabela de contatos de emergência
+CREATE TABLE IF NOT EXISTS contatos_emergencia (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  aluno_id UUID NOT NULL REFERENCES alunos(id) ON DELETE CASCADE,
+  nome VARCHAR(255) NOT NULL,
+  telefone VARCHAR(20) NOT NULL,
+  parentesco VARCHAR(50) NOT NULL,
+  ordem INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_contatos_emergencia_aluno ON contatos_emergencia(aluno_id);
 `;
 
 // Run migrations

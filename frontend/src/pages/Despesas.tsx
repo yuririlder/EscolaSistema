@@ -12,9 +12,19 @@ import { Plus, Pencil, Trash2, Search, DollarSign, Printer } from 'lucide-react'
 import toast from 'react-hot-toast';
 import { formatCurrencyInput, currencyToNumber } from '../utils/masks';
 import { gerarReciboDespesaPDF } from '../utils/pdfGenerator';
+import { escolaService } from '../services/escolaService';
+
+interface DadosEscola {
+  nome?: string;
+  cnpj?: string;
+  endereco?: string;
+  telefone?: string;
+  email?: string;
+}
 
 export function Despesas() {
   const [despesas, setDespesas] = useState<Despesa[]>([]);
+  const [escola, setEscola] = useState<DadosEscola | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,8 +49,14 @@ export function Despesas() {
 
   const loadDespesas = async () => {
     try {
-      const data = await financeiroService.listarDespesas();
+      const [data, escolaData] = await Promise.all([
+        financeiroService.listarDespesas(),
+        escolaService.obter().catch(() => null),
+      ]);
       setDespesas(data);
+      if (escolaData) {
+        setEscola(escolaData);
+      }
     } catch (error) {
       toast.error('Erro ao carregar despesas');
     } finally {
@@ -125,7 +141,7 @@ export function Despesas() {
           dataPagamento: formatDate(new Date().toISOString()),
           fornecedor: desp.fornecedor,
           formaPagamento,
-        });
+        }, escola || undefined);
       }
       
       setIsPayModalOpen(false);
@@ -154,7 +170,7 @@ export function Despesas() {
       dataPagamento: desp.data_pagamento ? formatDate(desp.data_pagamento) : '-',
       fornecedor: desp.fornecedor,
       formaPagamento: desp.forma_pagamento || '-',
-    });
+    }, escola || undefined);
   };
 
   const handleDelete = async (id: string) => {

@@ -26,6 +26,15 @@ declare class FinanceiroService {
     listarInadimplentes(): Promise<any[]>;
     buscarMensalidadePorId(id: string): Promise<any>;
     registrarPagamentoMensalidade(id: string, data: any): Promise<any>;
+    /**
+     * Altera o valor de uma mensalidade futura
+     * Apenas mensalidades com status FUTURA podem ter o valor alterado
+     */
+    alterarValorMensalidade(id: string, data: {
+        valor: number;
+        motivo: string;
+        aplicarEmTodas?: boolean;
+    }): Promise<any>;
     criarDespesa(data: any): Promise<any>;
     listarDespesas(filtros: {
         mes?: number;

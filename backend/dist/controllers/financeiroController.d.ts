@@ -14,6 +14,7 @@ declare class FinanceiroController {
     listarInadimplentes(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
     buscarMensalidade(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
     registrarPagamentoMensalidade(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
+    alterarValorMensalidade(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
     criarDespesa(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
     listarDespesas(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;
     buscarDespesa(req: Request, res: Response): Promise<Response<any, Record<string, any>>>;

@@ -71,13 +71,23 @@ class FinanceiroService {
       throw new Error('Aluno não encontrado');
     }
 
+    // Verificar se aluno já está matriculado no mesmo ano letivo
+    const matriculaExistente = await queryOne(
+      `SELECT id FROM matriculas 
+       WHERE aluno_id = $1 AND ano_letivo = $2 AND status != 'CANCELADA'`,
+      [data.aluno_id, data.ano_letivo]
+    );
+    if (matriculaExistente) {
+      throw new Error(`Este aluno já possui matrícula ativa no ano letivo ${data.ano_letivo}`);
+    }
+
     // Verificar se plano existe
     const plano = await this.buscarPlanoPorId(data.plano_id);
     if (!plano) {
       throw new Error('Plano não encontrado');
     }
 
-    const valorMensalidade = plano.valor * (1 - (data.desconto || 0) / 100);
+    const valorMensalidade = plano.valor;
 
     const client = await pool.connect();
     try {
@@ -90,7 +100,7 @@ class FinanceiroService {
       await client.query(
         `INSERT INTO matriculas (id, aluno_id, plano_id, ano_letivo, valor_matricula, valor_mensalidade, dia_vencimento, data_matricula, status, desconto, observacoes)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ATIVA', $9, $10)`,
-        [matriculaId, data.aluno_id, data.plano_id, data.ano_letivo, data.valor_matricula, valorMensalidade, data.dia_vencimento || 10, dataMatricula, data.desconto || 0, data.observacoes]
+        [matriculaId, data.aluno_id, data.plano_id, data.ano_letivo, data.valor_matricula, valorMensalidade, data.dia_vencimento || 10, dataMatricula, 0, data.observacoes]
       );
 
       // Atualizar aluno como matriculado
@@ -102,14 +112,24 @@ class FinanceiroService {
       // Gerar mensalidades do ano
       const anoAtual = data.ano_letivo;
       const mesInicio = new Date().getMonth() + 1;
+      const valorMatricula = data.valor_matricula || 0;
       
+      let isPrimeiraMensalidade = true;
       for (let mes = mesInicio; mes <= 12; mes++) {
         const diaVenc = data.dia_vencimento || 10;
         const dataVencimento = `${anoAtual}-${String(mes).padStart(2, '0')}-${String(diaVenc).padStart(2, '0')}`;
+        
+        // Na primeira mensalidade, abater o valor da matrícula
+        let valorMensalidadeFinal = valorMensalidade;
+        if (isPrimeiraMensalidade && valorMatricula > 0) {
+          valorMensalidadeFinal = Math.max(0, valorMensalidade - valorMatricula);
+          isPrimeiraMensalidade = false;
+        }
+        
         await client.query(
           `INSERT INTO mensalidades (id, aluno_id, matricula_id, mes_referencia, ano_referencia, valor, desconto, data_vencimento, status)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDENTE')`,
-          [uuidv4(), data.aluno_id, matriculaId, mes, anoAtual, valorMensalidade, data.desconto || 0, dataVencimento]
+          [uuidv4(), data.aluno_id, matriculaId, mes, anoAtual, valorMensalidadeFinal, 0, dataVencimento]
         );
       }
 
@@ -347,6 +367,85 @@ class FinanceiroService {
     );
 
     logger.info(`Pagamento de mensalidade registrado: ${id}`);
+    return this.buscarMensalidadePorId(id);
+  }
+
+  /**
+   * Altera o valor de uma mensalidade futura
+   * Apenas mensalidades com status FUTURA podem ter o valor alterado
+   */
+  async alterarValorMensalidade(id: string, data: { valor: number; motivo: string; aplicarEmTodas?: boolean }) {
+    const mensalidade = await this.buscarMensalidadePorId(id);
+    if (!mensalidade) {
+      throw new Error('Mensalidade não encontrada');
+    }
+
+    // Verificar se a mensalidade é futura
+    const statusAtual = this.calcularStatusMensalidade(mensalidade);
+    if (statusAtual !== 'FUTURA') {
+      throw new Error('Apenas mensalidades futuras podem ter o valor alterado');
+    }
+
+    if (!data.valor || data.valor <= 0) {
+      throw new Error('O valor deve ser maior que zero');
+    }
+
+    if (!data.motivo || data.motivo.trim().length === 0) {
+      throw new Error('É necessário informar o motivo da alteração');
+    }
+
+    // Salvar o valor anterior e o motivo da alteração nas observações
+    const valorAnterior = parseFloat(mensalidade.valor) || 0;
+    const novoValor = parseFloat(data.valor.toString()) || 0;
+    const dataAlteracao = new Date().toISOString();
+    const observacaoAlteracao = `[${dataAlteracao}] Valor alterado de R$ ${valorAnterior.toFixed(2)} para R$ ${novoValor.toFixed(2)}. Motivo: ${data.motivo}`;
+    
+    if (data.aplicarEmTodas) {
+      // Aplicar em todas as mensalidades futuras do mesmo aluno
+      const hoje = new Date();
+      const mesAtual = hoje.getMonth() + 1;
+      const anoAtual = hoje.getFullYear();
+      
+      // Buscar todas as mensalidades futuras do aluno (não pagas e com data futura)
+      const mensalidadesFuturas = await queryMany(
+        `SELECT id, observacoes FROM mensalidades 
+         WHERE aluno_id = $1 
+         AND status NOT IN ('PAGO', 'CANCELADO')
+         AND (ano_referencia > $2 OR (ano_referencia = $2 AND mes_referencia > $3))`,
+        [mensalidade.aluno_id, anoAtual, mesAtual]
+      );
+
+      // Atualizar cada mensalidade futura
+      for (const m of mensalidadesFuturas) {
+        const obsAtuais = m.observacoes || '';
+        const novasObs = obsAtuais ? `${obsAtuais}\n${observacaoAlteracao}` : observacaoAlteracao;
+        
+        await query(
+          `UPDATE mensalidades 
+           SET valor = $1, observacoes = $2, updated_at = CURRENT_TIMESTAMP 
+           WHERE id = $3`,
+          [novoValor, novasObs, m.id]
+        );
+      }
+
+      logger.info(`Valor de ${mensalidadesFuturas.length} mensalidades futuras do aluno ${mensalidade.aluno_id} alterado para ${novoValor}. Motivo: ${data.motivo}`);
+    } else {
+      // Aplicar apenas na mensalidade selecionada
+      const observacoesAtuais = mensalidade.observacoes || '';
+      const novasObservacoes = observacoesAtuais 
+        ? `${observacoesAtuais}\n${observacaoAlteracao}`
+        : observacaoAlteracao;
+
+      await query(
+        `UPDATE mensalidades 
+         SET valor = $1, observacoes = $2, updated_at = CURRENT_TIMESTAMP 
+         WHERE id = $3`,
+        [novoValor, novasObservacoes, id]
+      );
+
+      logger.info(`Valor da mensalidade ${id} alterado de ${valorAnterior} para ${novoValor}. Motivo: ${data.motivo}`);
+    }
+
     return this.buscarMensalidadePorId(id);
   }
 

@@ -25,6 +25,7 @@ router.post('/matriculas/:id/cancelar', financeiroController.cancelarMatricula);
 router.get('/mensalidades', financeiroController.listarMensalidades);
 router.get('/mensalidades/inadimplentes', financeiroController.listarInadimplentes);
 router.get('/mensalidades/:id', financeiroController.buscarMensalidade);
+router.put('/mensalidades/:id', financeiroController.alterarValorMensalidade);
 router.post('/mensalidades/:id/pagar', financeiroController.registrarPagamentoMensalidade);
 
 // Despesas
