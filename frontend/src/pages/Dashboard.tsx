@@ -51,6 +51,7 @@ const mockMetrics: DashboardMetrics = {
     { mes: 'Dez', receita: 0, despesa: 0 },
     { mes: 'Jan', receita: 0, despesa: 0 },
   ],
+  inadimplentes: [],
 };
 
 export function Dashboard() {
@@ -297,30 +298,41 @@ export function Dashboard() {
 
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-semibold text-gray-900">Status das Mensalidades</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Lista de Inadimplentes</h2>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={metrics.mensalidadesPorStatus}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="quantidade"
-                    nameKey="status"
-                  >
-                    {metrics.mensalidadesPorStatus.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <div className="h-80 overflow-auto">
+              {metrics.inadimplentes && metrics.inadimplentes.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-3 gap-2 p-3 border-b border-gray-200 mb-2">
+                    <span className="font-semibold text-gray-600 text-sm uppercase">Aluno</span>
+                    <span className="font-semibold text-gray-600 text-sm uppercase">Telefone</span>
+                    <span className="font-semibold text-gray-600 text-sm uppercase text-right">Dívida</span>
+                  </div>
+                  <ul className="space-y-2">
+                    {metrics.inadimplentes.map((item, index) => (
+                      <li
+                        key={index}
+                        className="grid grid-cols-3 gap-2 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                      >
+                        <span className="font-medium text-gray-700 truncate" title={item.alunoNome}>
+                          {item.alunoNome}
+                        </span>
+                        <span className="text-gray-600 truncate" title={item.responsavelTelefone}>
+                          {item.responsavelTelefone}
+                        </span>
+                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded font-semibold text-right text-sm">
+                          {formatCurrency(item.totalDivida)}
+                        </span>
+                      </li>
                     ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+                  </ul>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  Nenhum aluno inadimplente
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
