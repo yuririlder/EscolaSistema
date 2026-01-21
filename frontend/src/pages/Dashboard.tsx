@@ -265,16 +265,32 @@ export function Dashboard() {
             <h2 className="text-lg font-semibold text-gray-900">Alunos por Turma</h2>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={metrics.alunosPorTurma}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="turma" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="quantidade" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="h-80 overflow-auto">
+              {metrics.alunosPorTurma.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between p-3 border-b border-gray-200 mb-2">
+                    <span className="font-semibold text-gray-600 text-sm uppercase">Série</span>
+                    <span className="font-semibold text-gray-600 text-sm uppercase">Alunos</span>
+                  </div>
+                  <ul className="space-y-3">
+                    {metrics.alunosPorTurma.map((item, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <span className="font-medium text-gray-700">{item.turma}</span>
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-semibold">
+                          {item.quantidade}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  Nenhuma turma cadastrada
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
