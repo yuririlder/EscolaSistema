@@ -198,71 +198,71 @@ export function Dashboard() {
       </div>
 
       {/* Cards financeiros */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
-          <CardContent className="flex items-center justify-between">
+          <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
-              <p className="text-sm text-gray-500">Receita</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-xs text-gray-500">Receita</p>
+              <p className="text-lg font-bold text-green-600">
                 {formatCurrency(metrics.receitaMensal)}
               </p>
             </div>
-            <TrendingUp size={32} className="text-green-500" />
+            <TrendingUp size={24} className="text-green-500" />
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="flex items-center justify-between">
+          <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
-              <p className="text-sm text-gray-500">Despesa</p>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-xs text-gray-500">Despesa</p>
+              <p className="text-lg font-bold text-red-600">
                 {formatCurrency(metrics.despesaMensal)}
               </p>
             </div>
-            <TrendingDown size={32} className="text-red-500" />
+            <TrendingDown size={24} className="text-red-500" />
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="flex items-center justify-between">
+          <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
-              <p className="text-sm text-gray-500">Resultado</p>
-              <p className={`text-2xl font-bold ${lucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className="text-xs text-gray-500">Resultado</p>
+              <p className={`text-lg font-bold ${lucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(lucro)}
               </p>
             </div>
             {lucro >= 0 ? (
-              <TrendingUp size={32} className="text-green-500" />
+              <TrendingUp size={24} className="text-green-500" />
             ) : (
-              <TrendingDown size={32} className="text-red-500" />
+              <TrendingDown size={24} className="text-red-500" />
             )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="flex items-center justify-between">
+          <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
-              <p className="text-sm text-gray-500">Pendente</p>
-              <p className="text-2xl font-bold text-orange-600">
+              <p className="text-xs text-gray-500">Pendente</p>
+              <p className="text-lg font-bold text-orange-600">
                 {formatCurrency(metrics.despesasPendentes)}
               </p>
             </div>
-            <Wallet size={32} className="text-orange-500" />
+            <Wallet size={24} className="text-orange-500" />
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="flex items-center justify-between">
+          <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
-              <p className="text-sm text-gray-500">Projeção</p>
-              <p className={`text-2xl font-bold ${(lucro - metrics.despesasPendentes) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+              <p className="text-xs text-gray-500">Projeção</p>
+              <p className={`text-lg font-bold ${(lucro - metrics.despesasPendentes) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
                 {formatCurrency(lucro - metrics.despesasPendentes)}
               </p>
             </div>
             {(lucro - metrics.despesasPendentes) >= 0 ? (
-              <TrendingUp size={32} className="text-blue-500" />
+              <TrendingUp size={24} className="text-blue-500" />
             ) : (
-              <TrendingDown size={32} className="text-red-500" />
+              <TrendingDown size={24} className="text-red-500" />
             )}
           </CardContent>
         </Card>
@@ -278,18 +278,20 @@ export function Dashboard() {
             <div className="h-80 overflow-auto">
               {metrics.alunosPorTurma.length > 0 ? (
                 <>
-                  <div className="flex items-center justify-between p-3 border-b border-gray-200 mb-2">
+                  <div className="grid grid-cols-3 gap-2 p-3 border-b border-gray-200 mb-2">
                     <span className="font-semibold text-gray-600 text-sm uppercase">Série</span>
-                    <span className="font-semibold text-gray-600 text-sm uppercase">Alunos</span>
+                    <span className="font-semibold text-gray-600 text-sm uppercase">Turno</span>
+                    <span className="font-semibold text-gray-600 text-sm uppercase text-right">Alunos</span>
                   </div>
                   <ul className="space-y-3">
                     {metrics.alunosPorTurma.map((item, index) => (
                       <li
                         key={index}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="grid grid-cols-3 gap-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                       >
-                        <span className="font-medium text-gray-700">{item.turma}</span>
-                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-semibold">
+                        <span className="font-medium text-gray-700">{item.serie}</span>
+                        <span className="text-gray-600">{item.turno}</span>
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-semibold text-center w-fit ml-auto">
                           {item.quantidade}
                         </span>
                       </li>
@@ -298,7 +300,7 @@ export function Dashboard() {
                 </>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
-                  Nenhuma turma cadastrada
+                  Nenhuma turma com alunos
                 </div>
               )}
             </div>

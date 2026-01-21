@@ -315,6 +315,14 @@ BEGIN
   END IF;
 END $$;
 
+-- Adicionar campo acrescimo em mensalidades se não existir
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='mensalidades' AND column_name='acrescimo') THEN
+    ALTER TABLE mensalidades ADD COLUMN acrescimo DECIMAL(10,2) DEFAULT 0;
+  END IF;
+END $$;
+
 -- Adicionar campo ativo em responsaveis se não existir (para soft delete)
 DO $$ 
 BEGIN 

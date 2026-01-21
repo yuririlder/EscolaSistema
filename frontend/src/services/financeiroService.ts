@@ -57,8 +57,18 @@ export const financeiroService = {
     return response.data;
   },
 
-  async pagarMensalidade(id: string, data: { formaPagamento: string }): Promise<Mensalidade> {
-    const response = await api.post<Mensalidade>(`/financeiro/mensalidades/${id}/pagar`, data);
+  async pagarMensalidade(id: string, data: { 
+    formaPagamento: string;
+    desconto?: { tipo: 'percentual' | 'valor'; valor: number; motivo: string };
+    acrescimo?: { tipo: 'percentual' | 'valor'; valor: number; motivo: string };
+    valorPago?: number;
+  }): Promise<Mensalidade> {
+    const response = await api.post<Mensalidade>(`/financeiro/mensalidades/${id}/pagar`, {
+      forma_pagamento: data.formaPagamento,
+      desconto: data.desconto,
+      acrescimo: data.acrescimo,
+      valor_pago: data.valorPago
+    });
     return response.data;
   },
 

@@ -361,13 +361,63 @@ class FinanceiroService {
       throw new Error('Mensalidade não encontrada');
     }
 
+    let valorBase = parseFloat(mensalidade.valor) || 0;
+    let descontoAplicado = 0;
+    let acrescimoAplicado = 0;
+    const observacoes: string[] = [];
+    const dataAtual = new Date().toISOString();
+
+    // Aplicar desconto se informado
+    if (data.desconto && data.desconto.valor > 0) {
+      if (!data.desconto.motivo || data.desconto.motivo.trim().length === 0) {
+        throw new Error('É necessário informar o motivo do desconto');
+      }
+      if (data.desconto.tipo === 'percentual') {
+        descontoAplicado = valorBase * (data.desconto.valor / 100);
+      } else {
+        descontoAplicado = data.desconto.valor;
+      }
+      observacoes.push(`[${dataAtual}] Desconto aplicado: R$ ${descontoAplicado.toFixed(2)} (${data.desconto.tipo === 'percentual' ? data.desconto.valor + '%' : 'valor fixo'}). Motivo: ${data.desconto.motivo}`);
+    }
+
+    // Aplicar acréscimo se informado
+    if (data.acrescimo && data.acrescimo.valor > 0) {
+      if (!data.acrescimo.motivo || data.acrescimo.motivo.trim().length === 0) {
+        throw new Error('É necessário informar o motivo do acréscimo');
+      }
+      if (data.acrescimo.tipo === 'percentual') {
+        acrescimoAplicado = valorBase * (data.acrescimo.valor / 100);
+      } else {
+        acrescimoAplicado = data.acrescimo.valor;
+      }
+      observacoes.push(`[${dataAtual}] Acréscimo aplicado: R$ ${acrescimoAplicado.toFixed(2)} (${data.acrescimo.tipo === 'percentual' ? data.acrescimo.valor + '%' : 'valor fixo'}). Motivo: ${data.acrescimo.motivo}`);
+    }
+
+    // Calcular valor final
+    const valorPago = data.valor_pago || Math.max(0, valorBase - descontoAplicado + acrescimoAplicado);
+
+    // Preparar observações
+    const observacoesAtuais = mensalidade.observacoes || '';
+    const novasObservacoes = observacoes.length > 0 
+      ? (observacoesAtuais ? observacoesAtuais + '\n' : '') + observacoes.join('\n')
+      : observacoesAtuais;
+
     const dataPagamento = new Date().toISOString().split('T')[0];
     await query(
-      "UPDATE mensalidades SET status = 'PAGO', valor_pago = $1, data_pagamento = $2, forma_pagamento = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4",
-      [data.valor_pago || mensalidade.valor, dataPagamento, data.forma_pagamento, id]
+      `UPDATE mensalidades SET 
+        status = 'PAGO', 
+        valor_pago = $1, 
+        data_pagamento = $2, 
+        forma_pagamento = $3, 
+        desconto = $4,
+        acrescimo = $5,
+        observacoes = $6,
+        updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $7`,
+      [valorPago, dataPagamento, data.forma_pagamento, descontoAplicado, acrescimoAplicado, novasObservacoes, id]
     );
 
-    logger.info(`Pagamento de mensalidade registrado: ${id}`);
+    logger.info(`Pagamento de mensalidade registrado: ${id}, valor: ${valorPago}, desconto: ${descontoAplicado}, acrescimo: ${acrescimoAplicado}`);
     return this.buscarMensalidadePorId(id);
   }
 
@@ -660,12 +710,13 @@ class FinanceiroService {
 
     // Alunos por turma
     const alunosPorTurma = await queryMany(
-      `SELECT t.nome as turma, COUNT(a.id) as quantidade 
+      `SELECT t.serie, t.turno, COUNT(a.id) as quantidade 
        FROM turmas t 
-       LEFT JOIN alunos a ON a.turma_id = t.id 
+       INNER JOIN alunos a ON a.turma_id = t.id 
        WHERE t.ativa = true 
-       GROUP BY t.id, t.nome 
-       ORDER BY t.nome`
+       GROUP BY t.id, t.serie, t.turno 
+       HAVING COUNT(a.id) > 0
+       ORDER BY t.serie, t.turno`
     );
 
     // Mensalidades por status (com lógica calculada)
@@ -728,7 +779,7 @@ class FinanceiroService {
       receitaMensal: parseFloat(receitaMes?.total || '0'),
       despesaMensal: parseFloat(despesasMes?.total || '0'),
       despesasPendentes: parseFloat(despesasPendentes?.total || '0'),
-      alunosPorTurma: alunosPorTurma.map((r: any) => ({ turma: r.turma, quantidade: parseInt(r.quantidade) })),
+      alunosPorTurma: alunosPorTurma.map((r: any) => ({ serie: r.serie, turno: r.turno, quantidade: parseInt(r.quantidade) })),
       mensalidadesPorStatus: mensalidadesPorStatus.map((r: any) => ({ status: r.status, quantidade: parseInt(r.quantidade) })),
       receitaVsDespesa,
       inadimplentes: await this.obterInadimplentes()
