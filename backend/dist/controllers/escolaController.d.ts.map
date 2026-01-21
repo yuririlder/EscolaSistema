@@ -1,1 +1,0 @@
-{"version":3,"file":"escolaController.d.ts","sourceRoot":"","sources":["../../src/controllers/escolaController.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAI5C,cAAM,gBAAgB;IACd,MAAM,CAAC,GAAG,EAAE,OAAO,EAAE,GAAG,EAAE,QAAQ;IAYlC,SAAS,CAAC,GAAG,EAAE,OAAO,EAAE,GAAG,EAAE,QAAQ;CAQ5C;AAED,eAAO,MAAM,gBAAgB,kBAAyB,CAAC"}
