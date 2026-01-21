@@ -660,12 +660,13 @@ class FinanceiroService {
 
     // Alunos por turma
     const alunosPorTurma = await queryMany(
-      `SELECT t.nome as turma, COUNT(a.id) as quantidade 
+      `SELECT t.serie, t.turno, COUNT(a.id) as quantidade 
        FROM turmas t 
-       LEFT JOIN alunos a ON a.turma_id = t.id 
+       INNER JOIN alunos a ON a.turma_id = t.id 
        WHERE t.ativa = true 
-       GROUP BY t.id, t.nome 
-       ORDER BY t.nome`
+       GROUP BY t.id, t.serie, t.turno 
+       HAVING COUNT(a.id) > 0
+       ORDER BY t.serie, t.turno`
     );
 
     // Mensalidades por status (com lógica calculada)
@@ -728,7 +729,7 @@ class FinanceiroService {
       receitaMensal: parseFloat(receitaMes?.total || '0'),
       despesaMensal: parseFloat(despesasMes?.total || '0'),
       despesasPendentes: parseFloat(despesasPendentes?.total || '0'),
-      alunosPorTurma: alunosPorTurma.map((r: any) => ({ turma: r.turma, quantidade: parseInt(r.quantidade) })),
+      alunosPorTurma: alunosPorTurma.map((r: any) => ({ serie: r.serie, turno: r.turno, quantidade: parseInt(r.quantidade) })),
       mensalidadesPorStatus: mensalidadesPorStatus.map((r: any) => ({ status: r.status, quantidade: parseInt(r.quantidade) })),
       receitaVsDespesa,
       inadimplentes: await this.obterInadimplentes()

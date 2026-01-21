@@ -294,7 +294,7 @@ export interface DashboardMetrics {
   receitaMensal: number;
   despesaMensal: number;
   despesasPendentes: number;
-  alunosPorTurma: { turma: string; quantidade: number }[];
+  alunosPorTurma: { serie: string; turno: string; quantidade: number }[];
   mensalidadesPorStatus: { status: string; quantidade: number }[];
   receitaVsDespesa: { mes: string; receita: number; despesa: number }[];
   inadimplentes: Inadimplente[];
