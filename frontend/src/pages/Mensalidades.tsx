@@ -11,7 +11,7 @@ import { escolaService } from '../services/escolaService';
 import { Search, DollarSign, Printer, ChevronDown, ChevronRight, User, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { gerarReciboMensalidadePDF } from '../utils/pdfGenerator';
-import { formatCurrencyInput, currencyToNumber } from '../utils/masks';
+import { formatCurrencyInput, currencyToNumber, formatPercentInput } from '../utils/masks';
 
 interface AlunoMensalidades {
   alunoId: string;
@@ -39,6 +39,14 @@ export function Mensalidades() {
   const [selectedMensalidade, setSelectedMensalidade] = useState<Mensalidade | null>(null);
   const [formaPagamento, setFormaPagamento] = useState('PIX');
   const [isPaying, setIsPaying] = useState(false);
+  
+  // Estados para desconto e acréscimo no pagamento
+  const [descontoTipo, setDescontoTipo] = useState<'percentual' | 'valor'>('valor');
+  const [descontoValor, setDescontoValor] = useState('');
+  const [descontoMotivo, setDescontoMotivo] = useState('');
+  const [acrescimoTipo, setAcrescimoTipo] = useState<'percentual' | 'valor'>('valor');
+  const [acrescimoValor, setAcrescimoValor] = useState('');
+  const [acrescimoMotivo, setAcrescimoMotivo] = useState('');
   const [escola, setEscola] = useState<DadosEscola | null>(null);
   
   // Estados para edição de valor
@@ -96,15 +104,17 @@ export function Mensalidades() {
       }
 
       grupos[alunoId].mensalidades.push(m);
-      const valor = mens.valor || mens.valorFinal || 0;
+      const valorOriginal = parseFloat(mens.valor) || 0;
+      const valorPago = parseFloat(mens.valor_pago) || 0;
 
       if (m.status === StatusMensalidade.PAGO) {
-        grupos[alunoId].totalPago += valor;
+        // Para mensalidades pagas, usar o valor_pago (que reflete desconto/acréscimo)
+        grupos[alunoId].totalPago += valorPago > 0 ? valorPago : valorOriginal;
       } else if (m.status === StatusMensalidade.PENDENTE || 
                  m.status === StatusMensalidade.ATRASADO || 
                  m.status === StatusMensalidade.VENCIDA ||
                  (m.status as string) === 'VENCIDA') {
-        grupos[alunoId].totalPendente += valor;
+        grupos[alunoId].totalPendente += valorOriginal;
       }
       // Mensalidades FUTURA não entram no total pendente
     });
@@ -148,22 +158,95 @@ export function Mensalidades() {
   const handleOpenPayModal = (mensalidade: Mensalidade) => {
     setSelectedMensalidade(mensalidade);
     setFormaPagamento('PIX');
+    setDescontoTipo('valor');
+    setDescontoValor('');
+    setDescontoMotivo('');
+    setAcrescimoTipo('valor');
+    setAcrescimoValor('');
+    setAcrescimoMotivo('');
     setIsPayModalOpen(true);
   };
 
   const handleClosePayModal = () => {
     setIsPayModalOpen(false);
     setSelectedMensalidade(null);
+    setDescontoValor('');
+    setDescontoMotivo('');
+    setAcrescimoValor('');
+    setAcrescimoMotivo('');
+  };
+
+  // Calcular valor final com desconto e acréscimo
+  const calcularValorFinal = () => {
+    if (!selectedMensalidade) return 0;
+    const mens = selectedMensalidade as any;
+    let valorBase = mens.valor || mens.valorFinal || 0;
+    
+    // Aplicar desconto
+    if (descontoValor) {
+      if (descontoTipo === 'percentual') {
+        const desconto = parseFloat(descontoValor) || 0;
+        valorBase -= valorBase * (desconto / 100);
+      } else {
+        const desconto = currencyToNumber(descontoValor);
+        valorBase -= desconto;
+      }
+    }
+    
+    // Aplicar acréscimo
+    if (acrescimoValor) {
+      if (acrescimoTipo === 'percentual') {
+        const acrescimo = parseFloat(acrescimoValor) || 0;
+        valorBase += valorBase * (acrescimo / 100);
+      } else {
+        const acrescimo = currencyToNumber(acrescimoValor);
+        valorBase += acrescimo;
+      }
+    }
+    
+    return Math.max(0, valorBase);
   };
 
   const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
   const handlePagar = async () => {
     if (!selectedMensalidade) return;
+    
+    // Validar motivos obrigatórios
+    if (descontoValor && !descontoMotivo.trim()) {
+      toast.error('Informe o motivo do desconto');
+      return;
+    }
+    if (acrescimoValor && !acrescimoMotivo.trim()) {
+      toast.error('Informe o motivo do acréscimo');
+      return;
+    }
+    
     setIsPaying(true);
 
     try {
-      await financeiroService.pagarMensalidade(selectedMensalidade.id, { formaPagamento });
+      const valorFinal = calcularValorFinal();
+      const desconto = descontoValor ? {
+        tipo: descontoTipo,
+        valor: descontoTipo === 'percentual' 
+          ? parseFloat(descontoValor) || 0 
+          : currencyToNumber(descontoValor),
+        motivo: descontoMotivo.trim()
+      } : undefined;
+      const acrescimo = acrescimoValor ? {
+        tipo: acrescimoTipo,
+        valor: acrescimoTipo === 'percentual' 
+          ? parseFloat(acrescimoValor) || 0 
+          : currencyToNumber(acrescimoValor),
+        motivo: acrescimoMotivo.trim()
+      } : undefined;
+      
+      await financeiroService.pagarMensalidade(selectedMensalidade.id, { 
+        formaPagamento,
+        desconto,
+        acrescimo,
+        valorPago: valorFinal
+      });
       toast.success('Pagamento registrado com sucesso!');
       
       // Gerar PDF do recibo
@@ -171,7 +254,6 @@ export function Mensalidades() {
       const mesRef = mens.mes_referencia || mens.mesReferencia || 1;
       const anoRef = mens.ano_referencia || mens.anoReferencia || '';
       const dataVencimento = mens.data_vencimento || mens.dataVencimento;
-      const valor = mens.valor || mens.valorFinal || 0;
       const alunoNome = mens.aluno_nome || '';
       const responsavelNome = mens.responsavel_nome || '';
       
@@ -182,7 +264,7 @@ export function Mensalidades() {
         anoReferencia: anoRef,
         dataVencimento: dataVencimento ? formatDate(dataVencimento) : '-',
         dataPagamento: formatDate(new Date().toISOString()),
-        valor,
+        valor: valorFinal,
         formaPagamento,
       }, escola || undefined);
       
@@ -204,7 +286,27 @@ export function Mensalidades() {
     const dataVencimento = mens.data_vencimento || mens.dataVencimento;
     const dataPagamento = mens.data_pagamento || mens.dataPagamento;
     const formaPag = mens.forma_pagamento || mens.formaPagamento || '-';
-    const valorFinal = mens.valor || mens.valorFinal || 0;
+    const valorOriginal = parseFloat(mens.valor) || 0;
+    const valorPago = parseFloat(mens.valor_pago) || valorOriginal;
+    const desconto = parseFloat(mens.desconto) || 0;
+    const acrescimo = parseFloat(mens.acrescimo) || 0;
+    
+    // Extrair motivos das observações se existirem
+    let descontoMotivo = '';
+    let acrescimoMotivo = '';
+    if (mens.observacoes) {
+      const obsLines = mens.observacoes.split('\n');
+      for (const line of obsLines) {
+        if (line.includes('Desconto aplicado') && line.includes('Motivo:')) {
+          const match = line.match(/Motivo:\s*(.+)$/);
+          if (match) descontoMotivo = match[1];
+        }
+        if (line.includes('Acréscimo aplicado') && line.includes('Motivo:')) {
+          const match = line.match(/Motivo:\s*(.+)$/);
+          if (match) acrescimoMotivo = match[1];
+        }
+      }
+    }
 
     gerarReciboMensalidadePDF({
       alunoNome,
@@ -213,7 +315,12 @@ export function Mensalidades() {
       anoReferencia: anoRef,
       dataVencimento: dataVencimento ? formatDate(dataVencimento) : '-',
       dataPagamento: dataPagamento ? formatDate(dataPagamento) : '-',
-      valor: valorFinal,
+      valor: valorPago,
+      valorOriginal: (desconto > 0 || acrescimo > 0) ? valorOriginal : undefined,
+      desconto: desconto > 0 ? desconto : undefined,
+      acrescimo: acrescimo > 0 ? acrescimo : undefined,
+      descontoMotivo: descontoMotivo || undefined,
+      acrescimoMotivo: acrescimoMotivo || undefined,
       formaPagamento: formaPag,
     }, escola || undefined);
   };
@@ -407,7 +514,13 @@ export function Mensalidades() {
                             const mesRef = mens.mes_referencia || mens.mesReferencia || 1;
                             const anoRef = mens.ano_referencia || mens.anoReferencia || '';
                             const dataVencimento = mens.data_vencimento || mens.dataVencimento;
-                            const valor = mens.valor || mens.valorFinal || 0;
+                            const valorOriginal = parseFloat(mens.valor) || 0;
+                            const valorPago = parseFloat(mens.valor_pago) || 0;
+                            const desconto = parseFloat(mens.desconto) || 0;
+                            const acrescimo = parseFloat(mens.acrescimo) || 0;
+                            const isPago = mensalidade.status === StatusMensalidade.PAGO || (mensalidade.status as string) === 'PAGO';
+                            const temAjuste = (desconto > 0 || acrescimo > 0);
+                            const valorExibir = isPago && valorPago > 0 ? valorPago : valorOriginal;
 
                             return (
                               <tr key={mensalidade.id} className="bg-white hover:bg-gray-50">
@@ -418,7 +531,17 @@ export function Mensalidades() {
                                   {dataVencimento ? formatDate(dataVencimento) : '-'}
                                 </td>
                                 <td className="px-6 py-3 text-sm font-medium text-gray-900">
-                                  {formatCurrency(valor)}
+                                  <div className="flex items-center gap-2">
+                                    <span>{formatCurrency(valorExibir)}</span>
+                                    {isPago && temAjuste && (
+                                      <span 
+                                        className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 cursor-help"
+                                        title={`Valor original: ${formatCurrency(valorOriginal)}${desconto > 0 ? `\nDesconto: -${formatCurrency(desconto)}` : ''}${acrescimo > 0 ? `\nAcréscimo: +${formatCurrency(acrescimo)}` : ''}`}
+                                      >
+                                        {desconto > 0 && acrescimo > 0 ? '±' : desconto > 0 ? '↓' : '↑'}
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="px-6 py-3">
                                   <Badge variant={getStatusVariant(mensalidade.status)}>
@@ -497,15 +620,109 @@ export function Mensalidades() {
                 : ''}
             </strong>
           </p>
-          <p className="text-2xl font-bold text-green-600">
-            {selectedMensalidade
-              ? formatCurrency(
-                  (selectedMensalidade as any).valor ||
-                    (selectedMensalidade as any).valorFinal ||
-                    0
-                )
-              : ''}
-          </p>
+          
+          {/* Valor original */}
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <p className="text-sm text-gray-500">Valor Original</p>
+            <p className="text-lg font-semibold text-gray-700">
+              {selectedMensalidade
+                ? formatCurrency(
+                    (selectedMensalidade as any).valor ||
+                      (selectedMensalidade as any).valorFinal ||
+                      0
+                  )
+                : ''}
+            </p>
+          </div>
+
+          {/* Desconto */}
+          <div className="border border-green-200 rounded-lg p-3 bg-green-50">
+            <p className="text-sm font-medium text-green-700 mb-2">Desconto (opcional)</p>
+            <div className="flex gap-2 mb-2">
+              <select
+                value={descontoTipo}
+                onChange={(e) => {
+                  setDescontoTipo(e.target.value as 'percentual' | 'valor');
+                  setDescontoValor('');
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="valor">R$</option>
+                <option value="percentual">%</option>
+              </select>
+              <input
+                type="text"
+                value={descontoValor}
+                onChange={(e) => {
+                  if (descontoTipo === 'percentual') {
+                    setDescontoValor(formatPercentInput(e.target.value));
+                  } else {
+                    setDescontoValor(formatCurrencyInput(e.target.value));
+                  }
+                }}
+                placeholder={descontoTipo === 'percentual' ? 'Ex: 10' : 'Ex: 50,00'}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            {descontoValor && (
+              <input
+                type="text"
+                value={descontoMotivo}
+                onChange={(e) => setDescontoMotivo(e.target.value)}
+                placeholder="Motivo do desconto (obrigatório)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            )}
+          </div>
+
+          {/* Acréscimo */}
+          <div className="border border-red-200 rounded-lg p-3 bg-red-50">
+            <p className="text-sm font-medium text-red-700 mb-2">Acréscimo (opcional)</p>
+            <div className="flex gap-2 mb-2">
+              <select
+                value={acrescimoTipo}
+                onChange={(e) => {
+                  setAcrescimoTipo(e.target.value as 'percentual' | 'valor');
+                  setAcrescimoValor('');
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="valor">R$</option>
+                <option value="percentual">%</option>
+              </select>
+              <input
+                type="text"
+                value={acrescimoValor}
+                onChange={(e) => {
+                  if (acrescimoTipo === 'percentual') {
+                    setAcrescimoValor(formatPercentInput(e.target.value));
+                  } else {
+                    setAcrescimoValor(formatCurrencyInput(e.target.value));
+                  }
+                }}
+                placeholder={acrescimoTipo === 'percentual' ? 'Ex: 5' : 'Ex: 25,00'}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            {acrescimoValor && (
+              <input
+                type="text"
+                value={acrescimoMotivo}
+                onChange={(e) => setAcrescimoMotivo(e.target.value)}
+                placeholder="Motivo do acréscimo (obrigatório)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            )}
+          </div>
+
+          {/* Valor Final */}
+          <div className="bg-primary-50 p-3 rounded-lg border-2 border-primary-200">
+            <p className="text-sm text-primary-600">Valor a Pagar</p>
+            <p className="text-2xl font-bold text-primary-700">
+              {formatCurrency(calcularValorFinal())}
+            </p>
+          </div>
+
           <Select
             label="Forma de Pagamento"
             value={formaPagamento}

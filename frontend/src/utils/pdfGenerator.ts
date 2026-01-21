@@ -94,6 +94,11 @@ interface DadosReciboMensalidade {
   dataVencimento: string;
   dataPagamento: string;
   valor: number;
+  valorOriginal?: number;
+  desconto?: number;
+  acrescimo?: number;
+  descontoMotivo?: string;
+  acrescimoMotivo?: string;
   formaPagamento: string;
   responsavelNome?: string;
 }
@@ -263,6 +268,55 @@ export const gerarReciboMensalidadePDF = (dados: DadosReciboMensalidade, escola?
   doc.text('Forma Pagamento:', 20, y);
   doc.setFont('helvetica', 'normal');
   doc.text(dados.formaPagamento, 70, y);
+  
+  // Detalhamento de valores (se houver desconto ou acréscimo)
+  if ((dados.desconto && dados.desconto > 0) || (dados.acrescimo && dados.acrescimo > 0)) {
+    y += 15;
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.3);
+    doc.line(20, y, pageWidth - 20, y);
+    
+    y += 10;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DETALHAMENTO DO VALOR', 20, y);
+    
+    y += lineHeight;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    
+    // Valor original
+    if (dados.valorOriginal && dados.valorOriginal > 0) {
+      doc.text('Valor Original:', 20, y);
+      doc.text(formatCurrency(dados.valorOriginal), pageWidth - 20, y, { align: 'right' });
+      y += 7;
+    }
+    
+    // Desconto
+    if (dados.desconto && dados.desconto > 0) {
+      doc.setTextColor(22, 163, 74); // Verde
+      doc.text(`Desconto${dados.descontoMotivo ? ` (${dados.descontoMotivo})` : ''}:`, 20, y);
+      doc.text(`- ${formatCurrency(dados.desconto)}`, pageWidth - 20, y, { align: 'right' });
+      y += 7;
+    }
+    
+    // Acréscimo
+    if (dados.acrescimo && dados.acrescimo > 0) {
+      doc.setTextColor(220, 38, 38); // Vermelho
+      doc.text(`Acréscimo${dados.acrescimoMotivo ? ` (${dados.acrescimoMotivo})` : ''}:`, 20, y);
+      doc.text(`+ ${formatCurrency(dados.acrescimo)}`, pageWidth - 20, y, { align: 'right' });
+      y += 7;
+    }
+    
+    doc.setTextColor(0);
+    doc.setDrawColor(200);
+    doc.line(20, y + 2, pageWidth - 20, y + 2);
+    y += 8;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Valor Final:', 20, y);
+    doc.text(formatCurrency(dados.valor), pageWidth - 20, y, { align: 'right' });
+  }
   
   // Valor destacado
   y += 20;
