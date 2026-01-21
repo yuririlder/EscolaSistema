@@ -435,7 +435,8 @@ export function Matriculas() {
             </p>
             <ul className="list-disc list-inside text-yellow-700 text-sm mt-2 space-y-1">
               <li>A matrícula será marcada como <strong>CANCELADA</strong></li>
-              <li>Mensalidades pendentes serão canceladas</li>
+              <li>Mensalidades <strong>vencidas</strong> serão <strong>preservadas</strong> para cobrança</li>
+              <li>Mensalidades <strong>futuras</strong> serão <strong>canceladas</strong></li>
               <li>O histórico escolar será <strong>preservado</strong></li>
             </ul>
           </div>

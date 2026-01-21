@@ -224,9 +224,10 @@ class FinanceiroService {
       [matricula.aluno_id]
     );
 
-    // Cancelar mensalidades pendentes
+    // Cancelar apenas mensalidades FUTURAS (que ainda não venceram)
+    // Mensalidades vencidas devem ser preservadas para cobrança
     await query(
-      "UPDATE mensalidades SET status = 'CANCELADO', updated_at = CURRENT_TIMESTAMP WHERE matricula_id = $1 AND status = 'PENDENTE'",
+      "UPDATE mensalidades SET status = 'CANCELADO', updated_at = CURRENT_TIMESTAMP WHERE matricula_id = $1 AND status = 'PENDENTE' AND data_vencimento >= CURRENT_DATE",
       [id]
     );
 
