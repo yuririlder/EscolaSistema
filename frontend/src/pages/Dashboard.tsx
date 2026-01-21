@@ -14,23 +14,16 @@ import {
   Wallet,
 } from 'lucide-react';
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   LineChart,
   Line,
   Legend,
 } from 'recharts';
 import toast from 'react-hot-toast';
-
-const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444'];
 
 // Dados mock para fallback
 const mockMetrics: DashboardMetrics = {
