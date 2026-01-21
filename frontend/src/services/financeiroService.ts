@@ -38,6 +38,11 @@ export const financeiroService = {
     return response.data;
   },
 
+  async cancelarMatricula(id: string): Promise<Matricula> {
+    const response = await api.post<Matricula>(`/financeiro/matriculas/${id}/cancelar`);
+    return response.data;
+  },
+
   // Mensalidades
   async listarMensalidades(): Promise<Mensalidade[]> {
     const response = await api.get<Mensalidade[]>('/financeiro/mensalidades');

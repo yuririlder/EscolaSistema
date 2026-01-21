@@ -224,9 +224,10 @@ class FinanceiroService {
       [matricula.aluno_id]
     );
 
-    // Cancelar mensalidades pendentes
+    // Cancelar apenas mensalidades FUTURAS (que ainda não venceram)
+    // Mensalidades vencidas devem ser preservadas para cobrança
     await query(
-      "UPDATE mensalidades SET status = 'CANCELADO', updated_at = CURRENT_TIMESTAMP WHERE matricula_id = $1 AND status = 'PENDENTE'",
+      "UPDATE mensalidades SET status = 'CANCELADO', updated_at = CURRENT_TIMESTAMP WHERE matricula_id = $1 AND status = 'PENDENTE' AND data_vencimento >= CURRENT_DATE",
       [id]
     );
 
@@ -650,6 +651,13 @@ class FinanceiroService {
       [mesAtual, anoAtual]
     );
 
+    // Total de despesas pendentes (não pagas)
+    const despesasPendentes = await queryOne(
+      `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
+       WHERE status != 'PAGO' AND status != 'CANCELADO'`,
+      []
+    );
+
     // Alunos por turma
     const alunosPorTurma = await queryMany(
       `SELECT t.nome as turma, COUNT(a.id) as quantidade 
@@ -719,10 +727,41 @@ class FinanceiroService {
       mensalidadesPendentes: parseInt(mensalidadesPendentes?.count || '0'),
       receitaMensal: parseFloat(receitaMes?.total || '0'),
       despesaMensal: parseFloat(despesasMes?.total || '0'),
+      despesasPendentes: parseFloat(despesasPendentes?.total || '0'),
       alunosPorTurma: alunosPorTurma.map((r: any) => ({ turma: r.turma, quantidade: parseInt(r.quantidade) })),
       mensalidadesPorStatus: mensalidadesPorStatus.map((r: any) => ({ status: r.status, quantidade: parseInt(r.quantidade) })),
-      receitaVsDespesa
+      receitaVsDespesa,
+      inadimplentes: await this.obterInadimplentes()
     };
+  }
+
+  async obterInadimplentes() {
+    // Busca os 10 maiores devedores (alunos com mensalidades atrasadas)
+    const inadimplentes = await queryMany(
+      `SELECT 
+         a.id as aluno_id,
+         a.nome as aluno_nome,
+         r.telefone as responsavel_telefone,
+         r.nome as responsavel_nome,
+         COALESCE(SUM(m.valor - COALESCE(m.desconto, 0) + COALESCE(m.multa, 0) + COALESCE(m.juros, 0)), 0) as total_divida
+       FROM alunos a
+       LEFT JOIN responsaveis r ON a.responsavel_id = r.id
+       INNER JOIN mensalidades m ON m.aluno_id = a.id
+       WHERE m.status NOT IN ('PAGO', 'CANCELADO') 
+         AND m.data_vencimento < CURRENT_DATE
+       GROUP BY a.id, a.nome, r.telefone, r.nome
+       HAVING COALESCE(SUM(m.valor - COALESCE(m.desconto, 0) + COALESCE(m.multa, 0) + COALESCE(m.juros, 0)), 0) > 0
+       ORDER BY total_divida DESC
+       LIMIT 5`
+    );
+
+    return inadimplentes.map((r: any) => ({
+      alunoId: r.aluno_id,
+      alunoNome: r.aluno_nome,
+      responsavelTelefone: r.responsavel_telefone || 'Não informado',
+      responsavelNome: r.responsavel_nome || 'Não informado',
+      totalDivida: parseFloat(r.total_divida || '0')
+    }));
   }
 
   async obterHistoricoAnual(ano: number) {

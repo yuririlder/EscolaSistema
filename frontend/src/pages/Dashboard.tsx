@@ -11,6 +11,7 @@ import {
   TrendingUp,
   TrendingDown,
   UserPlus,
+  Wallet,
 } from 'lucide-react';
 import {
   BarChart,
@@ -39,6 +40,7 @@ const mockMetrics: DashboardMetrics = {
   mensalidadesPendentes: 0,
   receitaMensal: 0,
   despesaMensal: 0,
+  despesasPendentes: 0,
   alunosPorTurma: [],
   mensalidadesPorStatus: [],
   receitaVsDespesa: [
@@ -49,6 +51,7 @@ const mockMetrics: DashboardMetrics = {
     { mes: 'Dez', receita: 0, despesa: 0 },
     { mes: 'Jan', receita: 0, despesa: 0 },
   ],
+  inadimplentes: [],
 };
 
 export function Dashboard() {
@@ -202,11 +205,11 @@ export function Dashboard() {
       </div>
 
       {/* Cards financeiros */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardContent className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Receita Mensal</p>
+              <p className="text-sm text-gray-500">Receita</p>
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(metrics.receitaMensal)}
               </p>
@@ -218,7 +221,7 @@ export function Dashboard() {
         <Card>
           <CardContent className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Despesa Mensal</p>
+              <p className="text-sm text-gray-500">Despesa</p>
               <p className="text-2xl font-bold text-red-600">
                 {formatCurrency(metrics.despesaMensal)}
               </p>
@@ -242,6 +245,34 @@ export function Dashboard() {
             )}
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Pendente</p>
+              <p className="text-2xl font-bold text-orange-600">
+                {formatCurrency(metrics.despesasPendentes)}
+              </p>
+            </div>
+            <Wallet size={32} className="text-orange-500" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Projeção</p>
+              <p className={`text-2xl font-bold ${(lucro - metrics.despesasPendentes) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                {formatCurrency(lucro - metrics.despesasPendentes)}
+              </p>
+            </div>
+            {(lucro - metrics.despesasPendentes) >= 0 ? (
+              <TrendingUp size={32} className="text-blue-500" />
+            ) : (
+              <TrendingDown size={32} className="text-red-500" />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Gráficos */}
@@ -251,46 +282,73 @@ export function Dashboard() {
             <h2 className="text-lg font-semibold text-gray-900">Alunos por Turma</h2>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={metrics.alunosPorTurma}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="turma" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="quantidade" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="h-80 overflow-auto">
+              {metrics.alunosPorTurma.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between p-3 border-b border-gray-200 mb-2">
+                    <span className="font-semibold text-gray-600 text-sm uppercase">Série</span>
+                    <span className="font-semibold text-gray-600 text-sm uppercase">Alunos</span>
+                  </div>
+                  <ul className="space-y-3">
+                    {metrics.alunosPorTurma.map((item, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <span className="font-medium text-gray-700">{item.turma}</span>
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-semibold">
+                          {item.quantidade}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  Nenhuma turma cadastrada
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-semibold text-gray-900">Status das Mensalidades</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Lista de Inadimplentes</h2>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={metrics.mensalidadesPorStatus}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="quantidade"
-                    nameKey="status"
-                  >
-                    {metrics.mensalidadesPorStatus.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <div className="h-80 overflow-auto">
+              {metrics.inadimplentes && metrics.inadimplentes.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-3 gap-2 p-3 border-b border-gray-200 mb-2">
+                    <span className="font-semibold text-gray-600 text-sm uppercase">Aluno</span>
+                    <span className="font-semibold text-gray-600 text-sm uppercase">Telefone</span>
+                    <span className="font-semibold text-gray-600 text-sm uppercase text-right">Dívida</span>
+                  </div>
+                  <ul className="space-y-2">
+                    {metrics.inadimplentes.map((item, index) => (
+                      <li
+                        key={index}
+                        className="grid grid-cols-3 gap-2 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                      >
+                        <span className="font-medium text-gray-700 truncate" title={item.alunoNome}>
+                          {item.alunoNome}
+                        </span>
+                        <span className="text-gray-600 truncate" title={item.responsavelTelefone}>
+                          {item.responsavelTelefone}
+                        </span>
+                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded font-semibold text-right text-sm">
+                          {formatCurrency(item.totalDivida)}
+                        </span>
+                      </li>
                     ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+                  </ul>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  Nenhum aluno inadimplente
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

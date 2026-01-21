@@ -278,6 +278,14 @@ export interface AuthResponse {
   usuario: Usuario;
 }
 
+export interface Inadimplente {
+  alunoId: string;
+  alunoNome: string;
+  responsavelTelefone: string;
+  responsavelNome: string;
+  totalDivida: number;
+}
+
 export interface DashboardMetrics {
   totalAlunos: number;
   totalProfessores: number;
@@ -285,9 +293,11 @@ export interface DashboardMetrics {
   mensalidadesPendentes: number;
   receitaMensal: number;
   despesaMensal: number;
+  despesasPendentes: number;
   alunosPorTurma: { turma: string; quantidade: number }[];
   mensalidadesPorStatus: { status: string; quantidade: number }[];
   receitaVsDespesa: { mes: string; receita: number; despesa: number }[];
+  inadimplentes: Inadimplente[];
 }
 
 // API Response
