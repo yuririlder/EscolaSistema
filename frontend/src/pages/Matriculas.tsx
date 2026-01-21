@@ -10,7 +10,7 @@ import { Autocomplete } from '../components/ui/Autocomplete';
 import { Matricula, Aluno, PlanoMensalidade, StatusMatricula } from '../types';
 import { financeiroService } from '../services/financeiroService';
 import { alunoService } from '../services/alunoService';
-import { Plus, Pencil, Search, Printer } from 'lucide-react';
+import { Plus, Pencil, Search, Printer, UserX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatCurrencyInput, currencyToNumber, formatNumberInput } from '../utils/masks';
 import { gerarTermoMatriculaPDF } from '../utils/pdfGenerator';
@@ -34,6 +34,9 @@ export function Matriculas() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMatricula, setEditingMatricula] = useState<Matricula | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [matriculaToCancel, setMatriculaToCancel] = useState<Matricula | null>(null);
+  const [isCanceling, setIsCanceling] = useState(false);
   const [formData, setFormData] = useState({
     alunoId: '',
     planoMensalidadeId: '',
@@ -97,6 +100,32 @@ export function Matriculas() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingMatricula(null);
+  };
+
+  const handleOpenConfirmCancel = (matricula: Matricula) => {
+    setMatriculaToCancel(matricula);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleCloseConfirmModal = () => {
+    setIsConfirmModalOpen(false);
+    setMatriculaToCancel(null);
+  };
+
+  const handleCancelarMatricula = async () => {
+    if (!matriculaToCancel) return;
+    
+    setIsCanceling(true);
+    try {
+      await financeiroService.cancelarMatricula(matriculaToCancel.id);
+      toast.success('Matrícula cancelada com sucesso! O histórico escolar foi preservado.');
+      handleCloseConfirmModal();
+      loadData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao cancelar matrícula');
+    } finally {
+      setIsCanceling(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -246,21 +275,34 @@ export function Matriculas() {
     {
       key: 'actions',
       header: 'Ações',
-      render: (matricula: Matricula) => (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handlePrint(matricula)}
-            title="Imprimir Termo"
-          >
-            <Printer size={16} className="text-blue-500" />
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => handleOpenModal(matricula)}>
-            <Pencil size={16} />
-          </Button>
-        </div>
-      ),
+      render: (matricula: Matricula) => {
+        const isAtiva = matricula.status === StatusMatricula.ATIVA;
+        return (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handlePrint(matricula)}
+              title="Imprimir Termo"
+            >
+              <Printer size={16} className="text-blue-500" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => handleOpenModal(matricula)} title="Editar">
+              <Pencil size={16} />
+            </Button>
+            {isAtiva && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleOpenConfirmCancel(matricula)}
+                title="Desmatricular"
+              >
+                <UserX size={16} className="text-red-500" />
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -377,6 +419,56 @@ export function Matriculas() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal de Confirmação de Desmatrícula */}
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={handleCloseConfirmModal}
+        title="Confirmar Desmatrícula"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800 text-sm">
+              <strong>Atenção:</strong> Ao desmatricular o aluno, as seguintes ações serão realizadas:
+            </p>
+            <ul className="list-disc list-inside text-yellow-700 text-sm mt-2 space-y-1">
+              <li>A matrícula será marcada como <strong>CANCELADA</strong></li>
+              <li>Mensalidades pendentes serão canceladas</li>
+              <li>O histórico escolar será <strong>preservado</strong></li>
+            </ul>
+          </div>
+          
+          {matriculaToCancel && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-gray-700">
+                <strong>Aluno:</strong> {(matriculaToCancel as any).aluno?.nome || (matriculaToCancel as any).aluno_nome}
+              </p>
+              <p className="text-gray-700">
+                <strong>Ano Letivo:</strong> {(matriculaToCancel as any).anoLetivo || (matriculaToCancel as any).ano_letivo}
+              </p>
+            </div>
+          )}
+
+          <p className="text-gray-600">
+            Deseja realmente desmatricular este aluno?
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="secondary" onClick={handleCloseConfirmModal}>
+              Cancelar
+            </Button>
+            <Button 
+              type="button" 
+              variant="danger" 
+              onClick={handleCancelarMatricula}
+              isLoading={isCanceling}
+            >
+              Confirmar Desmatrícula
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
