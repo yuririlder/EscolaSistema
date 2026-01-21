@@ -205,11 +205,11 @@ export function Dashboard() {
       </div>
 
       {/* Cards financeiros */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardContent className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Receita Mensal</p>
+              <p className="text-sm text-gray-500">Receita</p>
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(metrics.receitaMensal)}
               </p>
@@ -221,7 +221,7 @@ export function Dashboard() {
         <Card>
           <CardContent className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Despesa Mensal</p>
+              <p className="text-sm text-gray-500">Despesa</p>
               <p className="text-2xl font-bold text-red-600">
                 {formatCurrency(metrics.despesaMensal)}
               </p>
@@ -249,12 +249,28 @@ export function Dashboard() {
         <Card>
           <CardContent className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Despesas Pendentes</p>
+              <p className="text-sm text-gray-500">Pendente</p>
               <p className="text-2xl font-bold text-orange-600">
                 {formatCurrency(metrics.despesasPendentes)}
               </p>
             </div>
             <Wallet size={32} className="text-orange-500" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Projeção</p>
+              <p className={`text-2xl font-bold ${(lucro - metrics.despesasPendentes) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                {formatCurrency(lucro - metrics.despesasPendentes)}
+              </p>
+            </div>
+            {(lucro - metrics.despesasPendentes) >= 0 ? (
+              <TrendingUp size={32} className="text-blue-500" />
+            ) : (
+              <TrendingDown size={32} className="text-red-500" />
+            )}
           </CardContent>
         </Card>
       </div>
