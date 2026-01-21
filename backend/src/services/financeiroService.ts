@@ -650,6 +650,13 @@ class FinanceiroService {
       [mesAtual, anoAtual]
     );
 
+    // Total de despesas pendentes (não pagas)
+    const despesasPendentes = await queryOne(
+      `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
+       WHERE status != 'PAGO' AND status != 'CANCELADO'`,
+      []
+    );
+
     // Alunos por turma
     const alunosPorTurma = await queryMany(
       `SELECT t.nome as turma, COUNT(a.id) as quantidade 
@@ -719,6 +726,7 @@ class FinanceiroService {
       mensalidadesPendentes: parseInt(mensalidadesPendentes?.count || '0'),
       receitaMensal: parseFloat(receitaMes?.total || '0'),
       despesaMensal: parseFloat(despesasMes?.total || '0'),
+      despesasPendentes: parseFloat(despesasPendentes?.total || '0'),
       alunosPorTurma: alunosPorTurma.map((r: any) => ({ turma: r.turma, quantidade: parseInt(r.quantidade) })),
       mensalidadesPorStatus: mensalidadesPorStatus.map((r: any) => ({ status: r.status, quantidade: parseInt(r.quantidade) })),
       receitaVsDespesa

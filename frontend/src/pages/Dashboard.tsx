@@ -11,6 +11,7 @@ import {
   TrendingUp,
   TrendingDown,
   UserPlus,
+  Wallet,
 } from 'lucide-react';
 import {
   BarChart,
@@ -39,6 +40,7 @@ const mockMetrics: DashboardMetrics = {
   mensalidadesPendentes: 0,
   receitaMensal: 0,
   despesaMensal: 0,
+  despesasPendentes: 0,
   alunosPorTurma: [],
   mensalidadesPorStatus: [],
   receitaVsDespesa: [
@@ -202,7 +204,7 @@ export function Dashboard() {
       </div>
 
       {/* Cards financeiros */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardContent className="flex items-center justify-between">
             <div>
@@ -240,6 +242,18 @@ export function Dashboard() {
             ) : (
               <TrendingDown size={32} className="text-red-500" />
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Despesas Pendentes</p>
+              <p className="text-2xl font-bold text-orange-600">
+                {formatCurrency(metrics.despesasPendentes)}
+              </p>
+            </div>
+            <Wallet size={32} className="text-orange-500" />
           </CardContent>
         </Card>
       </div>
