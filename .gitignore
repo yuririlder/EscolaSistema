@@ -1,9 +1,16 @@
 # Dependencies
 node_modules/
+**/node_modules/
 
-# Build outputs
+# Build outputs - GENERATED FILES
 dist/
 build/
+**/dist/
+**/build/
+
+# Package manager lock files (opcional - depende da equipe)
+package-lock.json
+yarn.lock
 
 # Environment files
 .env
@@ -30,13 +37,21 @@ Thumbs.db
 *.sqlite3
 data/*.db
 
-# Tauri
+# Tauri specific
 frontend/src-tauri/target/
-frontend/node_modules/*
-frontend/node_modules/.*
-node_modules/
-/node_modules/
-**/node_modules/
-logs
-backend/logs*
-backend/logs*/*.log
+
+# Cache directories
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
