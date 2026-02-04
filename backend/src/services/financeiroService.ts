@@ -673,23 +673,37 @@ class FinanceiroService {
   // ==================== DASHBOARD ====================
 
   async obterDashboard() {
-    const mesAtual = new Date().getMonth() + 1;
-    const anoAtual = new Date().getFullYear();
+    const agora = new Date();
+    const mesAtual = agora.getMonth() + 1;
+    const anoAtual = agora.getFullYear();
+    
+    // Calcula o primeiro e último dia do mês atual
+    const primeiroDiaMes = new Date(anoAtual, mesAtual - 1, 1);
+    const ultimoDiaMes = new Date(anoAtual, mesAtual, 0); // Dia 0 do próximo mês = último dia do mês atual
+    
+    const dataInicio = primeiroDiaMes.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
+    const dataFim = ultimoDiaMes.toISOString().split('T')[0];
 
     const totalAlunos = await queryOne('SELECT COUNT(*) as count FROM alunos', []);
     const totalProfessores = await queryOne('SELECT COUNT(*) as count FROM professores p INNER JOIN funcionarios f ON p.funcionario_id = f.id WHERE f.ativo = true', []);
     const totalTurmas = await queryOne('SELECT COUNT(*) as count FROM turmas WHERE ativa = true', []);
     
+    // Receita: mensalidades pagas no mês atual (data_pagamento entre primeiro e último dia do mês)
     const receitaMes = await queryOne(
       `SELECT COALESCE(SUM(valor_pago), 0) as total FROM mensalidades 
-       WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`,
-      [mesAtual, anoAtual]
+       WHERE status = 'PAGO' 
+       AND data_pagamento::date >= $1::date 
+       AND data_pagamento::date <= $2::date`,
+      [dataInicio, dataFim]
     );
     
+    // Despesa: despesas pagas no mês atual (data_pagamento entre primeiro e último dia do mês)
     const despesasMes = await queryOne(
       `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
-       WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`,
-      [mesAtual, anoAtual]
+       WHERE status = 'PAGO' 
+       AND data_pagamento::date >= $1::date 
+       AND data_pagamento::date <= $2::date`,
+      [dataInicio, dataFim]
     );
     
     const mensalidadesPendentes = await queryOne(
@@ -702,11 +716,13 @@ class FinanceiroService {
       [mesAtual, anoAtual]
     );
 
-    // Total de despesas pendentes (não pagas)
+    // Total de despesas pendentes do mês atual (não pagas, com vencimento no mês atual)
     const despesasPendentes = await queryOne(
       `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
-       WHERE status != 'PAGO' AND status != 'CANCELADO'`,
-      []
+       WHERE status != 'PAGO' AND status != 'CANCELADO'
+       AND data_vencimento::date >= $1::date 
+       AND data_vencimento::date <= $2::date`,
+      [dataInicio, dataFim]
     );
 
     // Alunos por turma

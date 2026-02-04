@@ -86,6 +86,28 @@ export function Dashboard() {
     }).format(value);
   };
 
+  // Obter período do mês atual (primeiro e último dia)
+  const getMesAtualInfo = () => {
+    const agora = new Date();
+    const mesAtual = agora.getMonth();
+    const anoAtual = agora.getFullYear();
+    const primeiroDia = new Date(anoAtual, mesAtual, 1);
+    const ultimoDia = new Date(anoAtual, mesAtual + 1, 0);
+    
+    const nomeMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    return {
+      nome: nomeMeses[mesAtual],
+      ano: anoAtual,
+      primeiroDia: primeiroDia.getDate().toString().padStart(2, '0'),
+      ultimoDia: ultimoDia.getDate().toString().padStart(2, '0'),
+      mesFormatado: (mesAtual + 1).toString().padStart(2, '0')
+    };
+  };
+
+  const mesInfo = getMesAtualInfo();
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -198,7 +220,14 @@ export function Dashboard() {
       </div>
 
       {/* Cards financeiros */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-700">Financeiro do Mês</h2>
+          <span className="text-sm text-gray-500">
+            {mesInfo.primeiroDia}/{mesInfo.mesFormatado} a {mesInfo.ultimoDia}/{mesInfo.mesFormatado}/{mesInfo.ano} ({mesInfo.nome})
+          </span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
@@ -266,6 +295,7 @@ export function Dashboard() {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Gráficos */}
