@@ -101,6 +101,7 @@ interface DadosReciboMensalidade {
   acrescimoMotivo?: string;
   formaPagamento: string;
   responsavelNome?: string;
+  responsavelCpf?: string;
 }
 
 interface DadosReciboDespesa {
@@ -227,7 +228,9 @@ export const gerarReciboMensalidadePDF = (dados: DadosReciboMensalidade, escola?
   doc.setTextColor(0);
   
   const valorFormatado = formatCurrency(dados.valor);
-  const declaracao = `Declaramos para os devidos fins que recebemos de ${dados.responsavelNome || dados.alunoNome} o valor de ${valorFormatado} (${valorPorExtenso(dados.valor)}), referente à mensalidade do mês de ${dados.mesReferencia}/${dados.anoReferencia} do(a) aluno(a) ${dados.alunoNome}.`;
+  const nomeResponsavel = dados.responsavelNome || dados.alunoNome;
+  const cpfResponsavel = dados.responsavelCpf ? `, CPF: ${dados.responsavelCpf}` : '';
+  const declaracao = `Declaramos para os devidos fins que recebemos de ${nomeResponsavel}${cpfResponsavel} o valor de ${valorFormatado} (${valorPorExtenso(dados.valor)}), referente à mensalidade do mês de ${dados.mesReferencia}/${dados.anoReferencia} do(a) aluno(a) ${dados.alunoNome}.`;
   const splitDeclaracao = doc.splitTextToSize(declaracao, pageWidth - 40);
   doc.text(splitDeclaracao, 20, y);
   
