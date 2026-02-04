@@ -256,10 +256,12 @@ export function Mensalidades() {
       const dataVencimento = mens.data_vencimento || mens.dataVencimento;
       const alunoNome = mens.aluno_nome || '';
       const responsavelNome = mens.responsavel_nome || '';
+      const responsavelCpf = mens.responsavel_cpf || '';
       
       gerarReciboMensalidadePDF({
         alunoNome,
         responsavelNome,
+        responsavelCpf,
         mesReferencia: meses[mesRef - 1],
         anoReferencia: anoRef,
         dataVencimento: dataVencimento ? formatDate(dataVencimento) : '-',
@@ -281,6 +283,7 @@ export function Mensalidades() {
     const mens = mensalidade as any;
     const alunoNome = mens.aluno_nome || '-';
     const responsavelNome = mens.responsavel_nome || '';
+    const responsavelCpf = mens.responsavel_cpf || '';
     const mesRef = mens.mes_referencia || mens.mesReferencia || 1;
     const anoRef = mens.ano_referencia || mens.anoReferencia || '';
     const dataVencimento = mens.data_vencimento || mens.dataVencimento;
@@ -311,6 +314,7 @@ export function Mensalidades() {
     gerarReciboMensalidadePDF({
       alunoNome,
       responsavelNome,
+      responsavelCpf,
       mesReferencia: meses[mesRef - 1],
       anoReferencia: anoRef,
       dataVencimento: dataVencimento ? formatDate(dataVencimento) : '-',
