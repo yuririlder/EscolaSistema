@@ -149,6 +149,32 @@ const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
+// Renderiza texto justificado (distribuindo espaços entre as palavras)
+const renderJustifiedText = (doc: jsPDF, text: string, x: number, y: number, maxWidth: number, lineHeight: number): number => {
+  const lines = doc.splitTextToSize(text, maxWidth) as string[];
+  lines.forEach((line, i) => {
+    const isLast = i === lines.length - 1;
+    if (isLast) {
+      doc.text(line, x, y);
+    } else {
+      const words = line.trim().split(' ');
+      if (words.length <= 1) {
+        doc.text(line, x, y);
+      } else {
+        const totalWordsWidth = words.reduce((sum, w) => sum + doc.getTextWidth(w), 0);
+        const gap = (maxWidth - totalWordsWidth) / (words.length - 1);
+        let curX = x;
+        words.forEach((word, wi) => {
+          doc.text(word, curX, y);
+          curX += doc.getTextWidth(word) + gap;
+        });
+      }
+    }
+    y += lineHeight;
+  });
+  return y;
+};
+
 // Função auxiliar para formatar data
 const formatDate = (date: string | Date): string => {
   if (!date) return '-';
@@ -976,10 +1002,87 @@ export const gerarFichaCompletaAlunoPDF = (dados: DadosFichaCompletaAluno, escol
   doc.output('dataurlnewwindow');
 };
 
+// ==================== TERMO DE DECLARAÇÃO DE TRANSFERÊNCIA ====================
+interface DadosTermoTransferencia {
+  alunoNome: string;
+  alunoDataNascimento?: string | Date;
+  alunoCpf?: string;
+  nomePai?: string;
+  nomeMae?: string;
+  serieTurma?: string;
+  anoLetivo?: string | number;
+  escolaDestino?: string;
+  enderecoEscolaDestino?: string;
+  dataInicioMatricula?: string | Date;
+  dataDesativacao?: string | Date;
+}
+
+export const gerarTermoTransferenciaPDF = (dados: DadosTermoTransferencia, escola?: DadosEscola): void => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 20;
+  const textWidth = pageWidth - margin * 2;
+
+  let y = addHeader(doc, 'DECLARAÇÃO DE TRANSFERÊNCIA', escola);
+
+  const dataPorExtenso = new Date().toLocaleDateString('pt-BR', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
+
+  // Construir o texto do termo como parágrafo corrido conforme o modelo
+  const escolaNome = escola?.nome || '___________________________';
+  const escolaEndereco = escola?.endereco || '___________________________';
+  const escolaCnpj = escola?.cnpj || '___________________________';
+  const escolaEmail = escola?.email || '___________________________';
+
+  const alunoNome = dados.alunoNome || '___________________________';
+  const pai = dados.nomePai || '___________________________';
+  const mae = dados.nomeMae || '___________________________';
+  const dataNasc = dados.alunoDataNascimento ? formatDate(dados.alunoDataNascimento) : '___________________________';
+  const cpf = dados.alunoCpf || '___________________________';
+  const serie = dados.serieTurma || '___________________________';
+  const ano = dados.anoLetivo ? String(dados.anoLetivo) : '___________________________';
+  const destino = dados.escolaDestino || '___________________________';
+  const enderecoDestino = dados.enderecoEscolaDestino || '___________________________';
+  const dataInicio = dados.dataInicioMatricula ? formatDate(dados.dataInicioMatricula) : '___________________________';
+
+  const paragrafo = `A ${escolaNome}, situada à ${escolaEndereco}, CNPJ n° ${escolaCnpj}, endereço eletrônico ${escolaEmail}, Declara para os devidos fins que o(a) aluno(a) ${alunoNome}, filho(a) de ${pai} e ${mae}, nascido(a) em ${dataNasc}, CPF n° ${cpf}, devidamente matriculado(a) na série ${serie}, no período letivo de ${ano}, solicitou a transferência para a Escola ${destino}, localizada à ${enderecoDestino}. Esclarecemos que o(a) aluno(a) acima mencionado(a) esteve regularmente matriculado(a) nesta instituição desde ${dataInicio} até a data da presente declaração.`;
+
+  y += 10;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0);
+
+  y = renderJustifiedText(doc, paragrafo, margin, y, textWidth, 7);
+  y += 10;
+
+  // Data da declaração
+  doc.setFontSize(11);
+  doc.text(`${escola?.nome || 'Local'}, ${dataPorExtenso}.`, margin, y);
+
+  // Assinaturas
+  y += 30;
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.5);
+
+  doc.line(margin, y, margin + 70, y);
+  doc.setFontSize(9);
+  doc.text('Diretor(a) / Coordenador(a)', margin + 35, y + 5, { align: 'center' });
+  doc.text(escola?.nome || '', margin + 35, y + 10, { align: 'center' });
+
+  doc.line(pageWidth - margin - 70, y, pageWidth - margin, y);
+  doc.text('Assinatura do Responsável', pageWidth - margin - 35, y + 5, { align: 'center' });
+  doc.text(alunoNome, pageWidth - margin - 35, y + 10, { align: 'center' });
+
+  addFooter(doc);
+  doc.output('dataurlnewwindow');
+};
+
 export default {
   gerarReciboMensalidadePDF,
   gerarReciboDespesaPDF,
   gerarReciboPagamentoFuncionarioPDF,
   gerarTermoMatriculaPDF,
   gerarFichaCompletaAlunoPDF,
+  gerarTermoTransferenciaPDF,
 };

@@ -7,6 +7,11 @@ export const alunoService = {
     return response.data;
   },
 
+  async listarInativos(): Promise<Aluno[]> {
+    const response = await api.get<Aluno[]>('/alunos?ativo=false');
+    return response.data;
+  },
+
   async obterPorId(id: string): Promise<Aluno> {
     const response = await api.get<Aluno>(`/alunos/${id}`);
     return response.data;

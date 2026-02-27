@@ -16,10 +16,12 @@ class AlunoController {
 
   async listar(req: Request, res: Response) {
     try {
-      const { matriculados, responsavelId, turmaId } = req.query;
+      const { matriculados, responsavelId, turmaId, ativo } = req.query;
 
       let alunos;
-      if (matriculados === 'true') {
+      if (ativo === 'false') {
+        alunos = await alunoService.buscarInativos();
+      } else if (matriculados === 'true') {
         alunos = await alunoService.buscarMatriculados();
       } else if (responsavelId) {
         alunos = await alunoService.buscarPorResponsavel(responsavelId as string);
