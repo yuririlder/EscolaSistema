@@ -168,6 +168,16 @@ export interface Aluno {
   // Considerações
   consideracoes?: string;
   observacoes?: string;
+  // Filiação
+  nome_pai?: string;
+  nome_mae?: string;
+  // Transferência
+  escola_destino?: string;
+  endereco_escola_destino?: string;
+  data_desativacao?: string;
+  // Status
+  ativo?: boolean;
+  rg?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

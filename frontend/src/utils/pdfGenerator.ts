@@ -164,7 +164,7 @@ const renderJustifiedText = (doc: jsPDF, text: string, x: number, y: number, max
         const totalWordsWidth = words.reduce((sum, w) => sum + doc.getTextWidth(w), 0);
         const gap = (maxWidth - totalWordsWidth) / (words.length - 1);
         let curX = x;
-        words.forEach((word, wi) => {
+        words.forEach((word, _i) => {
           doc.text(word, curX, y);
           curX += doc.getTextWidth(word) + gap;
         });
