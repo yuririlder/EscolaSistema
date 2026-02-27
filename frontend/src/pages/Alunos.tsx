@@ -15,7 +15,7 @@ import { responsavelService } from '../services/responsavelService';
 import { turmaService } from '../services/turmaService';
 import { historicoEscolarService } from '../services/historicoEscolarService';
 import { removeMask } from '../utils/masks';
-import { Plus, Search, AlertCircle, Heart, FileCheck, UserCheck } from 'lucide-react';
+import { Plus, Search, AlertCircle, Heart, FileCheck, UserCheck, UserX, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const PARENTESCO_OPTIONS = [
@@ -39,6 +39,7 @@ export function Alunos() {
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filtroAtivo, setFiltroAtivo] = useState<'ativos' | 'inativos'>('ativos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTurmaModalOpen, setIsTurmaModalOpen] = useState(false);
   const [editingAluno, setEditingAluno] = useState<Aluno | null>(null);
@@ -48,6 +49,7 @@ export function Alunos() {
 
 
   const { alunoId, openPainel, closePainel } = usePainelAluno();
+  const [painelRefreshKey, setPainelRefreshKey] = useState(0);
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -57,6 +59,8 @@ export function Alunos() {
     responsavel_id: '',
     parentesco_responsavel: '',
     turma_id: '',
+    nome_pai: '',
+    nome_mae: '',
     // Contatos de emergência
     contato1_nome: '',
     contato1_telefone: '',
@@ -95,12 +99,12 @@ export function Alunos() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [filtroAtivo]);
 
   const loadData = async () => {
     try {
       const [alunosData, responsaveisData, turmasData] = await Promise.all([
-        alunoService.listar(),
+        filtroAtivo === 'inativos' ? alunoService.listarInativos() : alunoService.listar(),
         responsavelService.listar(),
         turmaService.listar(),
       ]);
@@ -123,6 +127,8 @@ export function Alunos() {
       responsavel_id: '',
       parentesco_responsavel: '',
       turma_id: '',
+      nome_pai: '',
+      nome_mae: '',
       contato1_nome: '',
       contato1_telefone: '',
       contato1_parentesco: '',
@@ -169,6 +175,8 @@ export function Alunos() {
           responsavel_id: a.responsavel_id || a.responsavelId || '',
           parentesco_responsavel: a.parentesco_responsavel || '',
           turma_id: a.turma_id || a.turmaId || '',
+          nome_pai: a.nome_pai || '',
+          nome_mae: a.nome_mae || '',
           contato1_nome: contatos[0]?.nome || '',
           contato1_telefone: contatos[0]?.telefone || '',
           contato1_parentesco: contatos[0]?.parentesco || '',
@@ -252,6 +260,8 @@ export function Alunos() {
         responsavel_id: formData.responsavel_id,
         parentesco_responsavel: formData.parentesco_responsavel,
         turma_id: formData.turma_id || undefined,
+        nome_pai: formData.nome_pai || undefined,
+        nome_mae: formData.nome_mae || undefined,
         contatos_emergencia,
         // Saúde
         possui_alergia: formData.possui_alergia,
@@ -280,6 +290,7 @@ export function Alunos() {
       if (editingAluno) {
         await alunoService.atualizar(editingAluno.id, payload);
         toast.success('Aluno atualizado com sucesso!');
+        setPainelRefreshKey(k => k + 1);
       } else {
         await alunoService.criar(payload);
         toast.success('Aluno criado com sucesso!');
@@ -427,7 +438,7 @@ export function Alunos() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               <div className="relative flex-1 max-w-sm">
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -437,6 +448,28 @@ export function Alunos() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
+              </div>
+              <div className="flex items-center rounded-lg border border-gray-300 overflow-hidden">
+                <button
+                  onClick={() => setFiltroAtivo('ativos')}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${
+                    filtroAtivo === 'ativos'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Users size={15} /> Ativos
+                </button>
+                <button
+                  onClick={() => setFiltroAtivo('inativos')}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${
+                    filtroAtivo === 'inativos'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <UserX size={15} /> Desativados
+                </button>
               </div>
             </div>
           </CardHeader>
@@ -454,6 +487,7 @@ export function Alunos() {
         onClose={closePainel}
         onEdit={(aluno) => handleOpenModal(aluno)}
         onDelete={handleDelete}
+        refreshKey={painelRefreshKey}
         onChangeTurma={(aluno) => handleOpenTurmaModal(aluno)}
       />
 
@@ -549,6 +583,25 @@ export function Alunos() {
                       label: `${t.nome} - ${t.serie || t.turno}`,
                     }))}
                     placeholder="Selecione uma turma"
+                  />
+                </div>
+              </div>
+
+              {/* Filiação */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Filiação</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="Nome do Pai"
+                    value={formData.nome_pai}
+                    onChange={(e) => setFormData({ ...formData, nome_pai: e.target.value })}
+                    placeholder="Nome completo do pai"
+                  />
+                  <Input
+                    label="Nome da Mãe"
+                    value={formData.nome_mae}
+                    onChange={(e) => setFormData({ ...formData, nome_mae: e.target.value })}
+                    placeholder="Nome completo da mãe"
                   />
                 </div>
               </div>

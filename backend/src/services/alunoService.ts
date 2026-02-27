@@ -148,10 +148,12 @@ class AlunoService {
       let paramIndex = 1;
 
       const campos = ['nome', 'cpf', 'rg', 'data_nascimento', 'sexo', 'telefone', 'email', 'endereco', 'cidade', 'estado', 'cep', 'responsavel_id', 'turma_id', 'matricula_ativa', 'data_matricula', 'parentesco_responsavel',
+        'nome_pai', 'nome_mae',
         'possui_alergia', 'alergia_descricao', 'restricao_alimentar', 'restricao_alimentar_descricao', 'uso_medicamento', 'medicamento_descricao', 'necessidade_especial', 'necessidade_especial_descricao',
         'autoriza_atividades', 'autoriza_emergencia', 'autoriza_imagem',
         'doc_certidao_nascimento', 'doc_cpf_aluno', 'doc_rg_cpf_responsavel', 'doc_comprovante_residencia', 'doc_cartao_sus', 'doc_carteira_vacinacao',
-        'consideracoes', 'observacoes'];
+        'consideracoes', 'observacoes',
+        'escola_destino', 'endereco_escola_destino'];
       
       for (const campo of campos) {
         if (data[campo] !== undefined) {
@@ -200,14 +202,31 @@ class AlunoService {
     }
   }
 
+  async buscarInativos() {
+    return await queryMany(
+      `SELECT a.*, r.nome as responsavel_nome, r.telefone as responsavel_telefone, t.nome as turma_nome,
+              m.id as matricula_id, 
+              COALESCE(SUBSTRING(a.id::text, 1, 8), '') as matricula_numero
+       FROM alunos a
+       LEFT JOIN responsaveis r ON a.responsavel_id = r.id
+       LEFT JOIN turmas t ON a.turma_id = t.id
+       LEFT JOIN matriculas m ON m.aluno_id = a.id AND m.status = 'ATIVA'
+       WHERE a.ativo = false
+       ORDER BY a.nome ASC`
+    );
+  }
+
   async deletar(id: string): Promise<void> {
     const aluno = await this.buscarPorId(id);
     if (!aluno) {
       throw new Error('Aluno não encontrado');
     }
 
-    // Soft delete - apenas desativa o aluno para manter histórico
-    await query('UPDATE alunos SET ativo = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+    // Soft delete - desativa e registra data de desativação
+    await query(
+      'UPDATE alunos SET ativo = false, data_desativacao = CURRENT_DATE, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+      [id]
+    );
     logger.info(`Aluno desativado: ${id}`);
   }
 

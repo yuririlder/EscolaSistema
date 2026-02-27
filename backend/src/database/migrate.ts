@@ -424,6 +424,31 @@ BEGIN
   END IF;
 END $$;
 
+-- Adicionar campos nome_pai e nome_mae em alunos
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='nome_pai') THEN
+    ALTER TABLE alunos ADD COLUMN nome_pai VARCHAR(255);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='nome_mae') THEN
+    ALTER TABLE alunos ADD COLUMN nome_mae VARCHAR(255);
+  END IF;
+END $$;
+
+-- Adicionar campos de transferência em alunos
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='escola_destino') THEN
+    ALTER TABLE alunos ADD COLUMN escola_destino VARCHAR(255);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='endereco_escola_destino') THEN
+    ALTER TABLE alunos ADD COLUMN endereco_escola_destino TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='alunos' AND column_name='data_desativacao') THEN
+    ALTER TABLE alunos ADD COLUMN data_desativacao DATE;
+  END IF;
+END $$;
+
 -- Criar tabela de contatos de emergência
 CREATE TABLE IF NOT EXISTS contatos_emergencia (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

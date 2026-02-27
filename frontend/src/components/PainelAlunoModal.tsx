@@ -9,10 +9,10 @@ import { financeiroService } from '../services/financeiroService';
 import { escolaService } from '../services/escolaService';
 import { Aluno, Mensalidade, Matricula, Responsavel, Turma } from '../types';
 import { formatPhone } from '../utils/masks';
-import { gerarFichaCompletaAlunoPDF, gerarTermoMatriculaPDF } from '../utils/pdfGenerator';
+import { gerarFichaCompletaAlunoPDF, gerarTermoMatriculaPDF, gerarTermoTransferenciaPDF } from '../utils/pdfGenerator';
 import {
   User, Phone, FileText, DollarSign, BookOpen, GraduationCap,
-  CheckCircle2, XCircle, Clock, Download, AlertTriangle, Camera, Pencil, Trash2, ExternalLink, FileCheck,
+  CheckCircle2, XCircle, Clock, Download, AlertTriangle, Camera, Pencil, Trash2, ExternalLink, FileCheck, Save,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -60,11 +60,12 @@ interface Props {
   onEdit?: (aluno: Aluno) => void;
   onDelete?: (alunoId: string) => void;
   onChangeTurma?: (aluno: Aluno) => void;
+  refreshKey?: number;
 }
 
 // ─── component ───────────────────────────────────────────────────────────────
 
-export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeTurma }: Props) {
+export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeTurma, refreshKey }: Props) {
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading]       = useState(false);
@@ -75,6 +76,10 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
   const [turmas, setTurmas]             = useState<Turma[]>([]);
   const [escola, setEscola]             = useState<any>(null);
+  const [escolaDestino, setEscolaDestino]                 = useState('');
+  const [enderecoEscolaDestino, setEnderecoEscolaDestino] = useState('');
+  const [salvandoDestino, setSalvandoDestino]             = useState(false);
+  const [editandoDestino, setEditandoDestino]             = useState(false);
 
   // Limpa estado ao fechar
   useEffect(() => {
@@ -86,7 +91,7 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
       return;
     }
     loadData(alunoId);
-  }, [alunoId]);
+  }, [alunoId, refreshKey]);
 
   const loadData = async (id: string) => {
     setIsLoading(true);
@@ -105,6 +110,9 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
       setResponsaveis(resps);
       setTurmas(turmsData);
       setEscola(escolaData);
+      setEscolaDestino(alunoData?.escola_destino || '');
+      setEnderecoEscolaDestino(alunoData?.endereco_escola_destino || '');
+      setEditandoDestino(!alunoData?.escola_destino);
 
       const mat = matriculas.find(m => {
         const mx = m as any;
@@ -230,6 +238,65 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
       }, escola ?? undefined);
     } catch {
       toast.error('Erro ao gerar termo de matrícula');
+    }
+  };
+
+  // ── termo de transferência ────────────────────────────────────────────────
+
+  const handleSalvarDestino = async () => {
+    if (!aluno) return;
+    setSalvandoDestino(true);
+    try {
+      await alunoService.atualizar(aluno.id, {
+        escola_destino: escolaDestino,
+        endereco_escola_destino: enderecoEscolaDestino,
+      });
+      setAluno({ ...aluno, escola_destino: escolaDestino, endereco_escola_destino: enderecoEscolaDestino });
+      setEditandoDestino(false);
+      toast.success('Dados de destino salvos!');
+    } catch {
+      toast.error('Erro ao salvar dados de destino');
+    } finally {
+      setSalvandoDestino(false);
+    }
+  };
+
+  const camposTransferenciaFaltando = (() => {
+    if (!aluno || aluno.ativo !== false) return [];
+    const faltando: string[] = [];
+    if (!aluno.cpf) faltando.push('CPF do aluno');
+    if (!aluno.data_nascimento && !aluno.dataNascimento) faltando.push('Data de nascimento');
+    if (!aluno.nome_pai) faltando.push('Nome do pai (editar aluno)');
+    if (!aluno.nome_mae) faltando.push('Nome da mãe (editar aluno)');
+    if (!escolaDestino) faltando.push('Escola de destino (campo acima)');
+    if (!enderecoEscolaDestino) faltando.push('Endereço da escola de destino (campo acima)');
+    if (!escola?.nome) faltando.push('Nome da escola (Configurações)');
+    if (!escola?.endereco) faltando.push('Endereço da escola (Configurações)');
+    if (!escola?.cnpj) faltando.push('CNPJ da escola (Configurações)');
+    if (!escola?.email) faltando.push('E-mail da escola (Configurações)');
+    return faltando;
+  })();
+
+  const handleDownloadTransferencia = () => {
+    if (!aluno) return;
+    const turma = turmas.find(t => t.id === (aluno.turma_id || aluno.turmaId)) as any;
+    const mat = matricula as any;
+    try {
+      gerarTermoTransferenciaPDF({
+        alunoNome: aluno.nome,
+        alunoDataNascimento: aluno.data_nascimento || aluno.dataNascimento,
+        alunoCpf: aluno.cpf,
+        nomePai: aluno.nome_pai,
+        nomeMae: aluno.nome_mae,
+        serieTurma: turma?.serie || turma?.nome,
+        anoLetivo: mat?.ano_letivo || mat?.anoLetivo || turma?.ano,
+        escolaDestino: escolaDestino,
+        enderecoEscolaDestino: enderecoEscolaDestino,
+        dataInicioMatricula: mat?.data_matricula || mat?.dataMatricula,
+        dataDesativacao: aluno.data_desativacao,
+      }, escola ?? undefined);
+    } catch {
+      toast.error('Erro ao gerar termo de transferência');
     }
   };
 
@@ -359,6 +426,67 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
             </div>
           </section>
 
+          {/* Escola de Destino - somente para inativos */}
+          {aluno.ativo === false && (
+            <section className="space-y-2">
+              <h4 className="font-semibold text-gray-700 text-sm flex items-center gap-2">
+                <GraduationCap size={15} className="text-orange-500" /> Escola de Destino (Transferência)
+              </h4>
+              {!editandoDestino ? (
+                <div className="bg-gray-50 rounded-lg p-3 space-y-1 text-sm">
+                  <Row label="Escola" value={escolaDestino || '-'} />
+                  <Row label="Endereço" value={enderecoEscolaDestino || '-'} />
+                  <button
+                    onClick={() => setEditandoDestino(true)}
+                    className="mt-2 flex items-center gap-1 text-xs text-primary-600 hover:underline"
+                  >
+                    <Pencil size={12} /> Alterar
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Nome da escola de destino</label>
+                    <input
+                      type="text"
+                      value={escolaDestino}
+                      onChange={(e) => setEscolaDestino(e.target.value)}
+                      placeholder="Ex: Escola Municipal José da Silva"
+                      className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Endereço da escola de destino</label>
+                    <input
+                      type="text"
+                      value={enderecoEscolaDestino}
+                      onChange={(e) => setEnderecoEscolaDestino(e.target.value)}
+                      placeholder="Ex: Rua das Flores, 123 - Centro"
+                      className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleSalvarDestino}
+                      disabled={salvandoDestino}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                    >
+                      <Save size={13} /> {salvandoDestino ? 'Salvando...' : 'Salvar'}
+                    </button>
+                    {aluno.escola_destino && (
+                      <button
+                        onClick={() => { setEscolaDestino(aluno.escola_destino); setEnderecoEscolaDestino(aluno.endereco_escola_destino); setEditandoDestino(false); }}
+                        className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                      >
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
           {/* Downloads */}
           <section className="space-y-2">
             <h4 className="font-semibold text-gray-700 text-sm flex items-center gap-2">
@@ -367,6 +495,29 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
             <div className="space-y-2">
               <DownloadButton icon={<FileText size={18} className="text-purple-500" />} label="Ficha do Aluno" onClick={handleDownloadFicha} />
               <DownloadButton icon={<FileText size={18} className="text-blue-500" />} label="Termo de Matrícula" onClick={handleDownloadTermo} disabled={!matricula} />
+              {aluno.ativo === false && (
+                <div className="space-y-1">
+                  <DownloadButton
+                    icon={<FileText size={18} className="text-orange-500" />}
+                    label="Declaração de Transferência"
+                    onClick={handleDownloadTransferencia}
+                    disabled={camposTransferenciaFaltando.length > 0}
+                  />
+                  {camposTransferenciaFaltando.length > 0 && (
+                    <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-xs font-medium text-amber-700 mb-1">Dados necessários para o termo:</p>
+                      <ul className="space-y-0.5">
+                        {camposTransferenciaFaltando.map(campo => (
+                          <li key={campo} className="text-xs text-amber-600 flex items-center gap-1">
+                            <span className="w-1 h-1 bg-amber-500 rounded-full flex-shrink-0" />
+                            {campo}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </section>
 
@@ -375,25 +526,31 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
             <h4 className="font-semibold text-gray-700 text-sm flex items-center gap-2">
               <ExternalLink size={15} /> Acesso Rápido
             </h4>
-            <div className={`grid gap-2 ${onChangeTurma ? 'grid-cols-4' : 'grid-cols-3'}`}>
-              <QuickButton color="green" icon={<DollarSign size={18} />} label="Mensalidades" onClick={() => navigate('/mensalidades')} />
-              <QuickButton color="blue"  icon={<BookOpen size={18} />}    label="Histórico"    onClick={() => navigate(`/alunos/${aluno.id}/historico`)} />
-              <QuickButton color="purple" icon={<GraduationCap size={18} />} label="Notas"   onClick={() => navigate('/notas')} />
-              {onChangeTurma && (
-                <QuickButton color="orange" icon={<GraduationCap size={18} />} label="Turma" onClick={() => onChangeTurma(aluno)} />
-              )}
+            <div className={`grid gap-2 grid-cols-4`}>
+              <QuickButton color="green"  icon={<DollarSign size={18} />}    label="Mensalidades" onClick={() => navigate('/mensalidades')} />
+              <QuickButton color="blue"   icon={<BookOpen size={18} />}      label="Histórico"    onClick={() => navigate(`/alunos/${aluno.id}/historico`)} />
+              <QuickButton color="purple" icon={<GraduationCap size={18} />} label="Notas"        onClick={() => navigate('/notas')} />
+              {onChangeTurma
+                ? <QuickButton color="orange" icon={<GraduationCap size={18} />} label="Turma" onClick={() => onChangeTurma(aluno)} />
+                : onEdit && <QuickButton color="gray" icon={<Pencil size={18} />} label="Editar aluno" onClick={() => onEdit(aluno)} />
+              }
             </div>
+            {onChangeTurma && onEdit && (
+              <div className="grid gap-2 grid-cols-4">
+                <QuickButton color="gray" icon={<Pencil size={18} />} label="Editar aluno" onClick={() => onEdit(aluno)} />
+              </div>
+            )}
           </section>
 
           {/* Ações (somente quando callbacks disponíveis) */}
           {(onEdit || onDelete) && (
             <div className="pt-4 border-t border-gray-200 flex gap-2">
-              {onEdit && (
+              {onEdit && aluno.ativo !== false && (
                 <Button variant="secondary" className="flex-1" onClick={() => onEdit(aluno)}>
                   <Pencil size={15} /> Editar
                 </Button>
               )}
-              {onDelete && (
+              {onDelete && aluno.ativo !== false && (
                 <Button variant="danger" className="flex-1" onClick={() => onDelete(aluno.id)}>
                   <Trash2 size={15} /> Desativar
                 </Button>
@@ -439,12 +596,13 @@ function DownloadButton({ icon, label, onClick, disabled }: { icon: React.ReactN
   );
 }
 
-type QuickColor = 'green' | 'blue' | 'purple' | 'orange';
+type QuickColor = 'green' | 'blue' | 'purple' | 'orange' | 'gray';
 const colorMap: Record<QuickColor, string> = {
   green:  'bg-green-50 hover:bg-green-100 text-green-600 [&>span]:text-green-800',
   blue:   'bg-blue-50 hover:bg-blue-100 text-blue-600 [&>span]:text-blue-800',
   purple: 'bg-purple-50 hover:bg-purple-100 text-purple-600 [&>span]:text-purple-800',
   orange: 'bg-orange-50 hover:bg-orange-100 text-orange-600 [&>span]:text-orange-800',
+  gray:   'bg-gray-100 hover:bg-gray-200 text-gray-600 [&>span]:text-gray-800',
 };
 
 function QuickButton({ color, icon, label, onClick }: { color: QuickColor; icon: React.ReactNode; label: string; onClick: () => void }) {
