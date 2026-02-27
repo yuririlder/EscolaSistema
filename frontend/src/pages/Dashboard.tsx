@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
+import { PainelAlunoModal } from '../components/PainelAlunoModal';
+import { usePainelAluno } from '../hooks/usePainelAluno';
 import { financeiroService } from '../services/financeiroService';
 import { DashboardMetrics } from '../types';
 import {
@@ -52,6 +54,8 @@ export function Dashboard() {
   const [metrics, setMetrics] = useState<DashboardMetrics>(mockMetrics);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { alunoId, openPainel, closePainel } = usePainelAluno();
 
   useEffect(() => {
     loadMetrics();
@@ -134,6 +138,7 @@ export function Dashboard() {
   const lucro = metrics.receitaMensal - metrics.despesaMensal;
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -354,7 +359,8 @@ export function Dashboard() {
                     {metrics.inadimplentes.map((item, index) => (
                       <li
                         key={index}
-                        className="grid grid-cols-3 gap-2 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                        onClick={() => item.alunoId && openPainel(item.alunoId)}
+                        className="grid grid-cols-3 gap-2 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors cursor-pointer"
                       >
                         <span className="font-medium text-gray-700 truncate" title={item.alunoNome}>
                           {item.alunoNome}
@@ -412,5 +418,8 @@ export function Dashboard() {
         </Card>
       </div>
     </div>
+
+    <PainelAlunoModal alunoId={alunoId} onClose={closePainel} />
+    </>
   );
 }
