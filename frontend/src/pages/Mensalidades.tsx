@@ -8,7 +8,7 @@ import { Badge } from '../components/ui/Badge';
 import { Mensalidade, StatusMensalidade } from '../types';
 import { financeiroService } from '../services/financeiroService';
 import { escolaService } from '../services/escolaService';
-import { Search, DollarSign, Printer, ChevronDown, ChevronRight, User, Pencil } from 'lucide-react';
+import { Search, DollarSign, Printer, ChevronDown, ChevronRight, User, Pencil, Users, UserX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { gerarReciboMensalidadePDF } from '../utils/pdfGenerator';
 import { formatCurrencyInput, currencyToNumber, formatPercentInput } from '../utils/masks';
@@ -16,6 +16,7 @@ import { formatCurrencyInput, currencyToNumber, formatPercentInput } from '../ut
 interface AlunoMensalidades {
   alunoId: string;
   alunoNome: string;
+  alunoAtivo: boolean;
   responsavelNome?: string;
   mensalidades: Mensalidade[];
   totalPendente: number;
@@ -34,6 +35,7 @@ export function Mensalidades() {
   const [mensalidades, setMensalidades] = useState<Mensalidade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filtroAtivo, setFiltroAtivo] = useState<'ativos' | 'inativos'>('ativos');
   const [expandedAlunos, setExpandedAlunos] = useState<Set<string>>(new Set());
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedMensalidade, setSelectedMensalidade] = useState<Mensalidade | null>(null);
@@ -90,12 +92,14 @@ export function Mensalidades() {
       const mens = m as any;
       const alunoId = mens.aluno_id || mens.alunoId || '';
       const alunoNome = mens.aluno_nome || mens.matricula?.aluno?.nome || 'Sem nome';
+      const alunoAtivo = mens.aluno_ativo !== false;
       const responsavelNome = mens.responsavel_nome || mens.matricula?.aluno?.responsavel?.nome;
 
       if (!grupos[alunoId]) {
         grupos[alunoId] = {
           alunoId,
           alunoNome,
+          alunoAtivo,
           responsavelNome,
           mensalidades: [],
           totalPendente: 0,
@@ -135,13 +139,14 @@ export function Mensalidades() {
     return Object.values(grupos).sort((a, b) => a.alunoNome.localeCompare(b.alunoNome));
   }, [mensalidades]);
 
-  // Filtrar alunos pelo termo de busca
+  // Filtrar alunos pelo termo de busca e ativo/inativo
   const filteredAlunos = useMemo(() => {
-    if (!searchTerm) return alunosAgrupados;
-    return alunosAgrupados.filter((a) =>
-      a.alunoNome.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [alunosAgrupados, searchTerm]);
+    return alunosAgrupados.filter((a) => {
+      const matchFiltro = filtroAtivo === 'ativos' ? a.alunoAtivo : !a.alunoAtivo;
+      const matchSearch = !searchTerm || a.alunoNome.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchFiltro && matchSearch;
+    });
+  }, [alunosAgrupados, searchTerm, filtroAtivo]);
 
   const toggleAluno = (alunoId: string) => {
     setExpandedAlunos((prev) => {
@@ -444,6 +449,28 @@ export function Mensalidades() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
+            </div>
+            <div className="flex items-center rounded-lg border border-gray-300 overflow-hidden">
+              <button
+                onClick={() => setFiltroAtivo('ativos')}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${
+                  filtroAtivo === 'ativos'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <Users size={15} /> Ativos
+              </button>
+              <button
+                onClick={() => setFiltroAtivo('inativos')}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors ${
+                  filtroAtivo === 'inativos'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <UserX size={15} /> Desativados
+              </button>
             </div>
           </div>
         </CardHeader>
