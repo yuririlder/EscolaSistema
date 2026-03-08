@@ -342,8 +342,6 @@ export function Alunos() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja desativar este aluno? O histórico será mantido.')) return;
-
     try {
       await alunoService.excluir(id);
       toast.success('Aluno desativado com sucesso!');

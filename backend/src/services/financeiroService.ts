@@ -281,7 +281,7 @@ class FinanceiroService {
 
   async listarMensalidades(filtros: { mes?: number; ano?: number; status?: string }) {
     let sql = `
-      SELECT m.*, a.nome as aluno_nome, r.nome as responsavel_nome, r.cpf as responsavel_cpf
+      SELECT m.*, a.nome as aluno_nome, a.ativo as aluno_ativo, r.nome as responsavel_nome, r.cpf as responsavel_cpf
       FROM mensalidades m
       INNER JOIN alunos a ON m.aluno_id = a.id
       LEFT JOIN responsaveis r ON a.responsavel_id = r.id

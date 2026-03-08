@@ -78,6 +78,7 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
   const [escola, setEscola]             = useState<any>(null);
   const [escolaDestino, setEscolaDestino]                 = useState('');
   const [enderecoEscolaDestino, setEnderecoEscolaDestino] = useState('');
+  const [isConfirmDesmatricularOpen, setIsConfirmDesmatricularOpen] = useState(false);
   const [salvandoDestino, setSalvandoDestino]             = useState(false);
   const [editandoDestino, setEditandoDestino]             = useState(false);
 
@@ -551,8 +552,8 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
                 </Button>
               )}
               {onDelete && aluno.ativo !== false && (
-                <Button variant="danger" className="flex-1" onClick={() => onDelete(aluno.id)}>
-                  <Trash2 size={15} /> Desativar
+                <Button variant="danger" className="flex-1" onClick={() => setIsConfirmDesmatricularOpen(true)}>
+                  <Trash2 size={15} /> Desmatricular aluno
                 </Button>
               )}
             </div>
@@ -560,6 +561,56 @@ export function PainelAlunoModal({ alunoId, onClose, onEdit, onDelete, onChangeT
 
         </div>
       )}
+      {/* Modal de Confirmação de Desmatrícula */}
+      <Modal
+        isOpen={isConfirmDesmatricularOpen}
+        onClose={() => setIsConfirmDesmatricularOpen(false)}
+        title="Confirmar Desmatrícula"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800 text-sm">
+              <strong>Atenção:</strong> Ao desmatricular o aluno, as seguintes ações serão realizadas:
+            </p>
+            <ul className="list-disc list-inside text-yellow-700 text-sm mt-2 space-y-1">
+              <li>A matrícula será marcada como <strong>CANCELADA</strong></li>
+              <li>Mensalidades <strong>vencidas</strong> serão <strong>preservadas</strong> para cobrança</li>
+              <li>Mensalidades <strong>futuras</strong> serão <strong>canceladas</strong></li>
+              <li>O histórico escolar será <strong>preservado</strong></li>
+            </ul>
+          </div>
+
+          {aluno && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-gray-700"><strong>Aluno:</strong> {aluno.nome}</p>
+              {matricula && (
+                <p className="text-gray-700">
+                  <strong>Ano Letivo:</strong> {(matricula as any).anoLetivo || (matricula as any).ano_letivo}
+                </p>
+              )}
+            </div>
+          )}
+
+          <p className="text-gray-600">Deseja realmente desmatricular este aluno?</p>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="secondary" onClick={() => setIsConfirmDesmatricularOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => {
+                setIsConfirmDesmatricularOpen(false);
+                if (onDelete && aluno) onDelete(aluno.id);
+              }}
+            >
+              Confirmar Desmatrícula
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </Modal>
   );
 }

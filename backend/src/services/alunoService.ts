@@ -224,9 +224,38 @@ class AlunoService {
 
     // Soft delete - desativa e registra data de desativação
     await query(
-      'UPDATE alunos SET ativo = false, data_desativacao = CURRENT_DATE, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+      'UPDATE alunos SET ativo = false, matricula_ativa = false, data_desativacao = CURRENT_DATE, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
       [id]
     );
+
+    // Cancelar matrícula ativa do aluno
+    await query(
+      "UPDATE matriculas SET status = 'CANCELADA', updated_at = CURRENT_TIMESTAMP WHERE aluno_id = $1 AND status = 'ATIVA'",
+      [id]
+    );
+
+    // Cancelar mensalidades futuras não pagas
+    // Se desativação ocorrer após o dia 15, mantém a cobrança do mês atual
+    const hoje = new Date();
+    const diaAtual = hoje.getDate();
+    const mesAtual = hoje.getMonth() + 1;
+    const anoAtual = hoje.getFullYear();
+
+    let condicaoMes: string;
+    if (diaAtual > 15) {
+      // Mantém mês atual, cancela os próximos
+      condicaoMes = `(ano_referencia > ${anoAtual} OR (ano_referencia = ${anoAtual} AND mes_referencia > ${mesAtual}))`;
+    } else {
+      // Cancela mês atual e os próximos
+      condicaoMes = `(ano_referencia > ${anoAtual} OR (ano_referencia = ${anoAtual} AND mes_referencia >= ${mesAtual}))`;
+    }
+
+    await query(
+      `UPDATE mensalidades SET status = 'CANCELADO', updated_at = CURRENT_TIMESTAMP
+       WHERE aluno_id = $1 AND status NOT IN ('PAGO', 'CANCELADO') AND ${condicaoMes}`,
+      [id]
+    );
+
     logger.info(`Aluno desativado: ${id}`);
   }
 
