@@ -672,58 +672,66 @@ class FinanceiroService {
 
   // ==================== DASHBOARD ====================
 
-  async obterDashboard() {
+  async obterDashboard(mes?: number, ano?: number) {
     const agora = new Date();
-    const mesAtual = agora.getMonth() + 1;
-    const anoAtual = agora.getFullYear();
-    
-    // Calcula o primeiro e último dia do mês atual
-    const primeiroDiaMes = new Date(anoAtual, mesAtual - 1, 1);
-    const ultimoDiaMes = new Date(anoAtual, mesAtual, 0); // Dia 0 do próximo mês = último dia do mês atual
-    
-    const dataInicio = primeiroDiaMes.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
-    const dataFim = ultimoDiaMes.toISOString().split('T')[0];
+    const mesRef = mes || (agora.getMonth() + 1);
+    const anoRef = ano || agora.getFullYear();
 
-    const totalAlunos = await queryOne('SELECT COUNT(*) as count FROM alunos', []);
+    const totalAlunos = await queryOne('SELECT COUNT(*) as count FROM alunos WHERE (ativo = true OR ativo IS NULL)', []);
     const totalProfessores = await queryOne('SELECT COUNT(*) as count FROM professores p INNER JOIN funcionarios f ON p.funcionario_id = f.id WHERE f.ativo = true', []);
     const totalTurmas = await queryOne('SELECT COUNT(*) as count FROM turmas WHERE ativa = true', []);
-    
-    // Receita: mensalidades pagas no mês atual (data_pagamento entre primeiro e último dia do mês)
+
+    // Receita: mensalidades cujo mês de referência é o selecionado e estão pagas (independente da data de pagamento)
     const receitaMes = await queryOne(
-      `SELECT COALESCE(SUM(valor_pago), 0) as total FROM mensalidades 
-       WHERE status = 'PAGO' 
-       AND data_pagamento::date >= $1::date 
-       AND data_pagamento::date <= $2::date`,
-      [dataInicio, dataFim]
-    );
-    
-    // Despesa: despesas pagas no mês atual (data_pagamento entre primeiro e último dia do mês)
-    const despesasMes = await queryOne(
-      `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
-       WHERE status = 'PAGO' 
-       AND data_pagamento::date >= $1::date 
-       AND data_pagamento::date <= $2::date`,
-      [dataInicio, dataFim]
-    );
-    
-    const mensalidadesPendentes = await queryOne(
-      `SELECT COUNT(*) as count FROM mensalidades 
-       WHERE status NOT IN ('PAGO', 'CANCELADO') 
-       AND (
-         -- Mês atual (PENDENTE) ou já vencida
-         (mes_referencia = $1 AND ano_referencia = $2) OR data_vencimento < CURRENT_DATE
-       )`,
-      [mesAtual, anoAtual]
+      `SELECT COALESCE(SUM(valor_pago), 0) as total FROM mensalidades
+       WHERE status = 'PAGO'
+       AND mes_referencia = $1 AND ano_referencia = $2`,
+      [mesRef, anoRef]
     );
 
-    // Total de despesas pendentes do mês atual (não pagas, com vencimento no mês atual)
-    const despesasPendentes = await queryOne(
-      `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
-       WHERE status != 'PAGO' AND status != 'CANCELADO'
-       AND data_vencimento::date >= $1::date 
-       AND data_vencimento::date <= $2::date`,
-      [dataInicio, dataFim]
+    // Despesa paga: despesas pagas com vencimento no mês de referência + pagamentos de funcionários pagos no mês de referência
+    const despesasPagasMes = await queryOne(
+      `SELECT COALESCE(SUM(valor), 0) as total FROM despesas
+       WHERE status = 'PAGO'
+       AND EXTRACT(MONTH FROM data_vencimento::date) = $1
+       AND EXTRACT(YEAR FROM data_vencimento::date) = $2`,
+      [mesRef, anoRef]
     );
+
+    const pagamentosFuncPagosMes = await queryOne(
+      `SELECT COALESCE(SUM(valor_liquido), 0) as total FROM pagamentos_funcionarios
+       WHERE status = 'PAGO'
+       AND mes_referencia = $1 AND ano_referencia = $2`,
+      [mesRef, anoRef]
+    );
+
+    const despesaMensal = parseFloat(despesasPagasMes?.total || '0') + parseFloat(pagamentosFuncPagosMes?.total || '0');
+
+    // Mensalidades pendentes do mês de referência
+    const mensalidadesPendentes = await queryOne(
+      `SELECT COUNT(*) as count FROM mensalidades
+       WHERE status NOT IN ('PAGO', 'CANCELADO')
+       AND mes_referencia = $1 AND ano_referencia = $2`,
+      [mesRef, anoRef]
+    );
+
+    // Pendente: despesas não pagas com vencimento no mês + pagamentos de funcionários não pagos no mês de referência
+    const despesasPendentesRes = await queryOne(
+      `SELECT COALESCE(SUM(valor), 0) as total FROM despesas
+       WHERE status NOT IN ('PAGO', 'CANCELADO')
+       AND EXTRACT(MONTH FROM data_vencimento::date) = $1
+       AND EXTRACT(YEAR FROM data_vencimento::date) = $2`,
+      [mesRef, anoRef]
+    );
+
+    const pagamentosFuncPendentes = await queryOne(
+      `SELECT COALESCE(SUM(valor_liquido), 0) as total FROM pagamentos_funcionarios
+       WHERE status NOT IN ('PAGO', 'CANCELADO')
+       AND mes_referencia = $1 AND ano_referencia = $2`,
+      [mesRef, anoRef]
+    );
+
+    const despesasPendentes = parseFloat(despesasPendentesRes?.total || '0') + parseFloat(pagamentosFuncPendentes?.total || '0');
 
     // Alunos por turma
     const alunosPorTurma = await queryMany(
@@ -756,35 +764,43 @@ class FinanceiroService {
            WHEN status NOT IN ('PAGO', 'CANCELADO') AND mes_referencia = $1 AND ano_referencia = $2 THEN 'Pendente'
            ELSE 'Futura'
          END`,
-      [mesAtual, anoAtual]
+      [mesRef, anoRef]
     );
 
-    // Histórico receita vs despesa (últimos 6 meses)
+    // Histórico receita vs despesa (últimos 6 meses a partir do mês de referência)
     const nomeMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const receitaVsDespesa = [];
-    
+
     for (let i = 5; i >= 0; i--) {
-      const data = new Date();
+      const data = new Date(anoRef, mesRef - 1, 1);
       data.setMonth(data.getMonth() - i);
       const mes = data.getMonth() + 1;
       const ano = data.getFullYear();
-      
+
       const receita = await queryOne(
-        `SELECT COALESCE(SUM(valor_pago), 0) as total FROM mensalidades 
-         WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`,
+        `SELECT COALESCE(SUM(valor_pago), 0) as total FROM mensalidades
+         WHERE status = 'PAGO' AND mes_referencia = $1 AND ano_referencia = $2`,
         [mes, ano]
       );
-      
-      const despesa = await queryOne(
-        `SELECT COALESCE(SUM(valor), 0) as total FROM despesas 
-         WHERE status = 'PAGO' AND EXTRACT(MONTH FROM data_pagamento::date) = $1 AND EXTRACT(YEAR FROM data_pagamento::date) = $2`,
+
+      const desp = await queryOne(
+        `SELECT COALESCE(SUM(valor), 0) as total FROM despesas
+         WHERE status = 'PAGO'
+         AND EXTRACT(MONTH FROM data_vencimento::date) = $1
+         AND EXTRACT(YEAR FROM data_vencimento::date) = $2`,
         [mes, ano]
       );
-      
+
+      const pagFunc = await queryOne(
+        `SELECT COALESCE(SUM(valor_liquido), 0) as total FROM pagamentos_funcionarios
+         WHERE status = 'PAGO' AND mes_referencia = $1 AND ano_referencia = $2`,
+        [mes, ano]
+      );
+
       receitaVsDespesa.push({
         mes: nomeMeses[mes - 1],
         receita: parseFloat(receita?.total || '0'),
-        despesa: parseFloat(despesa?.total || '0')
+        despesa: parseFloat(desp?.total || '0') + parseFloat(pagFunc?.total || '0'),
       });
     }
 
@@ -794,8 +810,8 @@ class FinanceiroService {
       totalTurmas: parseInt(totalTurmas?.count || '0'),
       mensalidadesPendentes: parseInt(mensalidadesPendentes?.count || '0'),
       receitaMensal: parseFloat(receitaMes?.total || '0'),
-      despesaMensal: parseFloat(despesasMes?.total || '0'),
-      despesasPendentes: parseFloat(despesasPendentes?.total || '0'),
+      despesaMensal: despesaMensal,
+      despesasPendentes: despesasPendentes,
       alunosPorTurma: alunosPorTurma.map((r: any) => ({ serie: r.serie, turno: r.turno, quantidade: parseInt(r.quantidade) })),
       mensalidadesPorStatus: mensalidadesPorStatus.map((r: any) => ({ status: r.status, quantidade: parseInt(r.quantidade) })),
       receitaVsDespesa,

@@ -291,7 +291,9 @@ class FinanceiroController {
 
   async obterDashboard(req: Request, res: Response) {
     try {
-      const dashboard = await financeiroService.obterDashboard();
+      const mes = req.query.mes ? parseInt(req.query.mes as string) : undefined;
+      const ano = req.query.ano ? parseInt(req.query.ano as string) : undefined;
+      const dashboard = await financeiroService.obterDashboard(mes, ano);
       return sendSuccess(res, dashboard);
     } catch (error: any) {
       return sendError(res, error.message);

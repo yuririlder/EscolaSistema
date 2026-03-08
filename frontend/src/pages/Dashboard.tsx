@@ -49,22 +49,29 @@ const mockMetrics: DashboardMetrics = {
   inadimplentes: [],
 };
 
+const NOMES_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
 export function Dashboard() {
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState<DashboardMetrics>(mockMetrics);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const agora = new Date();
+  const [mesSelecionado, setMesSelecionado] = useState(agora.getMonth() + 1);
+  const [anoSelecionado, setAnoSelecionado] = useState(agora.getFullYear());
+
   const { alunoId, openPainel, closePainel } = usePainelAluno();
 
   useEffect(() => {
     loadMetrics();
-  }, []);
+  }, [mesSelecionado, anoSelecionado]);
 
   const loadMetrics = async () => {
     try {
+      setIsLoading(true);
       setError(null);
-      const data = await financeiroService.obterMetricasDashboard();
+      const data = await financeiroService.obterMetricasDashboard(mesSelecionado, anoSelecionado);
       if (data) {
         setMetrics({
           ...mockMetrics,
@@ -90,35 +97,6 @@ export function Dashboard() {
     }).format(value);
   };
 
-  // Obter período do mês atual (primeiro e último dia)
-  const getMesAtualInfo = () => {
-    const agora = new Date();
-    const mesAtual = agora.getMonth();
-    const anoAtual = agora.getFullYear();
-    const primeiroDia = new Date(anoAtual, mesAtual, 1);
-    const ultimoDia = new Date(anoAtual, mesAtual + 1, 0);
-    
-    const nomeMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    
-    return {
-      nome: nomeMeses[mesAtual],
-      ano: anoAtual,
-      primeiroDia: primeiroDia.getDate().toString().padStart(2, '0'),
-      ultimoDia: ultimoDia.getDate().toString().padStart(2, '0'),
-      mesFormatado: (mesAtual + 1).toString().padStart(2, '0')
-    };
-  };
-
-  const mesInfo = getMesAtualInfo();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -136,6 +114,7 @@ export function Dashboard() {
   }
 
   const lucro = metrics.receitaMensal - metrics.despesaMensal;
+  const Skeleton = () => <div className="animate-pulse bg-gray-200 rounded h-7 w-16" />;
 
   return (
     <>
@@ -182,7 +161,7 @@ export function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Total de Alunos</p>
-              <p className="text-2xl font-bold text-gray-900">{metrics.totalAlunos}</p>
+              {isLoading ? <Skeleton /> : <p className="text-2xl font-bold text-gray-900">{metrics.totalAlunos}</p>}
             </div>
           </CardContent>
         </Card>
@@ -194,7 +173,7 @@ export function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Professores</p>
-              <p className="text-2xl font-bold text-gray-900">{metrics.totalProfessores}</p>
+              {isLoading ? <Skeleton /> : <p className="text-2xl font-bold text-gray-900">{metrics.totalProfessores}</p>}
             </div>
           </CardContent>
         </Card>
@@ -206,7 +185,7 @@ export function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Turmas Ativas</p>
-              <p className="text-2xl font-bold text-gray-900">{metrics.totalTurmas}</p>
+              {isLoading ? <Skeleton /> : <p className="text-2xl font-bold text-gray-900">{metrics.totalTurmas}</p>}
             </div>
           </CardContent>
         </Card>
@@ -218,7 +197,7 @@ export function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Mensalidades Pendentes</p>
-              <p className="text-2xl font-bold text-gray-900">{metrics.mensalidadesPendentes}</p>
+              {isLoading ? <Skeleton /> : <p className="text-2xl font-bold text-gray-900">{metrics.mensalidadesPendentes}</p>}
             </div>
           </CardContent>
         </Card>
@@ -228,18 +207,33 @@ export function Dashboard() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-700">Financeiro do Mês</h2>
-          <span className="text-sm text-gray-500">
-            {mesInfo.primeiroDia}/{mesInfo.mesFormatado} a {mesInfo.ultimoDia}/{mesInfo.mesFormatado}/{mesInfo.ano} ({mesInfo.nome})
-          </span>
+          <div className="flex items-center gap-2">
+            <select
+              value={mesSelecionado}
+              onChange={e => setMesSelecionado(Number(e.target.value))}
+              className="text-sm border border-gray-300 rounded px-2 py-1 text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            >
+              {NOMES_MESES.map((nome, i) => (
+                <option key={i + 1} value={i + 1}>{nome}</option>
+              ))}
+            </select>
+            <select
+              value={anoSelecionado}
+              onChange={e => setAnoSelecionado(Number(e.target.value))}
+              className="text-sm border border-gray-300 rounded px-2 py-1 text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            >
+              {Array.from({ length: 5 }, (_, i) => agora.getFullYear() - 2 + i).map(ano => (
+                <option key={ano} value={ano}>{ano}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
               <p className="text-xs text-gray-500">Receita</p>
-              <p className="text-lg font-bold text-green-600">
-                {formatCurrency(metrics.receitaMensal)}
-              </p>
+              {isLoading ? <Skeleton /> : <p className="text-lg font-bold text-green-600">{formatCurrency(metrics.receitaMensal)}</p>}
             </div>
             <TrendingUp size={24} className="text-green-500" />
           </CardContent>
@@ -249,9 +243,7 @@ export function Dashboard() {
           <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
               <p className="text-xs text-gray-500">Despesa</p>
-              <p className="text-lg font-bold text-red-600">
-                {formatCurrency(metrics.despesaMensal)}
-              </p>
+              {isLoading ? <Skeleton /> : <p className="text-lg font-bold text-red-600">{formatCurrency(metrics.despesaMensal)}</p>}
             </div>
             <TrendingDown size={24} className="text-red-500" />
           </CardContent>
@@ -261,9 +253,7 @@ export function Dashboard() {
           <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
               <p className="text-xs text-gray-500">Resultado</p>
-              <p className={`text-lg font-bold ${lucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(lucro)}
-              </p>
+              {isLoading ? <Skeleton /> : <p className={`text-lg font-bold ${lucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(lucro)}</p>}
             </div>
             {lucro >= 0 ? (
               <TrendingUp size={24} className="text-green-500" />
@@ -277,9 +267,7 @@ export function Dashboard() {
           <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
               <p className="text-xs text-gray-500">Pendente</p>
-              <p className="text-lg font-bold text-orange-600">
-                {formatCurrency(metrics.despesasPendentes)}
-              </p>
+              {isLoading ? <Skeleton /> : <p className="text-lg font-bold text-orange-600">{formatCurrency(metrics.despesasPendentes)}</p>}
             </div>
             <Wallet size={24} className="text-orange-500" />
           </CardContent>
@@ -289,9 +277,7 @@ export function Dashboard() {
           <CardContent className="flex items-center justify-between py-3 px-4">
             <div>
               <p className="text-xs text-gray-500">Projeção</p>
-              <p className={`text-lg font-bold ${(lucro - metrics.despesasPendentes) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                {formatCurrency(lucro - metrics.despesasPendentes)}
-              </p>
+              {isLoading ? <Skeleton /> : <p className={`text-lg font-bold ${(lucro - metrics.despesasPendentes) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>{formatCurrency(lucro - metrics.despesasPendentes)}</p>}
             </div>
             {(lucro - metrics.despesasPendentes) >= 0 ? (
               <TrendingUp size={24} className="text-blue-500" />
@@ -362,9 +348,16 @@ export function Dashboard() {
                         onClick={() => item.alunoId && openPainel(item.alunoId)}
                         className="grid grid-cols-3 gap-2 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors cursor-pointer"
                       >
-                        <span className="font-medium text-gray-700 truncate" title={item.alunoNome}>
-                          {item.alunoNome}
-                        </span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-medium text-gray-700 truncate" title={item.alunoNome}>
+                            {item.alunoNome}
+                          </span>
+                          {item.responsavelNome && item.responsavelNome !== 'Não informado' && (
+                            <span className="text-xs text-gray-400 truncate" title={item.responsavelNome}>
+                              {item.responsavelNome}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-gray-600 truncate" title={item.responsavelTelefone}>
                           {item.responsavelTelefone}
                         </span>

@@ -78,8 +78,8 @@ export const financeiroService = {
   },
 
   // Despesas
-  async listarDespesas(): Promise<Despesa[]> {
-    const response = await api.get<Despesa[]>('/financeiro/despesas');
+  async listarDespesas(mes?: number, ano?: number): Promise<Despesa[]> {
+    const response = await api.get<Despesa[]>('/financeiro/despesas', { params: { mes, ano } });
     return response.data;
   },
 
@@ -119,8 +119,11 @@ export const financeiroService = {
   },
 
   // Dashboard
-  async obterMetricasDashboard(): Promise<DashboardMetrics> {
-    const response = await api.get<DashboardMetrics>('/financeiro/dashboard');
+  async obterMetricasDashboard(mes?: number, ano?: number): Promise<DashboardMetrics> {
+    const params: Record<string, number> = {};
+    if (mes) params.mes = mes;
+    if (ano) params.ano = ano;
+    const response = await api.get<DashboardMetrics>('/financeiro/dashboard', { params });
     return response.data;
   },
 };

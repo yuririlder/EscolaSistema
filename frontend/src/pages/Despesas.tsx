@@ -22,7 +22,15 @@ interface DadosEscola {
   email?: string;
 }
 
+const NOMES_MESES = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
 export function Despesas() {
+  const agora = new Date();
+  const [mesSelecionado, setMesSelecionado] = useState(agora.getMonth() + 1);
+  const [anoSelecionado, setAnoSelecionado] = useState(agora.getFullYear());
   const [despesas, setDespesas] = useState<Despesa[]>([]);
   const [escola, setEscola] = useState<DadosEscola | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,12 +53,13 @@ export function Despesas() {
 
   useEffect(() => {
     loadDespesas();
-  }, []);
+  }, [mesSelecionado, anoSelecionado]);
 
   const loadDespesas = async () => {
+    setIsLoading(true);
     try {
       const [data, escolaData] = await Promise.all([
-        financeiroService.listarDespesas(),
+        financeiroService.listarDespesas(mesSelecionado, anoSelecionado),
         escolaService.obter().catch(() => null),
       ]);
       setDespesas(data);
@@ -304,7 +313,7 @@ export function Despesas() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <div className="relative flex-1 max-w-sm">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -315,6 +324,24 @@ export function Despesas() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
+            <select
+              value={mesSelecionado}
+              onChange={(e) => setMesSelecionado(Number(e.target.value))}
+              className="text-sm border border-gray-300 rounded px-2 py-1"
+            >
+              {NOMES_MESES.map((nome, i) => (
+                <option key={i + 1} value={i + 1}>{nome}</option>
+              ))}
+            </select>
+            <select
+              value={anoSelecionado}
+              onChange={(e) => setAnoSelecionado(Number(e.target.value))}
+              className="text-sm border border-gray-300 rounded px-2 py-1"
+            >
+              {Array.from({ length: 5 }, (_, i) => agora.getFullYear() - 2 + i).map((ano) => (
+                <option key={ano} value={ano}>{ano}</option>
+              ))}
+            </select>
           </div>
         </CardHeader>
         <CardContent className="p-0">
