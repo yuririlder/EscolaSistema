@@ -8,7 +8,7 @@ import { financeiroService } from '../../../services/financeiroService';
 import { historicoEscolarService } from '../../../services/historicoEscolarService';
 import { escolaService } from '../../../services/escolaService';
 import { removeMask, formatCPF, formatPhone, formatCurrencyInput, currencyToNumber, formatCurrency } from '../../../utils/masks';
-import { gerarFichaCompletaAlunoPDF, gerarTermoMatriculaPDF } from '../../../utils/pdfGenerator';
+import { gerarFichaCompletaAlunoPDF, gerarTermoMatriculaPDF } from '../../../pdf';
 import toast from 'react-hot-toast';
 
 export const ONBOARDING_STEPS = [

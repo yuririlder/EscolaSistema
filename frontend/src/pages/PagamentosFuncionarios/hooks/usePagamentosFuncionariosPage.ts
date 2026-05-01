@@ -3,7 +3,7 @@ import { PagamentoFuncionario, Funcionario } from '../../../types';
 import { financeiroService } from '../../../services/financeiroService';
 import { professorService } from '../../../services/professorService';
 import { escolaService } from '../../../services/escolaService';
-import { gerarReciboPagamentoFuncionarioPDF } from '../../../utils/pdfGenerator';
+import { gerarReciboPagamentoFuncionarioPDF } from '../../../pdf';
 import { formatCurrencyInput, currencyToNumber, formatNumberInput } from '../../../utils/masks';
 import toast from 'react-hot-toast';
 

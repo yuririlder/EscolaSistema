@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Despesa } from '../../../types';
 import { financeiroService } from '../../../services/financeiroService';
 import { escolaService } from '../../../services/escolaService';
-import { gerarReciboDespesaPDF } from '../../../utils/pdfGenerator';
+import { gerarReciboDespesaPDF } from '../../../pdf';
 import { formatCurrencyInput, currencyToNumber } from '../../../utils/masks';
 import toast from 'react-hot-toast';
 

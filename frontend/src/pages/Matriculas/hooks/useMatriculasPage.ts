@@ -3,7 +3,7 @@ import { Matricula, Aluno, PlanoMensalidade, StatusMatricula } from '../../../ty
 import { financeiroService } from '../../../services/financeiroService';
 import { alunoService } from '../../../services/alunoService';
 import { escolaService } from '../../../services/escolaService';
-import { gerarTermoMatriculaPDF } from '../../../utils/pdfGenerator';
+import { gerarTermoMatriculaPDF } from '../../../pdf';
 import { formatCurrencyInput, currencyToNumber, formatNumberInput } from '../../../utils/masks';
 import toast from 'react-hot-toast';
 

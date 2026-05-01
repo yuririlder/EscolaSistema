@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Mensalidade, StatusMensalidade } from '../../../types';
 import { financeiroService } from '../../../services/financeiroService';
 import { escolaService } from '../../../services/escolaService';
-import { gerarReciboMensalidadePDF } from '../../../utils/pdfGenerator';
+import { gerarReciboMensalidadePDF } from '../../../pdf';
 import { formatCurrencyInput, currencyToNumber, formatPercentInput, formatCurrency } from '../../../utils/masks';
 import toast from 'react-hot-toast';
 
