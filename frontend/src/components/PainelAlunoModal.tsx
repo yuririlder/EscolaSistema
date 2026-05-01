@@ -9,7 +9,7 @@ import { financeiroService } from '../services/financeiroService';
 import { escolaService } from '../services/escolaService';
 import { Aluno, Mensalidade, Matricula, Responsavel, Turma } from '../types';
 import { formatPhone } from '../utils/masks';
-import { gerarFichaCompletaAlunoPDF, gerarTermoMatriculaPDF, gerarTermoTransferenciaPDF } from '../utils/pdfGenerator';
+import { gerarFichaCompletaAlunoPDF, gerarTermoMatriculaPDF, gerarTermoTransferenciaPDF } from '../pdf';
 import {
   User, Phone, FileText, DollarSign, BookOpen, GraduationCap,
   CheckCircle2, XCircle, Clock, Download, AlertTriangle, Camera, Pencil, Trash2, ExternalLink, FileCheck, Save,

@@ -5,3 +5,7 @@ export { Select } from './Select';
 export { Modal } from './Modal';
 export { Table } from './Table';
 export { Badge } from './Badge';
+export { LoadingSpinner } from './LoadingSpinner';
+export { SearchBar } from './SearchBar';
+export { MaskedInput } from './MaskedInput';
+export { Autocomplete } from './Autocomplete';
